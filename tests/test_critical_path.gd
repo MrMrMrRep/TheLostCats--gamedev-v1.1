@@ -13,6 +13,7 @@ const JUMP_HOLD_FRAMES := 20
 const STRETCHES := [
 	{"name": "room 1: spikes, rat pen walls", "start": 150.0, "jumps": [226.0, 366.0, 606.0], "end": 700.0},
 	{"name": "room 2: pit with island, electric catwalk", "start": 1300.0, "jumps": [1428.0, 1548.0, 1656.0], "end": 1830.0},
+	{"name": "room 3: under the keycard platform to the red door", "start": 2480.0, "jumps": [], "end": 2660.0},
 	{"name": "room 4: step, gap", "start": 3420.0, "jumps": [3556.0, 3722.0], "end": 3900.0},
 ]
 

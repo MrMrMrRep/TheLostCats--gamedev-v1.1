@@ -93,15 +93,20 @@ func _test_use_and_slots() -> void:
 
 
 func _test_follower_avoids_hazard() -> void:
-	# Spikes at x 240..264 in room 1: Geoff follows the papers but won't walk onto them.
+	# Spikes (1 tile, x 240..264) in room 1: Geoff hops them to follow the papers.
 	var joep = await _use(JOEP, Vector2(330, GY))
 	var geoff = band.members[GEOFF]
 	_place(geoff, Vector2(180, GY))
 	joep.add_item(load("res://resources/items/rolling_papers.tres"))
-	await _frames(90)
-	_check(band.following.get(geoff) == joep and geoff.global_position.x < 236.0,
-		"a following Geoff stops in front of the spikes (x %.0f)" % geoff.global_position.x)
-	_check(geoff.health.hp == 1, "... and doesn't get hurt")
+	await _frames(120)
+	_check(band.following.get(geoff) == joep and geoff.global_position.x > 268.0 and geoff.health.hp == 1,
+		"a following Geoff hops the 1-tile spikes unhurt (x %.0f)" % geoff.global_position.x)
+	# Electric floor (3 tiles, x 1704..1776): too wide for him, so he waits.
+	_place(joep, Vector2(1830, GY))
+	_place(geoff, Vector2(1640, GY))
+	await _frames(120)
+	_check(geoff.global_position.x < 1700.0 and geoff.health.hp == 1 and not geoff.is_dead,
+		"... but waits in front of the 3-tile electric floor (x %.0f)" % geoff.global_position.x)
 	joep.inventory.clear()
 	await _frames(2)
 

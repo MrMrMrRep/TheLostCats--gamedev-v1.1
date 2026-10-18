@@ -1,17 +1,20 @@
 class_name Band
 extends Node2D
-## The 5 band members. Owns switching (Tab/Q cycle, 1-5 direct), gather (G):
-## inactive members walk to the active one on flat ground and stop at walls,
-## ledges or when they arrive, and lures: a member follows whoever carries an
-## item that lures them (Geoff and the rolling papers), hopping small steps and
-## gaps. AI-walking members never step into an active hazard (spikes, electric).
-## Inactive members stay where they are otherwise.
+## The 5 band members. Owns switching (Tab/Q cycle, 1-5 direct), gather (hold
+## G: the others in the room walk to the active member and stop when G is
+## released) and lures: a member follows whoever carries an item that lures them
+## (Geoff and the rolling papers). AI-walking members hop walls, gaps and small
+## hazards they can clear with their own jump, walk down small drops, and wait
+## in front of anything too big or dangerous. Otherwise inactive members stay put.
 
 signal active_changed(member: BandMember, index: int)
 
+const TILE := 24.0
 const GATHER_SPACING := 14.0                # px between members when gathered
-const GATHER_TIMEOUT := 6.0
 const FOLLOW_DISTANCE := 20.0               # lured member stops this close
+const WALL_LOOKAHEAD := 8.0                 # px: start the hop a little before the wall
+const SAFE_DROP := 100.0                    # px: walk down drops up to ~4 tiles
+const REACH_MARGIN := 0.85                  # use 85% of the jump reach, to be safe
 
 @export var start_index := 0
 @export var spawn_spacing := 18.0           ## members start in a row from the Band's position
@@ -25,7 +28,8 @@ var gather_filter := func(_m: BandMember) -> bool: return true   # Level: same r
 var same_room := func(_a: BandMember, _b: BandMember) -> bool: return true  # Level sets it
 var following := {}                         # lured BandMember -> carrier BandMember
 
-var _gathering := {}                        # BandMember -> {"time": seconds left, "slot": px from leader}
+var _gathering := {}                        # BandMember -> slot distance (px) from the leader
+var _gather_held := false
 
 @onready var camera: BandCamera = $Camera
 
@@ -38,7 +42,7 @@ func _ready() -> void:
 	switch_to(start_index, true)
 
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if locked:
 		return
 	if Input.is_action_just_pressed("switch_next"):
@@ -48,9 +52,14 @@ func _physics_process(delta: float) -> void:
 	for i in members.size():
 		if Input.is_action_just_pressed("select_%d" % (i + 1)):
 			switch_to(i)
-	if Input.is_action_just_pressed("gather"):
-		gather()
-	_update_gather(delta)
+	var held := Input.is_action_pressed("gather")
+	if held and not _gather_held:
+		start_gather()
+	elif not held and _gather_held:
+		stop_gather()
+	_gather_held = held
+	for m: BandMember in _gathering.keys():
+		walk_towards(m, active.global_position.x, _gathering[m])
 	_update_lures()
 
 
@@ -62,10 +71,11 @@ func switch_to(index: int, instant := false) -> void:
 		active.set_active(false)
 	active_index = index
 	active = members[index]
-	_gathering.erase(active)
 	active.set_active(true)
 	camera.follow(active, instant)
 	Game.switch_member(index)
+	if _gather_held:
+		start_gather()                      # keep gathering, now around the new leader
 	active_changed.emit(active, index)
 
 
@@ -86,34 +96,67 @@ func place_group(group: Array, pos: Vector2, hp: Array = [], grace := 0.0) -> vo
 		m.respawn(Vector2(start + i * spawn_spacing, pos.y), keep_hp, grace)
 
 
-## Call the others to the active member. Slots are fixed at the call, closest
-## member nearest the leader, so they line up instead of stacking.
-func gather() -> void:
-	var others := members.filter(func(m: BandMember) -> bool: return m != active and gather_filter.call(m))
+## Start calling the others (same room) to the active member. Slots are fixed
+## now, closest member nearest the leader, so they line up instead of stacking.
+func start_gather() -> void:
+	stop_gather()
+	var others := members.filter(func(m: BandMember) -> bool:
+		return m != active and not m.is_dead and gather_filter.call(m))
 	others.sort_custom(func(a: BandMember, b: BandMember) -> bool:
 		return absf(a.position.x - active.position.x) < absf(b.position.x - active.position.x))
 	for rank in others.size():
-		_gathering[others[rank]] = {"time": GATHER_TIMEOUT, "slot": GATHER_SPACING * (rank + 1)}
+		_gathering[others[rank]] = GATHER_SPACING * (rank + 1)
+
+
+## Everyone stops walking (G released).
+func stop_gather() -> void:
+	for m: BandMember in _gathering.keys():
+		m.ai_dir = 0.0
+	_gathering.clear()
 
 
 func is_gathering(member: BandMember) -> bool:
 	return _gathering.has(member)
 
 
-func _update_gather(delta: float) -> void:
-	for m: BandMember in _gathering.keys():
-		var state: Dictionary = _gathering[m]
-		state.time -= delta
-		var slot: float = state.slot
-		var dx := active.position.x - m.position.x
-		var dir := signf(dx)
-		var arrived := absf(dx) <= slot
-		var blocked := m.is_on_floor() and (_wall_ahead(m, dir) or _ledge_ahead(m, dir) or _hazard_ahead(m, dir))
-		if arrived or blocked or float(state.time) <= 0.0:
-			m.ai_dir = 0.0
-			_gathering.erase(m)
+## Steer `m` toward `target_x` like a careful player: hop walls, gaps and small
+## hazards within its own jump, walk down small drops, otherwise wait.
+## Returns true once within `stop_distance`.
+func walk_towards(m: BandMember, target_x: float, stop_distance: float) -> bool:
+	var dx := target_x - m.global_position.x
+	if absf(dx) <= stop_distance:
+		m.ai_dir = 0.0
+		return true
+	var dir := signf(dx)
+	m.ai_dir = dir
+	if not m.is_on_floor():
+		return false                        # keep going mid-jump
+	var reach := jump_reach(m)
+	if _hazard_near(m, m.global_position + Vector2(dir * 14.0, -4.0)):
+		if _safe_landing(m, dir, reach):
+			m.ai_jump()
 		else:
-			m.ai_dir = dir
+			m.ai_dir = 0.0
+	elif m.test_move(m.global_transform, Vector2(dir * WALL_LOOKAHEAD, 0)):
+		if _can_hop_wall(m, dir):
+			m.ai_jump()
+		else:
+			m.ai_dir = 0.0
+	elif _ledge_ahead(m, dir):
+		if m.test_move(m.global_transform.translated(Vector2(dir * 20.0, 0)), Vector2(0, SAFE_DROP)):
+			pass                            # just a drop: walk off it
+		elif _safe_landing(m, dir, reach):
+			m.ai_jump()
+		else:
+			m.ai_dir = 0.0
+	return false
+
+
+## How far this member gets with a running jump, in px (with a safety margin).
+func jump_reach(m: BandMember) -> float:
+	var p := m.profile
+	var airtime := p.time_to_apex * (1.0 + 1.0 / sqrt(p.fall_gravity_mult))
+	return p.run_speed() * airtime * REACH_MARGIN
 
 
 ## Members lured by an item walk after its carrier (same room, not active,
@@ -135,31 +178,7 @@ func _update_lures() -> void:
 			f.ai_dir = 0.0
 	following = now
 	for f: BandMember in following.keys():
-		_follow(f, following[f])
-
-
-func _follow(f: BandMember, target: BandMember) -> void:
-	var dx := target.global_position.x - f.global_position.x
-	if absf(dx) <= FOLLOW_DISTANCE:
-		f.ai_dir = 0.0
-		return
-	var dir := signf(dx)
-	f.ai_dir = dir
-	if not f.is_on_floor():
-		return
-	if _hazard_ahead(f, dir):
-		f.ai_dir = 0.0                      # wait: the carrier has to clear the way
-	elif _wall_ahead(f, dir):
-		if _can_hop_wall(f, dir):
-			f.ai_jump()
-		else:
-			f.ai_dir = 0.0
-	elif _ledge_ahead(f, dir):
-		# Hop a small gap if there's floor a short jump away; otherwise wait.
-		if f.test_move(f.global_transform.translated(Vector2(dir * 44.0, 0)), Vector2(0, 30)):
-			f.ai_jump()
-		else:
-			f.ai_dir = 0.0
+		walk_towards(f, following[f].global_position.x, FOLLOW_DISTANCE)
 
 
 func member_by_id(id: StringName) -> BandMember:
@@ -171,17 +190,27 @@ func member_by_id(id: StringName) -> BandMember:
 
 ## The wall ahead is lower than this member's jump.
 func _can_hop_wall(m: BandMember, dir: float) -> bool:
-	var h := m.profile.jump_height_tiles * 24.0 - 4.0
-	return not m.test_move(m.global_transform.translated(Vector2(0, -h)), Vector2(dir * 4.0, 0))
+	var h := m.profile.jump_height_tiles * TILE - 4.0
+	return not m.test_move(m.global_transform.translated(Vector2(0, -h)), Vector2(dir * WALL_LOOKAHEAD, 0))
 
 
-## An enabled Hazard right in front of the member's feet.
-func _hazard_ahead(m: BandMember, dir: float) -> bool:
+## Floor (and no hazard) where a jump of `dist` px would land.
+func _safe_landing(m: BandMember, dir: float, dist: float) -> bool:
+	var landing := m.global_transform.translated(Vector2(dir * dist, -2.0))
+	if m.test_move(landing, Vector2.ZERO):
+		return false                        # inside a wall there
+	if not m.test_move(landing, Vector2(0, 30)):
+		return false                        # no floor there
+	return not _hazard_near(m, m.global_position + Vector2(dir * dist, -4.0))
+
+
+## An enabled Hazard overlapping a small box at `point`.
+func _hazard_near(m: BandMember, point: Vector2) -> bool:
 	var shape := RectangleShape2D.new()
 	shape.size = Vector2(10, 10)
 	var q := PhysicsShapeQueryParameters2D.new()
 	q.shape = shape
-	q.transform = Transform2D(0.0, m.global_position + Vector2(dir * 14.0, -4.0))
+	q.transform = Transform2D(0.0, point)
 	q.collision_mask = 1 << 4               # hazard layer
 	q.collide_with_areas = true
 	q.collide_with_bodies = false
@@ -191,11 +220,6 @@ func _hazard_ahead(m: BandMember, dir: float) -> bool:
 	return false
 
 
-func _wall_ahead(m: BandMember, dir: float) -> bool:
-	return m.test_move(m.global_transform, Vector2(dir * 2.0, 0))
-
-
-## No floor under the body one body-width (+ braking distance) ahead: stop on
-## solid ground instead of walking into a pit.
+## No floor under the body one body-width (+ braking distance) ahead.
 func _ledge_ahead(m: BandMember, dir: float) -> bool:
 	return not m.test_move(m.global_transform.translated(Vector2(dir * 20.0, 0)), Vector2(0, 12))

@@ -80,7 +80,7 @@ Each milestone ends with a **playtest in the running game** (not just "the code 
 - [x] `BandMember` scene (`scenes/characters/band_member.tscn`) = shared controller + profile + stamina + health (`HealthComponent`). Ability node → M6, inventory → M7
 - [x] `Band` scene with 5 members (Joep, Jay, Nikki, The Germ, Geoff), tinted `char_blue`, gold name tag above the active member
 - [x] Switch: Tab/Q cycle (wraps), 1–5 direct. Inactive members idle in place, `BandCamera` blends to the new member in 0.25 s
-- [x] Gather (G): inactive members walk to the leader in a fixed row, stop at walls and pit edges (on solid ground) or after 6 s
+- [x] Gather (**hold G**, changed after M7 playtest): the others in the room walk to the leader in a fixed row while G is held and stop when it's released. They **hop walls, gaps and 1-tile hazards their own jump can clear**, walk down small drops, and wait in front of anything too tall, too wide or deadly (e.g. Geoff and The Germ wait at a 2-tile wall; nobody jumps into the 7-tile pit or onto the electric floor)
 - [x] HUD: 5 member cards with portrait, key number, HP pips (Geoff 1), stamina bar under the HP (only when below max), 3 item slots (empty until M7). Active card highlighted
 - [x] Both dev rooms use the Band (`scripts/levels/dev_room.gd`). The headless tests check how many checks ran, so a crashed check can't look like a pass
 - [x] Headless test `tests/test_band.gd` (20 checks)
@@ -125,7 +125,8 @@ Not in M6: quiet/stealth part of Joep's beer (nothing listens yet), whiskey/join
 - [x] `ItemPickup` in rooms (first member with a free slot takes it, "+Beer" float text). **R** uses the current item, **T** next slot, **V** drops (the dropper can't re-grab it for 1 s), **B** still quick-drinks a beer. The Germ drinks with R
 - [x] **F** gives the current item to the nearest member within 1 tile
 - [x] Keycards: E at a locked door uses the matching card from your inventory, unlocks the door and goes through (prompt "E use keycard"). Opened with a key, the door stays open after a death (no soft-lock)
-- [x] Rolling papers: Geoff follows whoever carries them (same room). He hops 1-tile steps and gaps, waits at bigger drops and **never walks into an active hazard** (gather obeys that too), and comes along through a door with the carrier ("E Joep + Geoff")
+- [x] Rolling papers: Geoff follows whoever carries them (same room) with the same walking AI as gather (hops what he can clear, e.g. the 1-tile spikes, waits at the 3-tile electric floor), and comes along through a door with the carrier ("E Joep + Geoff")
+- [x] Fixed after playtest: the room 3 keycard sat on a solid 3-tile block **in the walking path** (Jay, The Germ and Geoff couldn't reach the red door). It's now on a floating one-way platform you walk under; the critical-path test covers room 3
 - [x] Test level: beer in room 1, keycard on a 3-tile ledge in room 3, red door → new room 4 "Backstage" (papers, step, gap, beer, exit). Main scene = `scenes/levels/level_test.tscn`
 - [x] Headless test `tests/test_items.gd` (23 checks); critical-path test now also covers room 4
 - [x] **Done when:** keycard and beer can be handed over, and Geoff follows the papers through a room ✅
@@ -188,7 +189,7 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 | Use item | R | Right trigger |
 | Next item slot | T | Right stick click |
 | Drop item | V | Left stick click |
-| Gather band | G | Back |
+| Gather band (hold) | G (hold) | Back (hold) |
 | Previous / next member | Q / Tab (wraps around) | LB / RB |
 | Select member | 1–5 | — |
 | Pause | Esc / P | Start |

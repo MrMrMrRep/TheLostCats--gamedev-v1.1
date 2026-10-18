@@ -10,7 +10,7 @@ const ACTIONS := ["move_left", "move_right", "move_down", "jump", "switch_next",
 
 var failures := 0
 var checks := 0
-const EXPECTED_CHECKS := 20          # a crashed check must not look like a pass
+const EXPECTED_CHECKS := 24          # a crashed check must not look like a pass
 
 
 func _initialize() -> void:
@@ -32,6 +32,11 @@ func _run() -> void:
 	room = _load_room("res://scenes/dev/movement_test.tscn")
 	await _frames(10)
 	await _test_gather_ledge(room.get_node("Band"))
+	room.queue_free()
+
+	room = _load_room("res://scenes/levels/abilities_test.tscn")
+	await _frames(10)
+	await _test_gather_deadly_pit(room)
 
 	if checks != EXPECTED_CHECKS:
 		print("  FAIL ran %d of %d checks (script error?)" % [checks, EXPECTED_CHECKS])
@@ -111,42 +116,89 @@ func _test_gather_arrive(band) -> void:
 	_spread(band, 40.0)
 	band.members[0].global_position = Vector2(300, 144)
 	await _frames(5)
-	await _tap("gather")
+	Input.action_press("gather")
 	await _frames(180)
 	var xs: Array = band.members.slice(1).map(func(m): return m.global_position.x)
 	var near: bool = xs.all(func(x): return x > 300.0 - 14.0 * 4 - 8.0 and x <= 300.0)
-	_check(near, "gather: everyone comes to Joep %s" % [xs.map(func(x): return int(x))])
+	_check(near, "hold G: everyone comes to Joep %s" % [xs.map(func(x): return int(x))])
 	var sorted_xs := xs.duplicate()
 	sorted_xs.sort()
 	var spaced := true
 	for i in sorted_xs.size() - 1:
 		spaced = spaced and sorted_xs[i + 1] - sorted_xs[i] > 8.0
 	_check(spaced, "gather: they line up in a row instead of stacking")
-	_check(band.members.all(func(m): return not band.is_gathering(m) and m.ai_dir == 0.0), "gather: everyone stopped")
+	Input.action_release("gather")
+	await _frames(2)
+	_check(band.members.all(func(m): return not band.is_gathering(m) and m.ai_dir == 0.0), "release G: everyone stops")
+	# Let go halfway: they stop where they are.
+	_spread(band, 40.0)
+	band.members[0].global_position = Vector2(320, 144)
+	await _frames(5)
+	Input.action_press("gather")
+	await _frames(25)
+	Input.action_release("gather")
+	await _frames(8)
+	var mid: Array = band.members.slice(1).map(func(m): return m.global_position.x)
+	await _frames(30)
+	var later: Array = band.members.slice(1).map(func(m): return m.global_position.x)
+	_check(mid == later and mid.any(func(x): return x < 250.0), "release G halfway: they stop where they are")
 
 
 func _test_gather_wall(band) -> void:
-	# The 1-tile step at x 336..360 blocks the walk to x 420.
+	# 1-tile step at x 336..360: everyone hops it.
 	_spread(band, 40.0)
 	band.members[0].global_position = Vector2(420, 144)
 	await _frames(5)
-	await _tap("gather")
-	await _frames(240)
+	Input.action_press("gather")
+	await _frames(300)
+	Input.action_release("gather")
 	var xs: Array = band.members.slice(1).map(func(m): return m.global_position.x)
-	_check(xs.all(func(x): return x < 336.0), "gather: a wall stops them %s" % [xs.map(func(x): return int(x))])
-	_check(band.members.all(func(m): return m.ai_dir == 0.0), "gather: blocked members give up instead of walking into the wall")
+	_check(xs.all(func(x): return x > 360.0), "gather: everyone hops the 1-tile step %s" % [xs.map(func(x): return int(x))])
+	# 2-tile block at x 480..528: Jay / Nikki get over, The Germ and Geoff (1.3 tiles) wait.
+	for i in band.members.size():
+		band.members[i].global_position = Vector2(600 if i == 0 else 380 + i * 18, 144)
+		band.members[i].velocity = Vector2.ZERO
+	await _frames(5)
+	Input.action_press("gather")
+	await _frames(300)
+	var over: Array = [band.members[1], band.members[2]].map(func(m): return m.global_position.x)
+	var short: Array = [band.members[3], band.members[4]]
+	_check(over.all(func(x): return x > 528.0), "gather: Jay and Nikki jump the 2-tile block %s" % [over.map(func(x): return int(x))])
+	_check(short.all(func(m): return m.global_position.x < 480.0 and m.ai_dir == 0.0),
+		"gather: The Germ and Geoff wait in front of it instead of running into it")
+	Input.action_release("gather")
+	await _frames(2)
 
 
 func _test_gather_ledge(band) -> void:
-	# Pit at x 672..696 (movement test room); leader stands beyond it.
+	# Movement test room: a 1-tile gap with floor 1 tile down at x 672..696.
 	for i in band.members.size():
-		band.members[i].global_position = Vector2(720 if i == 0 else 590 + i * 10, 288)
+		band.members[i].global_position = Vector2(800 if i == 0 else 590 + i * 10, 288)
 	await _frames(5)
-	await _tap("gather")
-	await _frames(180)
+	Input.action_press("gather")
+	await _frames(240)
+	Input.action_release("gather")
 	var ms: Array = band.members.slice(1)
-	_check(ms.all(func(m): return m.global_position.x <= 666.0 and m.global_position.y < 289.0),
-		"gather: members stop fully on solid ground before the pit %s" % [ms.map(func(m): return int(m.global_position.x))])
+	_check(ms.all(func(m): return m.global_position.x > 696.0 and not m.is_dead),
+		"gather: they cross the shallow trench %s" % [ms.map(func(m): return int(m.global_position.x))])
+
+
+func _test_gather_deadly_pit(room) -> void:
+	# Abilities level: a 7-tile pit (x 1128..1296) with no floor; start between
+	# the electric floor (ends x 1056) and the pit.
+	var band = room.get_node("Band")
+	var deaths := [0]
+	room.member_died.connect(func(_m, _c): deaths[0] += 1)
+	for i in band.members.size():
+		band.members[i].global_position = Vector2(1320 if i == 0 else 1070 + i * 12, 288)
+		band.members[i].velocity = Vector2.ZERO
+	await _frames(5)
+	Input.action_press("gather")
+	await _frames(200)
+	Input.action_release("gather")
+	var ms: Array = band.members.slice(1)
+	_check(ms.all(func(m): return m.global_position.x < 1128.0), "gather: they wait at the edge of a deadly pit")
+	_check(deaths[0] == 0, "gather: nobody jumps to their death")
 
 
 # --- Helpers ---------------------------------------------------------------
