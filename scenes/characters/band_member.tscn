@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://ctgmj7fjn0in0"]
+
+[ext_resource type="Script" uid="uid://o5rgw0kkegwi" path="res://scripts/characters/band_member.gd" id="1_dwr24"]
+[ext_resource type="Resource" uid="uid://cdhspdnnhgabs" path="res://resources/profiles/joep.tres" id="2_w8jvo"]
+[ext_resource type="Resource" uid="uid://dutj0esiiqpsy" path="res://resources/config/stamina_config.tres" id="3_ye6le"]
+[ext_resource type="SpriteFrames" uid="uid://5oh11rlg1ovv" path="res://resources/sprites/char_blue_frames.tres" id="4_k7evx"]
+[ext_resource type="Script" uid="uid://tf2dofabraxb" path="res://scripts/components/stamina_component.gd" id="5_r70ep"]
+[ext_resource type="Script" uid="uid://bv1clhff1y322" path="res://scripts/components/health_component.gd" id="6_2n2oh"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_dwr24"]
+size = Vector2(12, 28)
+
+[node name="BandMember" type="CharacterBody2D" unique_id=1552008963]
+collision_layer = 4
+collision_mask = 3
+floor_snap_length = 4.0
+script = ExtResource("1_dwr24")
+profile = ExtResource("2_w8jvo")
+stamina_config = ExtResource("3_ye6le")
+
+[node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=578340602]
+sprite_frames = ExtResource("4_k7evx")
+animation = &"idle"
+autoplay = "idle"
+offset = Vector2(0, -28)
+
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=777409116]
+position = Vector2(0, -14)
+shape = SubResource("RectangleShape2D_dwr24")
+
+[node name="Stamina" type="Node" parent="." unique_id=1469347220]
+script = ExtResource("5_r70ep")
+
+[node name="Health" type="Node" parent="." unique_id=195853424]
+script = ExtResource("6_2n2oh")
+
+[node name="NameTag" type="Label" parent="." unique_id=1817646443]
+offset_left = -20.0
+offset_top = -44.0
+offset_right = 60.0
+offset_bottom = -21.0
+scale = Vector2(0.5, 0.5)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "Joep"
+horizontal_alignment = 1

@@ -1,11 +1,24 @@
 extends CanvasLayer
-## In-game HUD (M3: active member name + stamina bar).
-## M4 adds portraits and HP pips above the stamina bar.
+## In-game HUD: one MemberCard per band member, active one highlighted.
 
-@onready var name_label: Label = %NameLabel
-@onready var stamina_bar: StaminaBar = %StaminaBar
+var _cards: Array[MemberCard] = []
+
+@onready var cards_box: HBoxContainer = %Cards
 
 
-func bind_player(player: Player) -> void:
-	name_label.text = player.profile.display_name if player.profile else ""
-	stamina_bar.bind(player.stamina)
+func bind_band(band: Band) -> void:
+	for card in _cards:
+		card.queue_free()
+	_cards.clear()
+	for i in band.members.size():
+		var card := MemberCard.new()
+		cards_box.add_child(card)
+		card.bind(band.members[i], i)
+		_cards.append(card)
+	band.active_changed.connect(_on_active_changed)
+	_on_active_changed(band.active, band.active_index)
+
+
+func _on_active_changed(_member: BandMember, index: int) -> void:
+	for i in _cards.size():
+		_cards[i].set_active(i == index)

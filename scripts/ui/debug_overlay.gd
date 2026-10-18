@@ -1,7 +1,7 @@
 extends CanvasLayer
 ## F3 debug overlay: live movement and stamina state of the bound player.
 
-var player: Player
+var player: BandMember
 
 @onready var label: Label = $Label
 

@@ -4,6 +4,8 @@ extends SceneTree
 
 const TILE := 24.0
 var failures := 0
+var checks := 0
+const EXPECTED_CHECKS := 13          # a crashed check must not look like a pass
 
 
 func _initialize() -> void:
@@ -13,10 +15,10 @@ func _initialize() -> void:
 func _run() -> void:
 	var level: Node = load("res://scenes/dev/baseline.tscn").instantiate()
 	root.add_child(level)
-	var player: CharacterBody2D = level.get_node("Player")
-	var sprite: AnimatedSprite2D = player.get_node("Sprite")
 	await _frames(10)
-	var ground_y := player.position.y
+	var player: BandMember = level.get_node("Band").active
+	var sprite: AnimatedSprite2D = player.get_node("Sprite")
+	var ground_y := player.global_position.y
 	_check(player.is_on_floor(), "starts on the floor")
 	_check(sprite.animation == &"idle", "idle animation at rest (got %s)" % sprite.animation)
 
@@ -30,8 +32,8 @@ func _run() -> void:
 		await physics_frame
 		t += 1.0 / 60.0
 		seen[sprite.animation] = true
-		if player.position.y < peak:
-			peak = player.position.y
+		if player.global_position.y < peak:
+			peak = player.global_position.y
 			apex_time = t
 		if player.is_on_floor() and t > 0.1:
 			break
@@ -58,7 +60,7 @@ func _run() -> void:
 	_check(sprite.animation == &"run", "run animation while running")
 	_check(not sprite.flip_h, "faces right")
 	await _frames(60)
-	_check(player.position.x < 14 * TILE, "1-tile step blocks running (x=%.1f)" % player.position.x)
+	_check(player.global_position.x < 14 * TILE, "1-tile step blocks running (x=%.1f)" % player.global_position.x)
 	Input.action_release("move_right")
 
 	# --- Turn left: sprite flips, stops in decel time.
@@ -73,14 +75,17 @@ func _run() -> void:
 	Input.action_press("move_right")
 	Input.action_press("jump")
 	var guard := 0
-	while player.position.x < 340.0 and guard < 120:
+	while player.global_position.x < 340.0 and guard < 120:
 		await physics_frame
 		guard += 1
 	Input.action_release("move_right")
 	Input.action_release("jump")
 	await _frames(40)
-	_check(player.is_on_floor() and player.position.y < ground_y - TILE + 1.0, "jumped onto the 1-tile step (y=%.1f)" % player.position.y)
+	_check(player.is_on_floor() and player.global_position.y < ground_y - TILE + 1.0, "jumped onto the 1-tile step (y=%.1f)" % player.global_position.y)
 
+	if checks != EXPECTED_CHECKS:
+		print("  FAIL ran %d of %d checks (script error?)" % [checks, EXPECTED_CHECKS])
+		failures += 1
 	print("FAILURES: %d" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -91,6 +96,7 @@ func _frames(n: int) -> void:
 
 
 func _check(ok: bool, label: String) -> void:
+	checks += 1
 	print(("  ok   " if ok else "  FAIL ") + label)
 	if not ok:
 		failures += 1

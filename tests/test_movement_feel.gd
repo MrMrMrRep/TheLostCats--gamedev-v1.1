@@ -7,7 +7,9 @@ const GROUND_Y := 288.0                     # movement_test.tscn ground surface
 const ACTIONS := ["move_left", "move_right", "move_down", "jump"]
 
 var failures := 0
-var player: Player
+var checks := 0
+const EXPECTED_CHECKS := 26          # a crashed check must not look like a pass
+var player: BandMember
 var profiles := {}
 
 
@@ -18,7 +20,8 @@ func _initialize() -> void:
 func _run() -> void:
 	var room: Node = load("res://scenes/dev/movement_test.tscn").instantiate()
 	root.add_child(room)
-	player = room.get_node("Player")
+	await physics_frame
+	player = room.get_node("Band").active
 	for id in ["joep", "jay", "nikki", "germ", "geoff"]:
 		profiles[id] = load("res://resources/profiles/%s.tres" % id)
 	await _frames(5)
@@ -33,6 +36,9 @@ func _run() -> void:
 	await _test_gating()
 	await _test_stamina()
 
+	if checks != EXPECTED_CHECKS:
+		print("  FAIL ran %d of %d checks (script error?)" % [checks, EXPECTED_CHECKS])
+		failures += 1
 	print("FAILURES: %d" % failures)
 	quit(1 if failures > 0 else 0)
 
@@ -81,7 +87,7 @@ func _test_jump_buffer() -> void:
 	for early in [5, 12]:
 		await _reset(Vector2(72, 100), profiles.joep)
 		var guard := 0
-		while GROUND_Y - player.position.y > player.velocity.y / 60.0 * early and guard < 200:
+		while GROUND_Y - player.global_position.y > player.velocity.y / 60.0 * early and guard < 200:
 			await physics_frame
 			guard += 1
 		Input.action_press("jump")          # held through the landing, like a player would
@@ -112,14 +118,14 @@ func _test_one_way() -> void:
 	# One-way platform x 1488..1560, top y=240.
 	await _reset(Vector2(1524, GROUND_Y), profiles.joep)
 	await _jump_and_settle()
-	_check(absf(player.position.y - 240.0) < 1.0 and player.is_on_floor(), "jumps up through a one-way platform and lands on it")
+	_check(absf(player.global_position.y - 240.0) < 1.0 and player.is_on_floor(), "jumps up through a one-way platform and lands on it")
 	Input.action_press("move_down")
 	Input.action_press("jump")
 	await physics_frame
 	Input.action_release("jump")
 	await _frames(40)
 	Input.action_release("move_down")
-	_check(player.position.y > GROUND_Y - 1.0, "down + jump drops through (y=%.0f)" % player.position.y)
+	_check(player.global_position.y > GROUND_Y - 1.0, "down + jump drops through (y=%.0f)" % player.global_position.y)
 
 
 func _test_fast_fall() -> void:
@@ -143,7 +149,7 @@ func _test_gating() -> void:
 		var on_top := false
 		for i in 45:
 			await physics_frame
-			if player.is_on_floor() and player.position.y < GROUND_Y - 2 * TILE + 1.0:
+			if player.is_on_floor() and player.global_position.y < GROUND_Y - 2 * TILE + 1.0:
 				on_top = true
 		_release_all()
 		if id == "jay":
@@ -190,7 +196,7 @@ func _test_stamina() -> void:
 func _reset(pos: Vector2, profile: MovementProfile) -> void:
 	_release_all()
 	player.profile = profile
-	player.position = pos
+	player.global_position = pos
 	player.velocity = Vector2.ZERO
 	await _frames(3)
 	if pos.y >= 0.0 and pos.y <= GROUND_Y:
@@ -202,7 +208,7 @@ func _reset(pos: Vector2, profile: MovementProfile) -> void:
 
 ## Jump in place; hold_frames < 0 holds jump until landing. Returns height in tiles.
 func _measure_jump(hold_frames: int) -> float:
-	var start := player.position.y
+	var start := player.global_position.y
 	var peak := start
 	Input.action_press("jump")
 	var t := 0
@@ -211,7 +217,7 @@ func _measure_jump(hold_frames: int) -> float:
 		t += 1
 		if hold_frames >= 0 and t == hold_frames:
 			Input.action_release("jump")
-		peak = minf(peak, player.position.y)
+		peak = minf(peak, player.global_position.y)
 		if t > 3 and player.is_on_floor():
 			break
 	Input.action_release("jump")
@@ -236,6 +242,7 @@ func _frames(n: int) -> void:
 
 
 func _check(ok: bool, label: String) -> void:
+	checks += 1
 	print(("  ok   " if ok else "  FAIL ") + label)
 	if not ok:
 		failures += 1

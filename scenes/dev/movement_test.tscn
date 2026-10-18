@@ -1,20 +1,13 @@
 [gd_scene format=4 uid="uid://bcfjrdeabddqj"]
 
-[ext_resource type="Script" uid="uid://bpxtymxmwm3x5" path="res://scripts/levels/movement_test_room.gd" id="1_223c4"]
-[ext_resource type="Script" uid="uid://hsujlvahca0" path="res://scripts/resources/movement_profile.gd" id="2_tqsfl"]
-[ext_resource type="Resource" uid="uid://cdhspdnnhgabs" path="res://resources/profiles/joep.tres" id="3_7u3dl"]
-[ext_resource type="Resource" uid="uid://dcv8m6lxr1vtq" path="res://resources/profiles/jay.tres" id="4_32u8b"]
-[ext_resource type="Resource" uid="uid://dmyidyyoyyurq" path="res://resources/profiles/nikki.tres" id="5_kts7h"]
-[ext_resource type="Resource" uid="uid://b80a4rxjuhmvi" path="res://resources/profiles/germ.tres" id="6_dqlu5"]
-[ext_resource type="Resource" uid="uid://dvuftjhbuv6ts" path="res://resources/profiles/geoff.tres" id="7_l1ryv"]
+[ext_resource type="Script" uid="uid://27ajbyltb1ba" path="res://scripts/levels/dev_room.gd" id="1_223c4"]
+[ext_resource type="PackedScene" uid="uid://5kg36m4l2u54" path="res://scenes/characters/band.tscn" id="7_8y6uw"]
 [ext_resource type="Texture2D" uid="uid://bx514ox8l2c01" path="res://public/assets/amwoods/background/background_layer_1.png" id="8_10w18"]
+[ext_resource type="Script" uid="uid://b8dp2br6re13s" path="res://scripts/characters/band.gd" id="8_etcap"]
 [ext_resource type="Script" uid="uid://cxkrjii2e3jnk" path="res://scripts/levels/parallax_background.gd" id="8_tqsfl"]
 [ext_resource type="Texture2D" uid="uid://cgbbdpda26svu" path="res://public/assets/amwoods/background/background_layer_2.png" id="9_800i1"]
 [ext_resource type="Texture2D" uid="uid://c73dex62yigsd" path="res://public/assets/amwoods/background/background_layer_3.png" id="10_4nsjy"]
 [ext_resource type="TileSet" uid="uid://q6tppnguf7t6" path="res://resources/tiles/amwoods_tileset.tres" id="11_d7unt"]
-[ext_resource type="PackedScene" uid="uid://chnywh4p28hkf" path="res://scenes/characters/player.tscn" id="12_wbwvm"]
-[ext_resource type="Script" uid="uid://o5rgw0kkegwi" path="res://scripts/characters/player.gd" id="13_ua5be"]
-[ext_resource type="Resource" uid="uid://dutj0esiiqpsy" path="res://resources/config/stamina_config.tres" id="14_0m0jf"]
 [ext_resource type="PackedScene" uid="uid://716uph60xpmh" path="res://scenes/ui/hud.tscn" id="15_4g2t7"]
 [ext_resource type="Script" uid="uid://4dlfjoixdw3s" path="res://scripts/ui/hud.gd" id="16_6oi7r"]
 [ext_resource type="PackedScene" uid="uid://1hjoq3evq167" path="res://scenes/ui/debug_overlay.tscn" id="17_b7ebu"]
@@ -22,7 +15,6 @@
 
 [node name="MovementTest" type="Node2D" unique_id=1768130703]
 script = ExtResource("1_223c4")
-profiles = Array[ExtResource("2_tqsfl")]([ExtResource("3_7u3dl"), ExtResource("4_32u8b"), ExtResource("5_kts7h"), ExtResource("6_dqlu5"), ExtResource("7_l1ryv")])
 bounds = Rect2i(0, 0, 1920, 360)
 
 [node name="Background" type="Node2D" parent="." unique_id=547530758]
@@ -63,13 +55,13 @@ tile_set = ExtResource("11_d7unt")
 
 [node name="@Label@39209" type="Label" parent="Labels" unique_id=906551333]
 offset_left = 30.0
-offset_top = 200.0
-offset_right = 30.0
-offset_bottom = 200.0
+offset_top = 214.0
+offset_right = 31.0
+offset_bottom = 237.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "1-5 switch member feel   F3 debug   hold F4 drain stamina"
+text = "1-5 / Tab / Q switch member   G gather   F3 debug   hold F4 drain stamina"
 
 [node name="@Label@39210" type="Label" parent="Labels" unique_id=903490130]
 offset_left = 198.0
@@ -151,16 +143,11 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
 text = "3-tile ledge"
 
-[node name="Player" type="CharacterBody2D" parent="." unique_id=1144606452 instance=ExtResource("12_wbwvm")]
-position = Vector2(72, 288)
-collision_layer = 4
-collision_mask = 3
-floor_snap_length = 4.0
-script = ExtResource("13_ua5be")
-profile = ExtResource("3_7u3dl")
-stamina_config = ExtResource("14_0m0jf")
+[node name="Band" type="Node2D" parent="." unique_id=1097071013 instance=ExtResource("7_8y6uw")]
+position = Vector2(48, 288)
+script = ExtResource("8_etcap")
 
-[node name="HUD" type="CanvasLayer" parent="." unique_id=436173239 instance=ExtResource("15_4g2t7")]
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1866626290 instance=ExtResource("15_4g2t7")]
 script = ExtResource("16_6oi7r")
 
 [node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=34814218 instance=ExtResource("17_b7ebu")]

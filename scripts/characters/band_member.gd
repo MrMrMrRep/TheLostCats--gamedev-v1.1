@@ -1,9 +1,11 @@
-class_name Player
+class_name BandMember
 extends CharacterBody2D
-## Celeste-style platformer controller (M3). All feel numbers come from the
-## MovementProfile: run accel/decel, derived gravity, fall multiplier, apex hang,
-## coyote time, jump buffer, variable jump cut, corner and ledge correction,
-## fast fall and drop-through on one-way platforms (down + jump).
+## One band member: Celeste-style platformer controller plus health and stamina.
+## All feel numbers come from the MovementProfile: run accel/decel, derived
+## gravity, fall multiplier, apex hang, coyote time, jump buffer, variable jump
+## cut, corner and ledge correction, fast fall and drop-through on one-way
+## platforms (down + jump). Only the active member reads player input; the Band
+## steers inactive members through `ai_dir` (gather).
 
 signal jumped
 signal landed(fall_speed: float)
@@ -16,7 +18,8 @@ const DROP_THROUGH_TIME := 0.2
 @export var stamina_config: StaminaConfig
 
 var facing := 1.0
-var input_enabled := true
+var is_active := false
+var ai_dir := 0.0                           # horizontal input while inactive (-1..1)
 
 var coyote_left: float:
 	get:
@@ -36,6 +39,8 @@ var _anim_lock := false                     # true while a one-shot (jump_start,
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var stamina: StaminaComponent = $Stamina
+@onready var health: HealthComponent = $Health
+@onready var name_tag: Label = $NameTag
 
 
 func _ready() -> void:
@@ -56,17 +61,36 @@ func _apply_profile() -> void:
 	_jump_velocity = profile.jump_velocity()
 	sprite.modulate = profile.tint
 	stamina.settings = stamina_config.for_member(profile.id) if stamina_config else null
+	health.set_max_hp(profile.max_hp)
+	name_tag.text = profile.display_name
+	_update_name_tag()
+
+
+func set_active(value: bool) -> void:
+	is_active = value
+	ai_dir = 0.0
+	if not is_active:
+		_buffer = 0.0
+		_jump_held = false
+	_update_name_tag()
+
+
+## Only the active member shows a name tag; gathered tags would overlap.
+func _update_name_tag() -> void:
+	if is_node_ready():
+		name_tag.visible = is_active
+		name_tag.modulate = Color("ffd36b")
 
 
 func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
-	var dir := Input.get_axis("move_left", "move_right") if input_enabled else 0.0
-	var down := input_enabled and Input.is_action_pressed("move_down")
-	var jump_down := input_enabled and Input.is_action_pressed("jump")
+	var dir := Input.get_axis("move_left", "move_right") if is_active else clampf(ai_dir, -1.0, 1.0)
+	var down := is_active and Input.is_action_pressed("move_down")
+	var jump_down := is_active and Input.is_action_pressed("jump")
 
 	# Forgiveness timers.
 	_coyote = profile.coyote_time if on_floor else maxf(_coyote - delta, 0.0)
-	if input_enabled and Input.is_action_just_pressed("jump"):
+	if is_active and Input.is_action_just_pressed("jump"):
 		_buffer = profile.jump_buffer
 	else:
 		_buffer = maxf(_buffer - delta, 0.0)

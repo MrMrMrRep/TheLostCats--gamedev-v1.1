@@ -77,12 +77,14 @@ Each milestone ends with a **playtest in the running game** (not just "the code 
 - [x] **Done when:** a test room with 1–4 tile gaps and ledges feels tight. Short hop vs. full jump is clearly different, and edge jumps and early presses always work ✅ (tests pass; your hands-on feel check is still open)
 
 ### M4 — Band / party system
-- [ ] `BandMember` scene = shared controller + profile + ability node + stamina + health + inventory
-- [ ] 5 instances with tinted `char_blue` (Joep, Jay, Nikki, The Germ, Geoff), name label above head
-- [ ] Switch: Tab/Q/E cycle, 1–5 direct. Inactive members idle in place, camera tween 0.25 s
-- [ ] Gather: inactive members walk to the leader (simple follow, only when reachable on flat ground)
-- [ ] HUD: 5 portraits (placeholder) with HP pips, active one highlighted, stamina bar under the active HP (only visible when < max or just changed), 3 item slots
-- [ ] **Done when:** you can play all 5, and you can see the different speeds and jump heights
+- [x] `BandMember` scene (`scenes/characters/band_member.tscn`) = shared controller + profile + stamina + health (`HealthComponent`). Ability node → M6, inventory → M7
+- [x] `Band` scene with 5 members (Joep, Jay, Nikki, The Germ, Geoff), tinted `char_blue`, gold name tag above the active member
+- [x] Switch: Tab/Q cycle (wraps), 1–5 direct. Inactive members idle in place, `BandCamera` blends to the new member in 0.25 s
+- [x] Gather (G): inactive members walk to the leader in a fixed row, stop at walls and pit edges (on solid ground) or after 6 s
+- [x] HUD: 5 member cards with portrait, key number, HP pips (Geoff 1), stamina bar under the HP (only when below max), 3 item slots (empty until M7). Active card highlighted
+- [x] Both dev rooms use the Band (`scripts/levels/dev_room.gd`). The headless tests check how many checks ran, so a crashed check can't look like a pass
+- [x] Headless test `tests/test_band.gd` (20 checks)
+- [x] **Done when:** you can play all 5 and see the different speeds and jump heights ✅ (tests pass; your hands-on check is still open)
 
 ### M5 — Level framework
 - [ ] `Room` scene: bounds (camera limits), spawn points per member, `Checkpoint`
@@ -167,7 +169,7 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 | Interact / talk | E | B |
 | Give item | F | Left trigger |
 | Gather band | G | Back |
-| Previous / next member | Q / Tab | LB / RB |
+| Previous / next member | Q / Tab (wraps around) | LB / RB |
 | Select member | 1–5 | — |
 | Pause | Esc / P | Start |
 | Debug overlay | F3 | — |
@@ -180,4 +182,8 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 
 ```bash
 /Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_movement_feel.gd
+```
+
+```bash
+/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_band.gd
 ```

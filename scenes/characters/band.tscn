@@ -1,0 +1,61 @@
+[gd_scene format=3 uid="uid://5kg36m4l2u54"]
+
+[ext_resource type="Script" uid="uid://b8dp2br6re13s" path="res://scripts/characters/band.gd" id="1_g6q8d"]
+[ext_resource type="PackedScene" uid="uid://ctgmj7fjn0in0" path="res://scenes/characters/band_member.tscn" id="2_7fyam"]
+[ext_resource type="Script" uid="uid://o5rgw0kkegwi" path="res://scripts/characters/band_member.gd" id="3_gu6po"]
+[ext_resource type="Resource" uid="uid://cdhspdnnhgabs" path="res://resources/profiles/joep.tres" id="4_7ov8a"]
+[ext_resource type="Resource" uid="uid://dutj0esiiqpsy" path="res://resources/config/stamina_config.tres" id="5_lfl3r"]
+[ext_resource type="Resource" uid="uid://dcv8m6lxr1vtq" path="res://resources/profiles/jay.tres" id="6_ao73o"]
+[ext_resource type="Resource" uid="uid://dmyidyyoyyurq" path="res://resources/profiles/nikki.tres" id="7_dfagn"]
+[ext_resource type="Resource" uid="uid://b80a4rxjuhmvi" path="res://resources/profiles/germ.tres" id="8_ewrpy"]
+[ext_resource type="Resource" uid="uid://dvuftjhbuv6ts" path="res://resources/profiles/geoff.tres" id="9_a5422"]
+[ext_resource type="Script" uid="uid://bqs26un7r6q7" path="res://scripts/characters/band_camera.gd" id="10_p57g7"]
+
+[node name="Band" type="Node2D" unique_id=1097071013]
+script = ExtResource("1_g6q8d")
+
+[node name="Members" type="Node2D" parent="." unique_id=629711457]
+
+[node name="Joep" type="CharacterBody2D" parent="Members" unique_id=1552008963 instance=ExtResource("2_7fyam")]
+collision_layer = 4
+collision_mask = 3
+floor_snap_length = 4.0
+script = ExtResource("3_gu6po")
+profile = ExtResource("4_7ov8a")
+stamina_config = ExtResource("5_lfl3r")
+
+[node name="Jay" type="CharacterBody2D" parent="Members" unique_id=1515451924 instance=ExtResource("2_7fyam")]
+collision_layer = 4
+collision_mask = 3
+floor_snap_length = 4.0
+script = ExtResource("3_gu6po")
+profile = ExtResource("6_ao73o")
+stamina_config = ExtResource("5_lfl3r")
+
+[node name="Nikki" type="CharacterBody2D" parent="Members" unique_id=169405397 instance=ExtResource("2_7fyam")]
+collision_layer = 4
+collision_mask = 3
+floor_snap_length = 4.0
+script = ExtResource("3_gu6po")
+profile = ExtResource("7_dfagn")
+stamina_config = ExtResource("5_lfl3r")
+
+[node name="TheGerm" type="CharacterBody2D" parent="Members" unique_id=1867954480 instance=ExtResource("2_7fyam")]
+collision_layer = 4
+collision_mask = 3
+floor_snap_length = 4.0
+script = ExtResource("3_gu6po")
+profile = ExtResource("8_ewrpy")
+stamina_config = ExtResource("5_lfl3r")
+
+[node name="Geoff" type="CharacterBody2D" parent="Members" unique_id=156035964 instance=ExtResource("2_7fyam")]
+collision_layer = 4
+collision_mask = 3
+floor_snap_length = 4.0
+script = ExtResource("3_gu6po")
+profile = ExtResource("9_a5422")
+stamina_config = ExtResource("5_lfl3r")
+
+[node name="Camera" type="Camera2D" parent="." unique_id=324110296]
+zoom = Vector2(2, 2)
+script = ExtResource("10_p57g7")
