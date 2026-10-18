@@ -1,5 +1,6 @@
 [gd_resource type="Resource" script_class="MovementProfile" format=3 uid="uid://b80a4rxjuhmvi"]
 
+[ext_resource type="Script" uid="uid://dykpd6rwwvea0" path="res://scripts/abilities/germ_ability.gd" id="1_eicti"]
 [ext_resource type="Script" uid="uid://hsujlvahca0" path="res://scripts/resources/movement_profile.gd" id="1_fvcjc"]
 
 [resource]
@@ -7,6 +8,7 @@ script = ExtResource("1_fvcjc")
 id = &"germ"
 display_name = "The Germ"
 tint = Color(1, 0.8784314, 0.5411765, 1)
+ability = ExtResource("1_eicti")
 run_speed_tiles = 5.5
 jump_height_tiles = 1.3
 time_to_apex = 0.224

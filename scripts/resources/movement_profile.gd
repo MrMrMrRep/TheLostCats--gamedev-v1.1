@@ -10,6 +10,7 @@ const TILE := 24.0
 @export var display_name := ""
 @export var tint := Color.WHITE
 @export var max_hp := 3                     ## Geoff has 1
+@export var ability: Script                 ## MemberAbility subclass (scripts/abilities/)
 
 @export_group("Run")
 @export var run_speed_tiles := 7.0          ## top speed, tiles per second

@@ -16,16 +16,16 @@ func _run() -> void:
 	var level: Node = load("res://scenes/dev/baseline.tscn").instantiate()
 	root.add_child(level)
 	await _frames(10)
-	var player: BandMember = level.get_node("Band").active
+	var player = level.get_node("Band").active   # untyped: --script compiles before autoloads
 	var sprite: AnimatedSprite2D = player.get_node("Sprite")
-	var ground_y := player.global_position.y
+	var ground_y = player.global_position.y
 	_check(player.is_on_floor(), "starts on the floor")
 	_check(sprite.animation == &"idle", "idle animation at rest (got %s)" % sprite.animation)
 
 	# --- Jump in place (held): measure apex height and time to apex.
 	Input.action_press("jump")
 	var t := 0.0
-	var peak := ground_y
+	var peak = ground_y
 	var apex_time := 0.0
 	var seen := {}
 	while t < 2.0:
@@ -38,7 +38,7 @@ func _run() -> void:
 		if player.is_on_floor() and t > 0.1:
 			break
 	Input.action_release("jump")
-	var height_tiles := (ground_y - peak) / TILE
+	var height_tiles = (ground_y - peak) / TILE
 	print("jump: %.2f tiles, apex %.3f s, airtime %.3f s, anims %s" % [height_tiles, apex_time, t, seen.keys()])
 	var profile: MovementProfile = player.profile
 	_check(absf(height_tiles - profile.jump_height_tiles) < 0.15, "jump height ~%.1f tiles" % profile.jump_height_tiles)

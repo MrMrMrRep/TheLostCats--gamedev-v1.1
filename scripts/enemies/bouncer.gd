@@ -1,8 +1,8 @@
 @tool
 class_name Bouncer
 extends Interactable
-## Bouncer: blocks a passage. Only Geoff can talk him aside (basic persuade;
-## the full ability arrives in M6). Others get turned away. Resets on death.
+## Bouncer: blocks a passage. Only a member who can persuade (Geoff) talks him
+## aside; others get turned away. Resets on death.
 
 const STEP_ASIDE := 18.0
 const TINT := Color(0.32, 0.3, 0.36)
@@ -50,7 +50,7 @@ func can_interact(_member: BandMember) -> bool:
 
 
 func interact(member: BandMember, _level: Level) -> void:
-	if member.profile.id == &"geoff":
+	if member.ability and member.ability.can_persuade:
 		persuade()
 	else:
 		say(refusal)

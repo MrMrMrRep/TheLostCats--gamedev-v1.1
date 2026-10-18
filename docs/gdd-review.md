@@ -95,6 +95,8 @@ Rule of thumb: **after every hard room there is a short calm moment** (a corrido
 - Show a **shared inventory bar** with the active member highlighted, Lost Vikings style.
 
 ### 3.7 Abilities B ("Drinks …")
+*Built in M6:* B drinks a beer for Joep, Jay, Nikki and Geoff. The Germ's B is his shield (as the GDD says), so he drinks through the item key in M7. If you'd rather everyone drinks with B, the shield could move to "hold A on the ground" instead (and punch to a tap).
+
 Drinking needs a cost or the beer button gets spammed. Drinks are **consumed from inventory**, so no extra cooldown is needed. Buffs never stack.
 
 ## 4. Proposed starting values (put these in one config resource)

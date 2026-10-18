@@ -104,14 +104,20 @@ Each milestone ends with a **playtest in the running game** (not just "the code 
 Not in M5 (placeholders until later): spike, rat and door art is drawn in code; pushables come with Jay in M6, items with M7.
 
 ### M6 — Abilities (one core each + drink)
-- [ ] **Joep:** wall-slide + wall-jump + climb climbable walls (stamina). Hack panel → opens a gate / disables an electric floor
-- [ ] **Jay:** push/pull crates. Bass wave (ranged) breaks glass/fragile walls and knocks back rats. **Throw a band member** up
-- [ ] **Nikki:** double jump + hover by holding jump (stamina)
-- [ ] **The Germ:** punch, air punch = ground-pound (breaks crates/cracked floors, stuns). Shield hold forward/up (stamina) blocks projectiles and falling debris
-- [ ] **Geoff:** talk/persuade humans (bouncer moves aside). Bubble distraction (humans/rats look at bubble 2 s)
-- [ ] Breakable materials as a data table: glass / fragile wall → Jay, wood / crate / cracked floor → The Germ
-- [ ] Drink (B): beer heals 1 HP for everyone + Joep speed/quiet 5 s + Nikki heal aura 1 HP to members within 2 tiles
-- [ ] **Done when:** a test room has one gate that *needs* each member
+- [x] Ability system: a `MemberAbility` node per member (set on the profile) that hooks into the shared controller (air jump, gravity, horizontal lock, full movement takeover, after-move, damage blocking)
+- [x] **Joep:** wall-slide, wall-jump (15 stamina), hold A to grab and climb walls (drains stamina, hops over the top). Hacks panels with E (electric floor off / gates)
+- [x] **Jay:** pushes flight cases by walking into them, pulls them while holding A. A next to a member **throws** them ~4.5 tiles up. Otherwise A = **bass wave** (breaks glass/fragile walls 2–4 tiles away, knocks rats back)
+- [x] **Nikki:** double jump (+2.2 tiles) and guitar **hover** while holding jump (slow fall, ~2.2 s of stamina; once spent, no hover until she lands)
+- [x] **The Germ:** A = punch (rats, wooden crates); A in the air = **ground pound** (cracked floors, wood, rats). Hold B = drumstick **shield** (blocks hits from the front, drains stamina). B + up raises it as a **platform others can stand on**
+- [x] **Geoff:** persuades the bouncer (E). A = **bubble**: nearby rats stop, stare and don't bite while it floats
+- [x] Breakables as a data table: glass / fragile wall ← Jay's resonance, wood / cracked floor ← The Germ's impact
+- [x] Beer: pickups (max 3 per member, shown in the HUD slots), **B drinks** → +1 HP. Joep: quick for 5 s. Nikki: heals members within 2 tiles. *The Germ's B is his shield (GDD), so he drinks through the M7 item key*
+- [x] Props: flight case, breakables, gate/bridge, lever, hack panel, beer, bubble (placeholder art drawn in code)
+- [x] Test level `scenes/levels/abilities_test.tscn` (main scene): Germ crates → Jay glass + case-step/throw ledge → Joep climb + hack the electric floor → Nikki crosses the pit + lever bridge → Geoff's bouncer → exit. Bonus beer via The Germ's raised shield
+- [x] Headless test `tests/test_abilities.gd` (41 checks: every ability, every gate needs the right member, others pass afterwards, nobody dies)
+- [x] **Done when:** a test room has one gate that *needs* each member ✅
+
+Not in M6: quiet/stealth part of Joep's beer (nothing listens yet), whiskey/joint rage modes, Nikki's cable bridge and Joep's traps (later versions).
 
 ### M7 — Items & inventory
 - [ ] `ItemData` resource (id, name, icon, consumable, owner restriction)
@@ -171,9 +177,9 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 |---|---|---|
 | Move | WASD / arrows | D-pad / left stick |
 | Jump | Space / C | A |
-| Ability A | J / X | X |
-| Ability B (drink) | K / Z | Y |
-| Interact / talk | E | B |
+| Ability A (punch, wave, throw, grab/climb, bubble) | J / X | X |
+| Ability B (drink beer; The Germ: shield, + up = platform) | K / Z | Y |
+| Interact / talk / hack | E | B |
 | Give item | F | Left trigger |
 | Gather band | G | Back |
 | Previous / next member | Q / Tab (wraps around) | LB / RB |
@@ -201,4 +207,8 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 
 ```bash
 /Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_critical_path.gd
+```
+
+```bash
+/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_abilities.gd
 ```

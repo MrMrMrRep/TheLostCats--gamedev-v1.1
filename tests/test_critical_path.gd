@@ -66,7 +66,8 @@ func _run_stretch(m, stretch: Dictionary) -> Array:
 			hold -= 1
 			if hold == 0:
 				Input.action_release("jump")
-		if not jumps.is_empty() and m.global_position.x >= jumps[0]:
+		# Like a player: jump from the ground (an air press would be Nikki's double jump).
+		if not jumps.is_empty() and m.global_position.x >= jumps[0] and m.is_on_floor():
 			jumps.pop_front()
 			Input.action_release("jump")
 			await physics_frame

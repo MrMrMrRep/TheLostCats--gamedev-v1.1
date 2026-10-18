@@ -2,7 +2,7 @@
 class_name Hazard
 extends Area2D
 ## Floor hazard. SPIKES hurt (1 HP + knockback, i-frames protect); ELECTRIC
-## kills instantly while enabled. Joep's hack will call set_enabled(false) (M6).
+## kills instantly while enabled. A hack panel / lever calls trigger() to flip it.
 ## Placeholder art is drawn in code; the origin is the floor surface.
 
 enum Kind { SPIKES, ELECTRIC }
@@ -58,6 +58,11 @@ func _physics_process(_delta: float) -> void:
 
 func set_enabled(value: bool) -> void:
 	enabled = value
+
+
+## Switches and hack panels flip it (Joep hacks the electric floor off).
+func trigger() -> void:
+	enabled = not enabled
 
 
 func reset_state() -> void:

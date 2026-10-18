@@ -1,12 +1,14 @@
 [gd_resource type="Resource" script_class="MovementProfile" format=3 uid="uid://dcv8m6lxr1vtq"]
 
 [ext_resource type="Script" uid="uid://hsujlvahca0" path="res://scripts/resources/movement_profile.gd" id="1_3sx13"]
+[ext_resource type="Script" uid="uid://cts7apfqulrbx" path="res://scripts/abilities/jay_ability.gd" id="1_64odr"]
 
 [resource]
 script = ExtResource("1_3sx13")
 id = &"jay"
 display_name = "Jay"
 tint = Color(1, 0.6039216, 0.6039216, 1)
+ability = ExtResource("1_64odr")
 run_speed_tiles = 5.5
 jump_height_tiles = 2.3
 time_to_apex = 0.298

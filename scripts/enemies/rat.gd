@@ -2,7 +2,8 @@
 class_name Rat
 extends CharacterBody2D
 ## Rat: patrols, turns at walls and ledges, hurts band members on touch.
-## stun() and knockback() are for The Germ and Jay (M6); defeat() removes it.
+## stun() and knockback() are for The Germ and Jay; defeat() removes it.
+## distract() (Geoff's bubbles) makes it stop, stare and not bite.
 ## Placeholder art is drawn in code.
 
 const GRAVITY := 900.0
@@ -12,6 +13,7 @@ const GRAVITY := 900.0
 
 var dir := 1.0
 var stunned_left := 0.0
+var distracted_left := 0.0
 var alive := true
 
 var _start_position := Vector2.ZERO
@@ -43,6 +45,7 @@ func _ready() -> void:
 	dir = start_dir
 	if not Engine.is_editor_hint():
 		add_to_group(&"resettable")
+		add_to_group(&"rat")
 
 
 func _physics_process(delta: float) -> void:
@@ -50,16 +53,19 @@ func _physics_process(delta: float) -> void:
 		return
 	if not is_on_floor():
 		velocity.y = minf(velocity.y + GRAVITY * delta, 400.0)
+	distracted_left = maxf(distracted_left - delta, 0.0)
 	if stunned_left > 0.0:
 		stunned_left -= delta
 		velocity.x = move_toward(velocity.x, 0.0, 600.0 * delta)
+	elif distracted_left > 0.0:
+		velocity.x = 0.0
 	else:
 		if is_on_floor() and (_blocked() or _ledge_ahead()):
 			dir = -dir
 		velocity.x = dir * speed
 	move_and_slide()
 	queue_redraw()
-	if stunned_left <= 0.0:
+	if stunned_left <= 0.0 and distracted_left <= 0.0:
 		for body in _hurtbox.get_overlapping_bodies():
 			if body is BandMember and not body.is_dead:
 				body.hurt(1, global_position)
@@ -67,6 +73,12 @@ func _physics_process(delta: float) -> void:
 
 func stun(seconds: float) -> void:
 	stunned_left = maxf(stunned_left, seconds)
+
+
+## Stare at `pos` for `seconds` (no walking, no biting).
+func distract(pos: Vector2, seconds: float) -> void:
+	distracted_left = maxf(distracted_left, seconds)
+	dir = signf(pos.x - global_position.x) if pos.x != global_position.x else dir
 
 
 func knockback(impulse: Vector2) -> void:
@@ -88,6 +100,7 @@ func reset_state() -> void:
 	velocity = Vector2.ZERO
 	dir = start_dir
 	stunned_left = 0.0
+	distracted_left = 0.0
 
 
 func _blocked() -> bool:
@@ -106,5 +119,7 @@ func _draw() -> void:
 	draw_rect(Rect2(5 * f - (2 if f < 0 else 0), -8, 4, 5), body_color)               # head
 	draw_rect(Rect2(3 * f - (1 if f < 0 else 0), -10, 2, 2), Color("d98a9a"))          # ear
 	draw_rect(Rect2(7 * f - (1 if f < 0 else 0), -6, 1, 1), Color("ff5050"))           # eye
+	if distracted_left > 0.0:
+		draw_string(ThemeDB.fallback_font, Vector2(-3, -12), "?", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(0.8, 0.95, 1.0))
 	if stunned_left > 0.0:
 		draw_string(ThemeDB.fallback_font, Vector2(-6, -12), "*", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("ffd36b"))

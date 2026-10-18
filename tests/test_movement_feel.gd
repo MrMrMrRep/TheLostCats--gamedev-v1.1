@@ -9,7 +9,7 @@ const ACTIONS := ["move_left", "move_right", "move_down", "jump"]
 var failures := 0
 var checks := 0
 const EXPECTED_CHECKS := 26          # a crashed check must not look like a pass
-var player: BandMember
+var player   # BandMember (untyped: see test_band.gd)
 var profiles := {}
 
 
@@ -74,7 +74,7 @@ func _test_coyote_time() -> void:
 		await _frames(late - 1)
 		Input.action_press("jump")
 		await _frames(2)
-		var jumped := player.velocity.y < -200.0
+		var jumped = player.velocity.y < -200.0
 		_release_all()
 		if late == 4:
 			_check(jumped, "coyote: jump %d frames (%.0f ms) after leaving the ledge works" % [late, late * 16.7])
@@ -131,11 +131,11 @@ func _test_one_way() -> void:
 func _test_fast_fall() -> void:
 	await _reset(Vector2(1000, -400), profiles.joep)
 	await _frames(60)
-	var normal := player.velocity.y / TILE
+	var normal = player.velocity.y / TILE
 	await _reset(Vector2(1000, -400), profiles.joep)
 	Input.action_press("move_down")
 	await _frames(60)
-	var fast := player.velocity.y / TILE
+	var fast = player.velocity.y / TILE
 	_release_all()
 	_check(absf(normal - 18.0) < 0.1 and absf(fast - 26.0) < 0.1, "fall speed %.1f t/s, fast fall %.1f t/s" % [normal, fast])
 
@@ -208,8 +208,8 @@ func _reset(pos: Vector2, profile: MovementProfile) -> void:
 
 ## Jump in place; hold_frames < 0 holds jump until landing. Returns height in tiles.
 func _measure_jump(hold_frames: int) -> float:
-	var start := player.global_position.y
-	var peak := start
+	var start = player.global_position.y
+	var peak = start
 	Input.action_press("jump")
 	var t := 0
 	while t < 150:

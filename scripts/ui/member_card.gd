@@ -1,7 +1,7 @@
 class_name MemberCard
 extends Control
 ## HUD card for one band member: portrait, key number, HP pips, stamina bar
-## (only while below max), 3 item slots (filled in M7) and name.
+## (only while below max), 3 item slots (beers for now; the M7 inventory) and name.
 ## The active member's card is highlighted, the others are dimmed.
 
 const SIZE := Vector2(52, 50)
@@ -40,6 +40,7 @@ func bind(m: BandMember, index: int) -> void:
 	add_child(bar)
 	bar.bind(m.stamina)
 	m.health.health_changed.connect(func(_hp: int, _max: int) -> void: queue_redraw())
+	m.beers_changed.connect(func(_count: int) -> void: queue_redraw())
 	queue_redraw()
 
 
@@ -58,6 +59,8 @@ func _draw() -> void:
 		var filled := i < member.health.hp
 		draw_rect(Rect2(29 + i * 7, 6, 5, 5), HP_COLOR if filled else Color(1, 1, 1, 0.15))
 	for i in ITEM_SLOTS:
+		if i < member.beers:
+			draw_rect(Rect2(30 + i * 7, 23, 4, 5), Color("c8781e"))
 		draw_rect(Rect2(29 + i * 7, 22, 6, 6), Color(1, 1, 1, 0.3), false, 1.0)
 
 
