@@ -140,7 +140,7 @@ func _test_door() -> void:
 	_check(band.members.slice(1).map(func(m): return m.global_position) == others_before, "gather doesn't pull members from another room")
 
 	# A solo death resets only Joep's room; the others don't move.
-	_place(band.members[0], Vector2(61 * 24 + 12, 200))
+	_place(band.members[0], Vector2(60 * 24 + 12, 200))
 	await _await_respawn()
 	_check(absf(band.members[0].global_position.x - entry.global_position.x) < 20.0, "Joep respawns at the room 2 entry")
 	_check(band.members.slice(1).map(func(m): return m.global_position) == others_before, "members in room 1 are untouched by Joep's death")
@@ -160,7 +160,7 @@ func _test_door() -> void:
 func _test_pit() -> void:
 	var cause := [&""]
 	level.member_died.connect(func(_m, c): cause[0] = c, CONNECT_ONE_SHOT)
-	_place(band.active, Vector2(61 * 24 + 12, 200))
+	_place(band.active, Vector2(60 * 24 + 12, 200))
 	var t := await _await_respawn()
 	var entry = level.get_node("Rooms/Room2/DoorToRoom1")
 	_check(cause[0] == &"pit", "falling into the pit kills")

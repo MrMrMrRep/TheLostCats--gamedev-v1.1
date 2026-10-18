@@ -45,6 +45,8 @@ Celeste feels good because of **consistency**, not just speed. Speed 2/5 and Jum
 
 Then "a 2-tile ledge stops Geoff and The Germ" is a rule a level designer can rely on. That's the core of Lost Vikings gating.
 
+*Running-jump reach (measured in M5):* Geoff and The Germ about 2.2 tiles, Jay 2.9, Joep 4.7, Nikki 5.3. Anything **everyone** must cross alone should be at most **1 tile wide** (Geoff/The Germ clear about 1.5 tiles edge to edge). Islands in a pit must be wide enough to catch both the short and the long jumps (4 tiles works). Wider gaps are deliberate gates for a co-op solution (Jay throws, Nikki hovers).
+
 *Updated in M3 after playtesting:* jump heights carry a **0.3-tile margin** above the ledge they're meant to clear. With a jump exactly as high as the ledge (2.0 vs 2), clearing it took a frame-perfect jump.
 
 ### 3.2 One clear job per member (the gating matrix)

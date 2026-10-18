@@ -98,6 +98,7 @@ Each milestone ends with a **playtest in the running game** (not just "the code 
 - [x] Camera: deadzone (16×24 px) + look-ahead (40 px) + switch blend, clamped to room bounds
 - [x] Interact prompts (E) and speech lines. Test level `scenes/levels/level_test.tscn` (main scene, 3 rooms)
 - [x] Headless test `tests/test_level.gd` (40 checks)
+- [x] **Critical-path test** `tests/test_critical_path.gd`: each of the 5 members runs the level alone (running and jumping like a player, no teleports) and must arrive unhurt. Found that Geoff and The Germ couldn't cross the 2-tile spikes, the 3-tile pit or the 3-tile electric floor. Fixed: 1-tile spikes, pit = 1-tile gap + 4-tile island + 1-tile gap, one-way catwalk over the electric floor
 - [x] **Done when:** you can die and respawn in every way within 1.5 s without broken state ✅ (tests found and fixed a 0-HP-after-respawn bug)
 
 Not in M5 (placeholders until later): spike, rat and door art is drawn in code; pushables come with Jay in M6, items with M7.
@@ -196,4 +197,8 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 
 ```bash
 /Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_level.gd
+```
+
+```bash
+/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_critical_path.gd
 ```
