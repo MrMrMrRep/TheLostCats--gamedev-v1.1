@@ -115,6 +115,12 @@
       "skillPath": "skills/godot/godot-gdscript-headless-testing/SKILL.md",
       "computedHash": "b7eaccdf6743e7db0959077ad5174f8b48460eca96c96460d22d76f9a64a3f9e"
     },
+    "godot-gdscript-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "skillPath": "plugins/game-development/skills/godot-gdscript-patterns/SKILL.md",
+      "computedHash": "ed164ac7e479497168ae77f344aae6072be066ecbe56a1bb56cdb80c4d4868df"
+    },
     "godot-multiplayer": {
       "source": "gamedev-skills/awesome-gamedev-agent-skills",
       "sourceType": "github",
