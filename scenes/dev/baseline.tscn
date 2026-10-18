@@ -1,0 +1,123 @@
+[gd_scene format=4 uid="uid://ct8fbwx0nkv5v"]
+
+[ext_resource type="Script" path="res://scripts/levels/baseline_level.gd" id="1_i4nyp"]
+[ext_resource type="Texture2D" uid="uid://bx514ox8l2c01" path="res://public/assets/amwoods/background/background_layer_1.png" id="2_wk44e"]
+[ext_resource type="Texture2D" uid="uid://cgbbdpda26svu" path="res://public/assets/amwoods/background/background_layer_2.png" id="3_blnkp"]
+[ext_resource type="Texture2D" uid="uid://c73dex62yigsd" path="res://public/assets/amwoods/background/background_layer_3.png" id="4_i3ar6"]
+[ext_resource type="TileSet" uid="uid://q6tppnguf7t6" path="res://resources/tiles/amwoods_tileset.tres" id="5_whdra"]
+[ext_resource type="Texture2D" uid="uid://dxp10i6rtfc78" path="res://public/assets/amwoods/decorations/lamp.png" id="6_2ry5y"]
+[ext_resource type="Texture2D" uid="uid://5e2e7qaa5puq" path="res://public/assets/amwoods/decorations/rock_2.png" id="7_myrma"]
+[ext_resource type="Texture2D" uid="uid://cjctis1rkoluc" path="res://public/assets/amwoods/decorations/grass_1.png" id="8_jxcmf"]
+[ext_resource type="Texture2D" uid="uid://bp47ix4vmgjx" path="res://public/assets/amwoods/decorations/sign.png" id="9_xcxp3"]
+[ext_resource type="Texture2D" uid="uid://dtbk7kiuixwgr" path="res://public/assets/amwoods/decorations/grass_3.png" id="10_162i8"]
+[ext_resource type="Texture2D" uid="uid://bj7g8tqyd87ud" path="res://public/assets/amwoods/decorations/fence_1.png" id="11_ah45n"]
+[ext_resource type="Texture2D" uid="uid://b8n0x4e4bh47f" path="res://public/assets/amwoods/decorations/rock_3.png" id="12_ddcdm"]
+[ext_resource type="Texture2D" uid="uid://c2s7b2ngktc0l" path="res://public/assets/amwoods/decorations/grass_2.png" id="13_bc5s4"]
+[ext_resource type="SpriteFrames" uid="uid://cehgnkeiqnqn3" path="res://resources/sprites/shop_anim_frames.tres" id="14_syci8"]
+[ext_resource type="PackedScene" uid="uid://chnywh4p28hkf" path="res://scenes/characters/player.tscn" id="15_pmo51"]
+[ext_resource type="Script" uid="uid://o5rgw0kkegwi" path="res://scripts/characters/player.gd" id="16_2lils"]
+
+[node name="Baseline" type="Node2D" unique_id=1487190214]
+script = ExtResource("1_i4nyp")
+
+[node name="Background" type="Node2D" parent="." unique_id=901180180]
+
+[node name="Far" type="Parallax2D" parent="Background" unique_id=546910364]
+scroll_scale = Vector2(0.2, 1)
+repeat_size = Vector2(320, 0)
+repeat_times = 3
+
+[node name="Sprite" type="Sprite2D" parent="Background/Far" unique_id=1041431824]
+texture = ExtResource("2_wk44e")
+centered = false
+
+[node name="Mid" type="Parallax2D" parent="Background" unique_id=1618750247]
+scroll_scale = Vector2(0.5, 1)
+repeat_size = Vector2(320, 0)
+repeat_times = 3
+
+[node name="Sprite" type="Sprite2D" parent="Background/Mid" unique_id=1003337835]
+texture = ExtResource("3_blnkp")
+centered = false
+
+[node name="Near" type="Parallax2D" parent="Background" unique_id=762428842]
+scroll_scale = Vector2(0.8, 1)
+repeat_size = Vector2(320, 0)
+repeat_times = 3
+
+[node name="Sprite" type="Sprite2D" parent="Background/Near" unique_id=1157870515]
+texture = ExtResource("4_i3ar6")
+centered = false
+
+[node name="Ground" type="TileMapLayer" parent="." unique_id=1524996049]
+tile_map_data = PackedByteArray("AAAAAAYAAAABAAAAAAAAAAcAAAAFAA0AAAABAAYAAAACAAAAAAABAAcAAAAGAA0AAAACAAYAAAABAAAAAAACAAcAAAAHAA0AAAADAAYAAAACAAAAAAADAAcAAAAIAA0AAAAEAAYAAAABAAAAAAAEAAcAAAAJAA0AAAAFAAYAAAACAAAAAAAFAAcAAAAKAA0AAAAGAAYAAAABAAAAAAAGAAcAAAALAA0AAAAHAAYAAAACAAAAAAAHAAcAAAAMAA0AAAAIAAYAAAABAAAAAAAIAAcAAAANAA0AAAAJAAYAAAACAAAAAAAJAAcAAAAOAA0AAAAKAAYAAAABAAAAAAAKAAcAAAAFAA0AAAALAAYAAAACAAAAAAALAAcAAAAGAA0AAAAMAAYAAAABAAAAAAAMAAcAAAAHAA0AAAANAAYAAAACAAAAAAANAAcAAAAIAA0AAAAOAAYAAAABAAAAAAAOAAcAAAAJAA0AAAAPAAYAAAACAAAAAAAPAAcAAAAKAA0AAAAQAAYAAAABAAAAAAAQAAcAAAALAA0AAAARAAYAAAACAAAAAAARAAcAAAAMAA0AAAASAAYAAAABAAAAAAASAAcAAAANAA0AAAATAAYAAAACAAAAAAATAAcAAAAOAA0AAAAUAAYAAAABAAAAAAAUAAcAAAAFAA0AAAAVAAYAAAACAAAAAAAVAAcAAAAGAA0AAAAWAAYAAAABAAAAAAAWAAcAAAAHAA0AAAAXAAYAAAACAAAAAAAXAAcAAAAIAA0AAAAYAAYAAAABAAAAAAAYAAcAAAAJAA0AAAAZAAYAAAACAAAAAAAZAAcAAAAKAA0AAAAaAAYAAAABAAAAAAAaAAcAAAALAA0AAAAbAAYAAAACAAAAAAAbAAcAAAAMAA0AAAAcAAYAAAABAAAAAAAcAAcAAAANAA0AAAAdAAYAAAACAAAAAAAdAAcAAAAOAA0AAAAeAAYAAAABAAAAAAAeAAcAAAAFAA0AAAAfAAYAAAACAAAAAAAfAAcAAAAGAA0AAAAgAAYAAAABAAAAAAAgAAcAAAAHAA0AAAAhAAYAAAACAAAAAAAhAAcAAAAIAA0AAAAiAAYAAAABAAAAAAAiAAcAAAAJAA0AAAAjAAYAAAACAAAAAAAjAAcAAAAKAA0AAAAkAAYAAAABAAAAAAAkAAcAAAALAA0AAAAlAAYAAAACAAAAAAAlAAcAAAAMAA0AAAAmAAYAAAABAAAAAAAmAAcAAAANAA0AAAAnAAYAAAACAAAAAAAnAAcAAAAOAA0AAAAoAAYAAAABAAAAAAAoAAcAAAAFAA0AAAApAAYAAAACAAAAAAApAAcAAAAGAA0AAAAqAAYAAAABAAAAAAAqAAcAAAAHAA0AAAArAAYAAAACAAAAAAArAAcAAAAIAA0AAAAsAAYAAAABAAAAAAAsAAcAAAAJAA0AAAAtAAYAAAACAAAAAAAtAAcAAAAKAA0AAAAuAAYAAAABAAAAAAAuAAcAAAALAA0AAAAvAAYAAAACAAAAAAAvAAcAAAAMAA0AAAAwAAYAAAABAAAAAAAwAAcAAAANAA0AAAAxAAYAAAACAAAAAAAxAAcAAAAOAA0AAAAyAAYAAAABAAAAAAAyAAcAAAAFAA0AAAAzAAYAAAACAAAAAAAzAAcAAAAGAA0AAAA0AAYAAAABAAAAAAA0AAcAAAAHAA0AAAA1AAYAAAACAAAAAAA1AAcAAAAIAA0AAAA2AAYAAAABAAAAAAA2AAcAAAAJAA0AAAA3AAYAAAACAAAAAAA3AAcAAAAKAA0AAAA4AAYAAAABAAAAAAA4AAcAAAALAA0AAAA5AAYAAAACAAAAAAA5AAcAAAAMAA0AAAA6AAYAAAABAAAAAAA6AAcAAAANAA0AAAA7AAYAAAACAAAAAAA7AAcAAAAOAA0AAAAAAAAAAAAMAAAAAAA7AAAAAAAMAAAAAAAAAAEAAAAMAAAAAAA7AAEAAAAMAAAAAAAAAAIAAAAMAAAAAAA7AAIAAAAMAAAAAAAAAAMAAAAMAAAAAAA7AAMAAAAMAAAAAAAAAAQAAAAMAAAAAAA7AAQAAAAMAAAAAAAAAAUAAAAMAAAAAAA7AAUAAAAMAAAAAAAOAAUAAAAKAAAAAAAUAAUAAAAMAAAAAAAVAAUAAAAMAAAAAAAUAAQAAAAKAAAAAAAVAAQAAAAKAAAAAAAcAAQAAAAFAAkAAAAdAAQAAAAGAAkAAAAeAAQAAAAHAAkAAAAiAAEAAAAFAAAAAAAjAAEAAAAGAAAAAAAkAAEAAAAHAAAAAAAlAAEAAAAIAAAAAAA=")
+tile_set = ExtResource("5_whdra")
+
+[node name="Decorations" type="Node2D" parent="." unique_id=1249354172]
+
+[node name="Lamp" type="Sprite2D" parent="Decorations" unique_id=1055284015]
+position = Vector2(144, 144)
+texture = ExtResource("6_2ry5y")
+centered = false
+offset = Vector2(-11, -57)
+
+[node name="Rock2" type="Sprite2D" parent="Decorations" unique_id=1410992844]
+position = Vector2(240, 144)
+texture = ExtResource("7_myrma")
+centered = false
+offset = Vector2(-13, -12)
+
+[node name="Grass1" type="Sprite2D" parent="Decorations" unique_id=1001308051]
+position = Vector2(288, 144)
+texture = ExtResource("8_jxcmf")
+centered = false
+offset = Vector2(-4, -3)
+
+[node name="Sign" type="Sprite2D" parent="Decorations" unique_id=353262643]
+position = Vector2(408, 144)
+texture = ExtResource("9_xcxp3")
+centered = false
+offset = Vector2(-11, -31)
+
+[node name="Grass3" type="Sprite2D" parent="Decorations" unique_id=1676094863]
+position = Vector2(576, 144)
+texture = ExtResource("10_162i8")
+centered = false
+offset = Vector2(-4, -4)
+
+[node name="Fence1" type="Sprite2D" parent="Decorations" unique_id=1174025300]
+position = Vector2(1008, 144)
+texture = ExtResource("11_ah45n")
+centered = false
+offset = Vector2(-36, -19)
+
+[node name="Rock3" type="Sprite2D" parent="Decorations" unique_id=1611507168]
+position = Vector2(1128, 144)
+texture = ExtResource("12_ddcdm")
+centered = false
+offset = Vector2(-22, -18)
+
+[node name="Grass2" type="Sprite2D" parent="Decorations" unique_id=438514842]
+position = Vector2(1200, 144)
+texture = ExtResource("13_bc5s4")
+centered = false
+offset = Vector2(-5, -5)
+
+[node name="@Sprite2D@38961" type="Sprite2D" parent="Decorations" unique_id=957593408]
+position = Vector2(1248, 144)
+texture = ExtResource("6_2ry5y")
+centered = false
+offset = Vector2(-11, -57)
+
+[node name="Shop" type="AnimatedSprite2D" parent="Decorations" unique_id=797559231]
+position = Vector2(1304, 144)
+sprite_frames = ExtResource("14_syci8")
+autoplay = "default"
+offset = Vector2(0, -64)
+
+[node name="Player" type="CharacterBody2D" parent="." unique_id=848712531 instance=ExtResource("15_pmo51")]
+position = Vector2(80, 144)
+collision_layer = 4
+collision_mask = 3
+floor_snap_length = 4.0
+script = ExtResource("16_2lils")

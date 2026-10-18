@@ -56,11 +56,13 @@ Each milestone ends with a **playtest in the running game** (not just "the code 
 - [x] **Done when:** both resources load in the editor and the animations play ✅ (verified in a game run: 0 errors, 0 warnings)
 
 ### M2 — Baseline scene (GDD step 2)
-- [ ] `Parallax2D` × 3 with background layers 1–3 (scroll factors ~0.2 / 0.5 / 0.8), repeating horizontally
-- [ ] `TileMapLayer` flat ground across the scene
-- [ ] Player: `CharacterBody2D` + `AnimatedSprite2D` + collision, basic run/jump, animation state (idle/run/jump/fall), flips with direction
-- [ ] `Camera2D` follows the player
-- [ ] **Done when:** you can run and jump left/right with parallax scrolling and correct animations
+- [x] `Parallax2D` × 3 with background layers 1–3 (scroll factors 0.2 / 0.5 / 0.8), repeating horizontally
+- [x] `TileMapLayer` flat ground across the scene (60 tiles wide), side walls, a 1- and 2-tile step and two one-way platforms for testing
+- [x] Player: `CharacterBody2D` + `AnimatedSprite2D` + collision, run/jump, animation state (idle/run/jump_start/jump/fall/land), flips with direction
+- [x] Gravity and jump speed derived from jump height (3 tiles) and time to apex (0.34 s), exact at any frame rate
+- [x] `Camera2D` follows the player (zoom 2×, smoothing, clamped to level bounds)
+- [x] Headless test `tests/test_baseline_movement.gd` (13 checks: jump height and apex, accel/decel, animations, facing, steps)
+- [x] **Done when:** you can run and jump left/right with parallax scrolling and correct animations ✅ (main scene: `scenes/dev/baseline.tscn`)
 
 ### M3 — Celeste controller + stamina
 - [ ] `MovementProfile` resource (speed tiles/s, jump tiles, time-to-apex, …), gravity and jump velocity *derived* from height and apex time
@@ -166,3 +168,9 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 | Select member | 1–5 | — |
 | Pause | Esc / P | Start |
 | Debug overlay | F3 | — |
+
+## Running the tests
+
+```bash
+/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_baseline_movement.gd
+```
