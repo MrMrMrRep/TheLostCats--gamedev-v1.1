@@ -14,7 +14,7 @@
 [ext_resource type="Script" uid="uid://bp67y55oy36sk" path="res://scripts/props/gate.gd" id="12_woex1"]
 [ext_resource type="Script" uid="uid://ctysci6wuriky" path="res://scripts/enemies/rat.gd" id="13_lp31x"]
 [ext_resource type="Script" uid="uid://cd53iofhiyqm6" path="res://scripts/enemies/bouncer.gd" id="14_fxn7p"]
-[ext_resource type="Script" uid="uid://stjqwq4q2c4u" path="res://scripts/props/beer_pickup.gd" id="15_s7iew"]
+[ext_resource type="Script" uid="uid://stjqwq4q2c4u" path="res://scripts/props/item_pickup.gd" id="15_s7iew"]
 [ext_resource type="Script" uid="uid://ce1t2h7bs0yn8" path="res://scripts/levels/door.gd" id="16_shnc5"]
 [ext_resource type="PackedScene" uid="uid://5kg36m4l2u54" path="res://scenes/characters/band.tscn" id="17_w3lva"]
 [ext_resource type="Script" uid="uid://b8dp2br6re13s" path="res://scripts/characters/band.gd" id="18_dynl7"]
@@ -241,4 +241,4 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "Move/Jump: arrows+Space   Switch: 1-5 / Tab   A: ability (J)   B: drink / shield (K)   E: use, talk, hack   G: gather"
+text = "Move/Jump: arrows+Space  1-5/Tab: switch  A: ability  B: drink/shield  E: use/talk/hack  R: use item  F: give  T: next slot  V: drop"

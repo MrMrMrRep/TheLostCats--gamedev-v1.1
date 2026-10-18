@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rolling_papers"
+display_name = "Rolling papers"
+description = "Geoff follows whoever carries these."
+shape = 2
+color = Color(0.95, 0.93, 0.85, 1)
+lures = &"geoff"

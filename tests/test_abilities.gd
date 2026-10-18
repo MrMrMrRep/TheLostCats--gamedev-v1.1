@@ -273,7 +273,7 @@ func _test_germ_more() -> void:
 	germ.add_beer()
 	await _tap("action_b")
 	_check(germ.beers == 1, "The Germ's B doesn't drink the beer")
-	germ.beers = 0
+	germ.inventory.clear()
 
 
 func _test_geoff() -> void:
@@ -311,8 +311,12 @@ func _test_geoff() -> void:
 
 
 func _test_beer() -> void:
-	var beer = stage.get_node("Beer")
+	# A fresh beer (the level's own may already have been picked up on the way).
+	var beer = load("res://scripts/props/item_pickup.gd").new()
+	stage.add_child(beer)
+	beer.global_position = Vector2(1560, GY)
 	var joep = await _use(JOEP, beer.global_position + Vector2(-20, 0), 1.0)
+	joep.inventory.clear()
 	Input.action_press("move_right")
 	await _frames(15)
 	Input.action_release("move_right")

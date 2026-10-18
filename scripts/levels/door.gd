@@ -4,7 +4,8 @@ extends Interactable
 ## Door to go through. Either to another Door in this level
 ## (room to room) or out of the level to another scene (e.g. the world map).
 ## The whole band goes through only when everyone stands together (see Level).
-## A locked door needs unlock() first (keycards come with the inventory in M7).
+## A locked door opens for a member carrying its keycard (key_id): E uses it
+## and goes through. Unlocked with a key, it stays unlocked after a death.
 
 @export var target_door: NodePath           ## room -> room
 @export_file("*.tscn") var target_scene := "" ## level exit
@@ -27,9 +28,23 @@ func _ready() -> void:
 
 func interact(member: BandMember, level: Level) -> void:
 	if locked:
-		say("Locked")
-		return
+		var key := member.inventory.take(key_id) if key_id != &"" else null
+		if key == null:
+			say("Locked: needs the %s" % _key_name())
+			return
+		unlock_with(key)
 	level.go_through(self, member)
+
+
+## Opened with a keycard: stays open for good (the card is used up).
+func unlock_with(_key: ItemData) -> void:
+	locked = false
+	_start_locked = false
+	say("Unlocked")
+
+
+func _key_name() -> String:
+	return String(key_id).replace("_", " ")
 
 
 func unlock() -> void:

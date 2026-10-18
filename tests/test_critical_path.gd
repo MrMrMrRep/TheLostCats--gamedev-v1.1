@@ -13,6 +13,7 @@ const JUMP_HOLD_FRAMES := 20
 const STRETCHES := [
 	{"name": "room 1: spikes, rat pen walls", "start": 150.0, "jumps": [226.0, 366.0, 606.0], "end": 700.0},
 	{"name": "room 2: pit with island, electric catwalk", "start": 1300.0, "jumps": [1428.0, 1548.0, 1656.0], "end": 1830.0},
+	{"name": "room 4: step, gap", "start": 3420.0, "jumps": [3556.0, 3722.0], "end": 3900.0},
 ]
 
 var failures := 0
@@ -51,6 +52,10 @@ func _run() -> void:
 func _run_stretch(m, stretch: Dictionary) -> Array:
 	await _await_idle()
 	level.get_node("Rooms/Room1/Rat").defeat()   # dodging the rat is timing, not a gate
+	# Teleporting doesn't change rooms, so no items: a carried lure would make
+	# Geoff walk after this member from another room.
+	for other in band.members:
+		other.inventory.clear()
 	m.respawn(Vector2(stretch.start, GY), m.health.max_hp)
 	await _frames(5)
 	var hp_before: int = m.health.hp

@@ -43,6 +43,7 @@ func _ready() -> void:
 	for m in band.members:
 		m.health.died.connect(kill.bind(m, &"hurt"))
 	band.gather_filter = func(m: BandMember) -> bool: return room_of_member(m) == room_of_member(band.active)
+	band.same_room = func(a: BandMember, b: BandMember) -> bool: return room_of_member(a) == room_of_member(b)
 	band.active_changed.connect(_on_active_changed)
 	hud.bind_band(band)
 	if debug_overlay:
@@ -132,16 +133,23 @@ func _set_checkpoint(room: Room, pos: Vector2, node: Checkpoint) -> void:
 # --- Doors and rooms -------------------------------------------------------
 
 ## Who goes through a door used by `member`: everyone in their room if they all
-## stand together around `member`, otherwise only `member`.
+## stand together around `member`, otherwise only `member` (plus a lured member
+## following them who is close enough, e.g. Geoff after the rolling papers).
 func door_group(member: BandMember) -> Array[BandMember]:
 	var room_mates := members_in(room_of_member(member))
-	var together := room_mates.all(func(m: BandMember) -> bool:
-		return absf(m.global_position.x - member.global_position.x) <= group_radius_tiles * TILE \
-			and absf(m.global_position.y - member.global_position.y) <= group_height_tiles * TILE)
+	var together := room_mates.all(func(m: BandMember) -> bool: return _close_to(m, member))
 	if together:
 		return room_mates
-	var solo: Array[BandMember] = [member]
-	return solo
+	var group: Array[BandMember] = [member]
+	for f: BandMember in band.following:
+		if band.following[f] == member and _close_to(f, member):
+			group.append(f)
+	return group
+
+
+func _close_to(m: BandMember, member: BandMember) -> bool:
+	return absf(m.global_position.x - member.global_position.x) <= group_radius_tiles * TILE \
+		and absf(m.global_position.y - member.global_position.y) <= group_height_tiles * TILE
 
 
 func go_through(door: Door, member: BandMember) -> void:
@@ -176,6 +184,8 @@ func _group_text(group: Array[BandMember], member: BandMember) -> String:
 		return "whole band"
 	if group.size() == 1:
 		return "%s alone" % member.profile.display_name
+	if group.size() == 2 and group[0] == member:
+		return "%s + %s" % [member.profile.display_name, group[1].profile.display_name]
 	return "group of %d" % group.size()
 
 
@@ -229,7 +239,9 @@ func _update_interactables() -> void:
 		_highlighted = best
 		if best:
 			best.set_highlighted(true)
-	if best is Door and not best.locked and best.target_scene == "":
+	if best is Door and best.locked and active.inventory.has(best.key_id):
+		best.set_prompt_text("E  use keycard")
+	elif best is Door and not best.locked and best.target_scene == "":
 		best.set_prompt_text("E  " + _group_text(door_group(active), active))
 	if best and Input.is_action_just_pressed("interact"):
 		best.interact(active, self)

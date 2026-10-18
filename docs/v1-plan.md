@@ -120,11 +120,15 @@ Not in M5 (placeholders until later): spike, rat and door art is drawn in code; 
 Not in M6: quiet/stealth part of Joep's beer (nothing listens yet), whiskey/joint rage modes, Nikki's cable bridge and Joep's traps (later versions).
 
 ### M7 — Items & inventory
-- [ ] `ItemData` resource (id, name, icon, consumable, owner restriction)
-- [ ] Pickups in rooms, 3 slots per member, use/drop
-- [ ] Give: when another member is within 1 tile → item moves to them
-- [ ] Rolling papers: Geoff follows whoever carries them (simple follow AI)
-- [ ] **Done when:** keycard and beer can be handed over, and Geoff follows the papers through a room
+- [x] `ItemData` resource (id, name, description, icon shape/colour, consumable, `only_for`, `lures`). Items: beer, red keycard, rolling papers (`resources/items/`)
+- [x] `Inventory` component: 3 slots per member + selected slot. HUD cards show the items, with the active member's selected slot outlined
+- [x] `ItemPickup` in rooms (first member with a free slot takes it, "+Beer" float text). **R** uses the current item, **T** next slot, **V** drops (the dropper can't re-grab it for 1 s), **B** still quick-drinks a beer. The Germ drinks with R
+- [x] **F** gives the current item to the nearest member within 1 tile
+- [x] Keycards: E at a locked door uses the matching card from your inventory, unlocks the door and goes through (prompt "E use keycard"). Opened with a key, the door stays open after a death (no soft-lock)
+- [x] Rolling papers: Geoff follows whoever carries them (same room). He hops 1-tile steps and gaps, waits at bigger drops and **never walks into an active hazard** (gather obeys that too), and comes along through a door with the carrier ("E Joep + Geoff")
+- [x] Test level: beer in room 1, keycard on a 3-tile ledge in room 3, red door → new room 4 "Backstage" (papers, step, gap, beer, exit). Main scene = `scenes/levels/level_test.tscn`
+- [x] Headless test `tests/test_items.gd` (23 checks); critical-path test now also covers room 4
+- [x] **Done when:** keycard and beer can be handed over, and Geoff follows the papers through a room ✅
 
 ### M8 — World map
 - [ ] Wide scene with parallax (same bg for now), hand-placed segments: studio (center) → city → service station → venue (one side), city → road block (other side)
@@ -181,6 +185,9 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 | Ability B (drink beer; The Germ: shield, + up = platform) | K / Z | Y |
 | Interact / talk / hack | E | B |
 | Give item | F | Left trigger |
+| Use item | R | Right trigger |
+| Next item slot | T | Right stick click |
+| Drop item | V | Left stick click |
 | Gather band | G | Back |
 | Previous / next member | Q / Tab (wraps around) | LB / RB |
 | Select member | 1–5 | — |
@@ -211,4 +218,8 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 
 ```bash
 /Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_abilities.gd
+```
+
+```bash
+/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_items.gd
 ```

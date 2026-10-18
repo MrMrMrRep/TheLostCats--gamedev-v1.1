@@ -1,17 +1,18 @@
 class_name BandMember
 extends CharacterBody2D
 ## One band member: Celeste-style platformer controller plus health, stamina,
-## beer and a MemberAbility (from the profile). All feel numbers come from the
+## a 3-slot Inventory and a MemberAbility (from the profile). All feel numbers come from the
 ## MovementProfile: run accel/decel, derived gravity, fall multiplier, apex hang,
 ## coyote time, jump buffer, variable jump cut, corner and ledge correction,
 ## fast fall and drop-through on one-way platforms (down + jump). The ability
 ## hooks in at fixed points: air jump, gravity, horizontal lock, full movement
 ## takeover, after-move and damage blocking. Only the active member reads player
-## input; the Band steers inactive members through `ai_dir` (gather).
+## input; the Band steers inactive members through `ai_dir` / ai_jump() (gather,
+## following the rolling papers). Items: R uses, F gives to a member within 1
+## tile, V drops, T selects the next slot; B quick-drinks a beer.
 
 signal jumped
 signal landed(fall_speed: float)
-signal beers_changed(count: int)
 
 const TILE := 24.0
 const ONE_WAY_LAYER := 1 << 1               # physics layer 2 "one_way"
@@ -20,7 +21,9 @@ const HURT_LOCK_TIME := 0.25               # no control while knocked back
 const KNOCKBACK := Vector2(150, -200)
 const FLASH_RATE := 12.0                    # blinks per second during i-frames
 const DEATH_ANIM_SPEED := 2.0               # 12-frame death anim in 0.5 s
-const MAX_BEERS := 3                        # until the M7 inventory takes over
+const GIVE_RANGE := 24.0                    # 1 tile
+const KEY_RANGE := 32.0                     # how close a locked door must be to use a key
+const BEER := preload("res://resources/items/beer.tres")
 
 @export var profile: MovementProfile: set = set_profile
 @export var stamina_config: StaminaConfig
@@ -28,9 +31,9 @@ const MAX_BEERS := 3                        # until the M7 inventory takes over
 var facing := 1.0
 var is_active := false
 var ai_dir := 0.0                           # horizontal input while inactive (-1..1)
-var beers := 0
 var anim_override: StringName = &""         # ability animation (climb, hover, shield)
 var ability: MemberAbility
+var inventory: Inventory
 
 # Input this frame (zero when not controlled). Abilities read these.
 var in_dir := 0.0
@@ -41,6 +44,10 @@ var in_a_pressed := false
 var in_a_held := false
 var in_b_pressed := false
 var in_b_held := false
+var in_use_pressed := false
+var in_give_pressed := false
+var in_drop_pressed := false
+var in_next_pressed := false
 
 var coyote_left: float:
 	get:
@@ -51,6 +58,9 @@ var buffer_left: float:
 var is_dead: bool:
 	get:
 		return _dead
+var beers: int:
+	get:
+		return inventory.count(&"beer")
 
 var _gravity := 0.0
 var _jump_velocity := 0.0
@@ -63,6 +73,8 @@ var _anim_lock := false                     # true while a one-shot (jump_start,
 var _hurt_lock := 0.0
 var _dead := false
 var _air_speed := 0.0
+var _ai_jump_queued := false
+var _ai_jump_hold := 0.0
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var stamina: StaminaComponent = $Stamina
@@ -71,6 +83,9 @@ var _air_speed := 0.0
 
 
 func _ready() -> void:
+	inventory = Inventory.new()
+	inventory.name = "Inventory"
+	add_child(inventory)
 	sprite.animation_finished.connect(_on_animation_finished)
 	_apply_profile()
 
@@ -134,6 +149,7 @@ func _physics_process(delta: float) -> void:
 	if _drop_timer > 0.0:
 		_drop_timer -= delta
 		set_collision_mask_value(2, _drop_timer <= 0.0)
+	_handle_items()
 
 	if ability:
 		ability.physics_begin(delta)
@@ -229,20 +245,47 @@ func hurt(amount: int, from: Vector2) -> bool:
 	return true
 
 
+## Jump on behalf of the Band's AI (followers hopping a step or gap).
+func ai_jump(hold := 0.35) -> void:
+	_ai_jump_queued = true
+	_ai_jump_hold = hold
+
+
+## Other living members within `radius` px in the same room, nearest first.
+func nearby_members(radius: float) -> Array[BandMember]:
+	var out: Array[BandMember] = []
+	var level := Level.of(self)
+	for n in get_parent().get_children():
+		var m := n as BandMember
+		if m == null or m == self or m.is_dead:
+			continue
+		if level and level.room_of_member(m) != level.room_of_member(self):
+			continue
+		if m.global_position.distance_to(global_position) <= radius:
+			out.append(m)
+	out.sort_custom(func(a: BandMember, b: BandMember) -> bool:
+		return a.global_position.distance_squared_to(global_position) < b.global_position.distance_squared_to(global_position))
+	return out
+
+
 func add_beer() -> bool:
-	if beers >= MAX_BEERS:
+	return add_item(BEER)
+
+
+func add_item(item: ItemData) -> bool:
+	if not inventory.add(item):
+		show_text("Hands full")
 		return false
-	beers += 1
-	beers_changed.emit(beers)
+	show_text("+" + item.display_name)
 	return true
 
 
 ## Beer heals 1 HP for everyone; some members get a bonus (ability.on_beer()).
 func drink_beer() -> bool:
-	if beers <= 0 or _dead:
+	var i := inventory.index_of(&"beer")
+	if i < 0 or _dead:
 		return false
-	beers -= 1
-	beers_changed.emit(beers)
+	inventory.remove_at(i)
 	health.heal(1)
 	if ability:
 		ability.on_beer()
@@ -267,6 +310,8 @@ func respawn(pos: Vector2, hp: int, grace := 0.0) -> void:
 	global_position = pos
 	velocity = Vector2.ZERO
 	ai_dir = 0.0
+	_ai_jump_queued = false
+	_ai_jump_hold = 0.0
 	_coyote = 0.0
 	_buffer = 0.0
 	_jump_held = false
@@ -285,7 +330,84 @@ func respawn(pos: Vector2, hp: int, grace := 0.0) -> void:
 	sprite.play(&"idle")
 
 
+## R: use the current item. Beer is drunk, a keycard opens a locked door next
+## to you, other items explain themselves.
+func use_current_item() -> void:
+	var i := inventory.current_index()
+	if i < 0:
+		return
+	var item := inventory.slots[i]
+	if item.only_for != &"" and item.only_for != profile.id:
+		show_text("Not mine")
+		return
+	match item.id:
+		&"beer":
+			drink_beer()
+		_:
+			var door := _locked_door_for(item.id)
+			if door:
+				inventory.remove_at(i)
+				door.unlock_with(item)
+			else:
+				show_text(item.description)
+
+
+## F: hand the current item to the nearest member within 1 tile.
+func give_current_item() -> bool:
+	var i := inventory.current_index()
+	if i < 0:
+		return false
+	var others := nearby_members(GIVE_RANGE)
+	if others.is_empty():
+		show_text("Nobody close enough")
+		return false
+	var item := inventory.slots[i]
+	if not others[0].add_item(item):
+		return false
+	inventory.remove_at(i)
+	return true
+
+
+## V: put the current item on the floor.
+func drop_current_item() -> void:
+	var i := inventory.current_index()
+	if i < 0:
+		return
+	var item := inventory.remove_at(i)
+	var pickup := ItemPickup.new()
+	pickup.item = item
+	pickup.ignore(self)
+	var level := Level.of(self)
+	(level if level else get_parent()).add_child(pickup)
+	pickup.global_position = global_position + Vector2(facing * 6.0, 0)
+
+
+func show_text(text: String, color := Color.WHITE) -> void:
+	var level := Level.of(self)
+	FloatText.spawn(level if level else get_parent(), global_position + Vector2(0, -46), text, color)
+
+
 # --- Internals -------------------------------------------------------------
+
+func _handle_items() -> void:
+	if in_next_pressed:
+		inventory.select_next()
+	if in_use_pressed:
+		use_current_item()
+	if in_give_pressed:
+		give_current_item()
+	if in_drop_pressed:
+		drop_current_item()
+
+
+func _locked_door_for(key: StringName) -> Door:
+	for node in get_tree().get_nodes_in_group(&"interactable"):
+		var door := node as Door
+		if door and door.locked and door.key_id == key \
+				and door.global_position.distance_to(global_position) <= KEY_RANGE:
+			return door
+	return null
+
 
 func _read_input(delta: float) -> void:
 	var controlled := is_active and _hurt_lock <= 0.0
@@ -300,15 +422,25 @@ func _read_input(delta: float) -> void:
 		in_a_held = Input.is_action_pressed("action_a")
 		in_b_pressed = Input.is_action_just_pressed("action_b")
 		in_b_held = Input.is_action_pressed("action_b")
+		in_use_pressed = Input.is_action_just_pressed("use_item")
+		in_give_pressed = Input.is_action_just_pressed("give")
+		in_drop_pressed = Input.is_action_just_pressed("drop_item")
+		in_next_pressed = Input.is_action_just_pressed("item_next")
 	else:
 		in_dir = 0.0 if _hurt_lock > 0.0 else clampf(ai_dir, -1.0, 1.0)
 		in_vertical = 0.0
-		in_jump_pressed = false
-		in_jump_held = false
+		in_jump_pressed = _ai_jump_queued
+		in_jump_held = _ai_jump_hold > 0.0
+		_ai_jump_queued = false
+		_ai_jump_hold = maxf(_ai_jump_hold - delta, 0.0)
 		in_a_pressed = false
 		in_a_held = false
 		in_b_pressed = false
 		in_b_held = false
+		in_use_pressed = false
+		in_give_pressed = false
+		in_drop_pressed = false
+		in_next_pressed = false
 
 
 func _finish_frame() -> void:

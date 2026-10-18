@@ -86,20 +86,9 @@ func reset() -> void:
 	pass
 
 
-## Other members within `radius` px in the same room (via the Level), nearest first.
+## Other members within `radius` px in the same room, nearest first.
 func nearby_members(radius: float) -> Array[BandMember]:
-	var out: Array[BandMember] = []
-	var level := Level.of(member)
-	for m: BandMember in member.get_parent().get_children().filter(func(n: Node) -> bool: return n is BandMember):
-		if m == member or m.is_dead:
-			continue
-		if level and level.room_of_member(m) != level.room_of_member(member):
-			continue
-		if m.global_position.distance_to(member.global_position) <= radius:
-			out.append(m)
-	out.sort_custom(func(a: BandMember, b: BandMember) -> bool:
-		return a.global_position.distance_squared_to(member.global_position) < b.global_position.distance_squared_to(member.global_position))
-	return out
+	return member.nearby_members(radius)
 
 
 ## Physics bodies/areas overlapping a box in front of the member.
