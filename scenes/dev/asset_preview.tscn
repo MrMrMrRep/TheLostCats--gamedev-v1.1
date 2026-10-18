@@ -1,0 +1,189 @@
+[gd_scene format=4 uid="uid://cowdgq3cspf5c"]
+
+[ext_resource type="TileSet" uid="uid://q6tppnguf7t6" path="res://resources/tiles/amwoods_tileset.tres" id="1_kkwro"]
+[ext_resource type="SpriteFrames" uid="uid://5oh11rlg1ovv" path="res://resources/sprites/char_blue_frames.tres" id="2_m33o1"]
+[ext_resource type="SpriteFrames" uid="uid://cehgnkeiqnqn3" path="res://resources/sprites/shop_anim_frames.tres" id="3_6xqrk"]
+[ext_resource type="Texture2D" uid="uid://dxp10i6rtfc78" path="res://public/assets/amwoods/decorations/lamp.png" id="4_ye6ey"]
+
+[node name="AssetPreview" type="Node2D" unique_id=2037135036]
+
+[node name="@ColorRect@33247" type="ColorRect" parent="." unique_id=396271784]
+offset_right = 640.0
+offset_bottom = 360.0
+color = Color(0.16862746, 0.14117648, 0.2, 1)
+
+[node name="Ground" type="TileMapLayer" parent="." unique_id=2048209280]
+tile_map_data = PackedByteArray("AAAAAAsAAAAAAAAAAAAAAAwAAAAFAA0AAAAAAA0AAAAFAA4AAAAAAA4AAAAFAA0AAAABAAsAAAABAAAAAAABAAwAAAAGAA0AAAABAA0AAAAGAA4AAAABAA4AAAAGAA0AAAACAAsAAAABAAAAAAACAAwAAAAHAA0AAAACAA0AAAAHAA4AAAACAA4AAAAHAA0AAAADAAsAAAABAAAAAAADAAwAAAAIAA0AAAADAA0AAAAIAA4AAAADAA4AAAAIAA0AAAAEAAsAAAABAAAAAAAEAAwAAAAJAA0AAAAEAA0AAAAJAA4AAAAEAA4AAAAJAA0AAAAFAAsAAAABAAAAAAAFAAwAAAAKAA0AAAAFAA0AAAAKAA4AAAAFAA4AAAAKAA0AAAAGAAsAAAABAAAAAAAGAAwAAAALAA0AAAAGAA0AAAALAA4AAAAGAA4AAAALAA0AAAAHAAsAAAABAAAAAAAHAAwAAAAMAA0AAAAHAA0AAAAMAA4AAAAHAA4AAAAMAA0AAAAIAAsAAAABAAAAAAAIAAwAAAAFAA0AAAAIAA0AAAAFAA4AAAAIAA4AAAAFAA0AAAAJAAsAAAABAAAAAAAJAAwAAAAGAA0AAAAJAA0AAAAGAA4AAAAJAA4AAAAGAA0AAAAKAAsAAAABAAAAAAAKAAwAAAAHAA0AAAAKAA0AAAAHAA4AAAAKAA4AAAAHAA0AAAALAAsAAAABAAAAAAALAAwAAAAIAA0AAAALAA0AAAAIAA4AAAALAA4AAAAIAA0AAAAMAAsAAAABAAAAAAAMAAwAAAAJAA0AAAAMAA0AAAAJAA4AAAAMAA4AAAAJAA0AAAANAAsAAAABAAAAAAANAAwAAAAKAA0AAAANAA0AAAAKAA4AAAANAA4AAAAKAA0AAAAOAAsAAAABAAAAAAAOAAwAAAALAA0AAAAOAA0AAAALAA4AAAAOAA4AAAALAA0AAAAPAAsAAAABAAAAAAAPAAwAAAAMAA0AAAAPAA0AAAAMAA4AAAAPAA4AAAAMAA0AAAAQAAsAAAABAAAAAAAQAAwAAAAFAA0AAAAQAA0AAAAFAA4AAAAQAA4AAAAFAA0AAAARAAsAAAABAAAAAAARAAwAAAAGAA0AAAARAA0AAAAGAA4AAAARAA4AAAAGAA0AAAASAAsAAAABAAAAAAASAAwAAAAHAA0AAAASAA0AAAAHAA4AAAASAA4AAAAHAA0AAAATAAsAAAABAAAAAAATAAwAAAAIAA0AAAATAA0AAAAIAA4AAAATAA4AAAAIAA0AAAAUAAsAAAABAAAAAAAUAAwAAAAJAA0AAAAUAA0AAAAJAA4AAAAUAA4AAAAJAA0AAAAVAAsAAAABAAAAAAAVAAwAAAAKAA0AAAAVAA0AAAAKAA4AAAAVAA4AAAAKAA0AAAAWAAsAAAABAAAAAAAWAAwAAAALAA0AAAAWAA0AAAALAA4AAAAWAA4AAAALAA0AAAAXAAsAAAABAAAAAAAXAAwAAAAMAA0AAAAXAA0AAAAMAA4AAAAXAA4AAAAMAA0AAAAYAAsAAAABAAAAAAAYAAwAAAAFAA0AAAAYAA0AAAAFAA4AAAAYAA4AAAAFAA0AAAAZAAsAAAABAAAAAAAZAAwAAAAGAA0AAAAZAA0AAAAGAA4AAAAZAA4AAAAGAA0AAAAaAAsAAAADAAAAAAAaAAwAAAAHAA0AAAAaAA0AAAAHAA4AAAAaAA4AAAAHAA0AAAADAAcAAAAFAAkAAAAEAAcAAAAGAAkAAAAFAAcAAAAHAAkAAAATAAYAAAAFAAAAAAAUAAYAAAAGAAAAAAAVAAYAAAAHAAAAAAAWAAYAAAAIAAAAAAA=")
+tile_set = ExtResource("1_kkwro")
+
+[node name="Anim_air_attack" type="AnimatedSprite2D" parent="." unique_id=798476028]
+position = Vector2(40, 264)
+sprite_frames = ExtResource("2_m33o1")
+animation = &"air_attack"
+autoplay = "air_attack"
+offset = Vector2(0, -28)
+
+[node name="@Label@33248" type="Label" parent="." unique_id=931789956]
+offset_left = 14.0
+offset_top = 272.0
+offset_right = 14.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "air_attack"
+
+[node name="Anim_attack" type="AnimatedSprite2D" parent="." unique_id=1479042739]
+modulate = Color(1, 0.6039216, 0.6039216, 1)
+position = Vector2(98, 264)
+sprite_frames = ExtResource("2_m33o1")
+animation = &"attack"
+autoplay = "attack"
+offset = Vector2(0, -28)
+
+[node name="@Label@33249" type="Label" parent="." unique_id=203048997]
+offset_left = 72.0
+offset_top = 272.0
+offset_right = 72.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "attack"
+
+[node name="Anim_death" type="AnimatedSprite2D" parent="." unique_id=1716477203]
+modulate = Color(0.6039216, 1, 0.6901961, 1)
+position = Vector2(156, 264)
+sprite_frames = ExtResource("2_m33o1")
+animation = &"death"
+autoplay = "death"
+offset = Vector2(0, -28)
+
+[node name="@Label@33250" type="Label" parent="." unique_id=2033935067]
+offset_left = 130.0
+offset_top = 272.0
+offset_right = 130.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "death"
+
+[node name="Anim_fall" type="AnimatedSprite2D" parent="." unique_id=1102426189]
+modulate = Color(1, 0.8784314, 0.5411765, 1)
+position = Vector2(214, 264)
+sprite_frames = ExtResource("2_m33o1")
+animation = &"fall"
+autoplay = "fall"
+offset = Vector2(0, -28)
+
+[node name="@Label@33251" type="Label" parent="." unique_id=1091472469]
+offset_left = 188.0
+offset_top = 272.0
+offset_right = 188.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "fall"
+
+[node name="Anim_hurt" type="AnimatedSprite2D" parent="." unique_id=1290243256]
+modulate = Color(0.7882353, 0.627451, 1, 1)
+position = Vector2(272, 264)
+sprite_frames = ExtResource("2_m33o1")
+animation = &"hurt"
+autoplay = "hurt"
+offset = Vector2(0, -28)
+
+[node name="@Label@33252" type="Label" parent="." unique_id=806897801]
+offset_left = 246.0
+offset_top = 272.0
+offset_right = 246.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "hurt"
+
+[node name="Anim_idle" type="AnimatedSprite2D" parent="." unique_id=2018380992]
+position = Vector2(330, 264)
+sprite_frames = ExtResource("2_m33o1")
+animation = &"idle"
+autoplay = "idle"
+offset = Vector2(0, -28)
+
+[node name="@Label@33253" type="Label" parent="." unique_id=1126186378]
+offset_left = 304.0
+offset_top = 272.0
+offset_right = 304.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "idle"
+
+[node name="Anim_jump" type="AnimatedSprite2D" parent="." unique_id=992276193]
+modulate = Color(1, 0.6039216, 0.6039216, 1)
+position = Vector2(388, 264)
+sprite_frames = ExtResource("2_m33o1")
+animation = &"jump"
+autoplay = "jump"
+offset = Vector2(0, -28)
+
+[node name="@Label@33254" type="Label" parent="." unique_id=1131622498]
+offset_left = 362.0
+offset_top = 272.0
+offset_right = 362.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "jump"
+
+[node name="Anim_jump_start" type="AnimatedSprite2D" parent="." unique_id=1161182919]
+modulate = Color(0.6039216, 1, 0.6901961, 1)
+position = Vector2(446, 264)
+sprite_frames = ExtResource("2_m33o1")
+animation = &"jump_start"
+autoplay = "jump_start"
+offset = Vector2(0, -28)
+
+[node name="@Label@33255" type="Label" parent="." unique_id=402200591]
+offset_left = 420.0
+offset_top = 272.0
+offset_right = 420.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "jump_start"
+
+[node name="Anim_land" type="AnimatedSprite2D" parent="." unique_id=1213512576]
+modulate = Color(1, 0.8784314, 0.5411765, 1)
+position = Vector2(504, 264)
+sprite_frames = ExtResource("2_m33o1")
+animation = &"land"
+autoplay = "land"
+offset = Vector2(0, -28)
+
+[node name="@Label@33256" type="Label" parent="." unique_id=422107078]
+offset_left = 478.0
+offset_top = 272.0
+offset_right = 478.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "land"
+
+[node name="Anim_run" type="AnimatedSprite2D" parent="." unique_id=2119418686]
+modulate = Color(0.7882353, 0.627451, 1, 1)
+position = Vector2(562, 264)
+sprite_frames = ExtResource("2_m33o1")
+animation = &"run"
+autoplay = "run"
+offset = Vector2(0, -28)
+
+[node name="@Label@33257" type="Label" parent="." unique_id=884805922]
+offset_left = 536.0
+offset_top = 272.0
+offset_right = 536.0
+offset_bottom = 272.0
+theme_override_font_sizes/font_size = 8
+text = "run"
+
+[node name="Shop" type="AnimatedSprite2D" parent="." unique_id=1695952439]
+position = Vector2(560, 264)
+sprite_frames = ExtResource("3_6xqrk")
+autoplay = "default"
+offset = Vector2(0, -64)
+
+[node name="@Sprite2D@33258" type="Sprite2D" parent="." unique_id=2039158958]
+position = Vector2(480, 264)
+texture = ExtResource("4_ye6ey")
+offset = Vector2(0, -28.5)
+
+[node name="@Camera2D@33259" type="Camera2D" parent="." unique_id=1703692969]
+position = Vector2(320, 180)

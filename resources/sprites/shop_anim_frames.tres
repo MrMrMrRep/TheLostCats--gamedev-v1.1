@@ -1,0 +1,53 @@
+[gd_resource type="SpriteFrames" format=3 uid="uid://cehgnkeiqnqn3"]
+
+[ext_resource type="Texture2D" uid="uid://d1c1hnlgskumn" path="res://public/assets/amwoods/decorations/shop_anim.png" id="1_yw58x"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7x6k3"]
+atlas = ExtResource("1_yw58x")
+region = Rect2(0, 0, 118, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gohyf"]
+atlas = ExtResource("1_yw58x")
+region = Rect2(118, 0, 118, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_at4rg"]
+atlas = ExtResource("1_yw58x")
+region = Rect2(236, 0, 118, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aw0ky"]
+atlas = ExtResource("1_yw58x")
+region = Rect2(354, 0, 118, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_kbmdr"]
+atlas = ExtResource("1_yw58x")
+region = Rect2(472, 0, 118, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_81x61"]
+atlas = ExtResource("1_yw58x")
+region = Rect2(590, 0, 118, 128)
+
+[resource]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7x6k3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gohyf")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_at4rg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_aw0ky")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_kbmdr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_81x61")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 8.0
+}]

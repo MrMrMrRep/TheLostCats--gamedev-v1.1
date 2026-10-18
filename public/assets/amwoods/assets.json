@@ -1,0 +1,133 @@
+{
+  "pack": "amwoods",
+  "author": "brullov (itch.io)",
+  "license_note": "Purchased asset pack, see readme.TXT. Stand-in art for v1.",
+  "root": "res://public/assets/amwoods/",
+  "pixel_scale_notes": "Native art grid. Use nearest filtering. Backgrounds are 320x180 (half of the 640x360 viewport).",
+  "conventions": {
+    "coords": "Pixel rects are [x, y, w, h]. Tile coords are [col, row] in tile units.",
+    "origin": "Character frames are bottom-aligned: feet touch the bottom edge of each 56x56 cell."
+  },
+
+  "backgrounds": [
+    {
+      "id": "bg_far",
+      "path": "background/background_layer_1.png",
+      "size": [320, 180],
+      "depth": "farthest (misty blue forest)",
+      "parallax_scroll_scale": [0.2, 1.0],
+      "repeat_x": true
+    },
+    {
+      "id": "bg_mid",
+      "path": "background/background_layer_2.png",
+      "size": [320, 180],
+      "depth": "middle",
+      "parallax_scroll_scale": [0.5, 1.0],
+      "repeat_x": true
+    },
+    {
+      "id": "bg_near",
+      "path": "background/background_layer_3.png",
+      "size": [320, 180],
+      "depth": "nearest (big autumn trees, transparent gaps)",
+      "parallax_scroll_scale": [0.8, 1.0],
+      "repeat_x": true
+    }
+  ],
+
+  "spritesheets": [
+    {
+      "id": "char_blue",
+      "path": "character/char_blue.png",
+      "size": [448, 392],
+      "frame_size": [56, 56],
+      "columns": 8,
+      "rows": 7,
+      "body_bounds_in_frame": [18, 24, 22, 32],
+      "suggested_offset": [0, -28],
+      "suggested_collider": { "shape": "rectangle", "size": [12, 28], "position": [0, -14] },
+      "godot_resource": "res://resources/sprites/char_blue_frames.tres",
+      "used_for": "Stand-in for all 5 band members (tinted per member).",
+      "animations": [
+        { "name": "idle",       "frames": [[0,0],[1,0],[2,0],[3,0],[4,0],[5,0]], "fps": 8,  "loop": true },
+        { "name": "attack",     "frames": [[0,1],[1,1],[2,1],[3,1],[4,1],[5,1]], "fps": 14, "loop": false },
+        { "name": "run",        "frames": [[0,2],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[7,2]], "fps": 12, "loop": true },
+        { "name": "jump_start", "frames": [[0,3],[1,3]], "fps": 14, "loop": false },
+        { "name": "jump",       "frames": [[2,3],[3,3],[4,3],[5,3]], "fps": 10, "loop": true },
+        { "name": "air_attack", "frames": [[6,3],[7,3],[0,4]], "fps": 14, "loop": false },
+        { "name": "fall",       "frames": [[1,4],[2,4],[3,4],[4,4]], "fps": 10, "loop": true },
+        { "name": "land",       "frames": [[5,4],[6,4],[7,4]], "fps": 16, "loop": false },
+        { "name": "hurt",       "frames": [[0,5],[1,5]], "fps": 12, "loop": false },
+        { "name": "death",      "frames": [[0,5],[1,5],[2,5],[3,5],[4,5],[5,5],[6,5],[7,5],[0,6],[1,6],[2,6],[3,6]], "fps": 12, "loop": false }
+      ],
+      "frames_note": "[col, row] per frame. Cells [6,0],[7,0],[6,1],[7,1],[4..7,6] are empty.",
+      "missing_for_gdd": ["climb", "wall_slide", "hover", "push", "lift", "shield", "drink", "talk"]
+    },
+    {
+      "id": "shop_anim",
+      "path": "decorations/shop_anim.png",
+      "size": [708, 128],
+      "frame_size": [118, 128],
+      "columns": 6,
+      "rows": 1,
+      "suggested_offset": [0, -64],
+      "animations": [
+        { "name": "default", "frames": [[0,0],[1,0],[2,0],[3,0],[4,0],[5,0]], "fps": 8, "loop": true }
+      ],
+      "used_for": "Shop / venue door on the world map (chimney smoke animation)."
+    }
+  ],
+
+  "tileset": {
+    "id": "amwoods_tiles",
+    "path": "amwoods_tileset.png",
+    "size": [504, 360],
+    "tile_size": [24, 24],
+    "grid": [21, 15],
+    "godot_resource": "res://resources/tiles/amwoods_tileset.tres",
+    "physics_layers": { "0": "world (solid, collision layer 1)", "1": "one_way (collision layer 2, one-way)" },
+    "custom_data": { "kind": "solid | one_way | background | slope" },
+    "regions": [
+      { "id": "grass_frame",        "origin": [0, 0],  "size": [4, 4],  "kind": "solid",      "note": "Grass-topped ground with corners. Top row: [0,0] left edge, [1,0]-[2,0] middle, [3,0] right edge. [1,1] inner corner. [2,1],[1,2],[2,2] are empty." },
+      { "id": "stone_platform_4",   "origin": [5, 0],  "size": [4, 1],  "kind": "one_way",    "note": "Long floating stone platform." },
+      { "id": "grass_block_1",      "origin": [10, 0], "size": [1, 1],  "kind": "solid",      "note": "Single grass block." },
+      { "id": "stone_block_1",      "origin": [12, 0], "size": [1, 1],  "kind": "solid",      "note": "Single stone block." },
+      { "id": "dirt_frame",         "origin": [14, 0], "size": [4, 4],  "kind": "background", "note": "Brown back-wall frame, no collision. [15,1] inner corner; [16,1],[15,2],[16,2] empty." },
+      { "id": "dirt_column_2x3",    "origin": [19, 0], "size": [2, 3],  "kind": "background", "note": "Back-wall column." },
+      { "id": "grass_cross",        "tiles": [[6,2],[5,3],[7,3],[6,4],[6,5]], "kind": "solid", "note": "Grass ends: top cap, left/right caps, vertical column pieces." },
+      { "id": "stone_cross",        "tiles": [[10,2],[9,3],[11,3],[10,4]],      "kind": "solid", "note": "Stone ends: top, left, right, bottom caps." },
+      { "id": "stone_roof",         "origin": [0, 5],  "size": [4, 2],  "kind": "slope",      "note": "Stone roof / 45-degree slope. Collision polygons TODO (M5)." },
+      { "id": "grass_roof",         "origin": [0, 7],  "size": [4, 2],  "kind": "slope",      "note": "Grass roof / 45-degree slope. Collision polygons TODO (M5)." },
+      { "id": "stone_platform_3",   "origin": [5, 7],  "size": [3, 1],  "kind": "one_way" },
+      { "id": "grass_platform_3",   "origin": [5, 9],  "size": [3, 1],  "kind": "one_way" },
+      { "id": "dark_platform_3",    "origin": [5, 11], "size": [3, 1],  "kind": "one_way" },
+      { "id": "stone_pillar",       "origin": [9, 6],  "size": [2, 5],  "kind": "solid",      "note": "Tall pillar/wall with ember spots." },
+      { "id": "grass_platform_2a",  "origin": [12, 6], "size": [2, 1],  "kind": "one_way" },
+      { "id": "grass_platform_2b",  "origin": [12, 8], "size": [2, 1],  "kind": "one_way" },
+      { "id": "stone_platform_2",   "origin": [12, 10],"size": [2, 1],  "kind": "one_way" },
+      { "id": "dirt_bits",          "tiles": [[15,5],[15,6],[15,8],[16,8],[15,10],[15,11]], "kind": "background" },
+      { "id": "dirt_wall_big",      "origin": [16, 5], "size": [5, 10], "kind": "background", "note": "Large back-wall; irregular shape, only filled cells become tiles." },
+      { "id": "ground_fill_steps",  "origin": [0, 10], "size": [4, 5],  "kind": "solid",      "note": "Dark underground fill, stepped outline." },
+      { "id": "underground_fill",   "origin": [5, 13], "size": [10, 2], "kind": "solid",      "note": "Dark fill with ember spots, for below the ground surface. Row 13 has cols 5-14; row 14 only cols 5-12 ([13,14],[14,14] are empty)." }
+    ],
+    "flat_ground_recipe": {
+      "surface_row": { "left": [0, 0], "middle": [1, 0], "right": [3, 0] },
+      "fill_rows": "Any filled tile from underground_fill: [5..14,13] or [5..12,14]"
+    }
+  },
+
+  "decorations": [
+    { "id": "fence_1", "path": "decorations/fence_1.png", "size": [73, 19], "anchor": "bottom-center" },
+    { "id": "fence_2", "path": "decorations/fence_2.png", "size": [72, 19], "anchor": "bottom-center" },
+    { "id": "grass_1", "path": "decorations/grass_1.png", "size": [8, 3],   "anchor": "bottom-center" },
+    { "id": "grass_2", "path": "decorations/grass_2.png", "size": [10, 5],  "anchor": "bottom-center" },
+    { "id": "grass_3", "path": "decorations/grass_3.png", "size": [9, 4],   "anchor": "bottom-center" },
+    { "id": "lamp",    "path": "decorations/lamp.png",    "size": [23, 57], "anchor": "bottom-center", "note": "Street lamp. Good spot for a PointLight2D later." },
+    { "id": "rock_1",  "path": "decorations/rock_1.png",  "size": [20, 11], "anchor": "bottom-center" },
+    { "id": "rock_2",  "path": "decorations/rock_2.png",  "size": [27, 12], "anchor": "bottom-center" },
+    { "id": "rock_3",  "path": "decorations/rock_3.png",  "size": [45, 18], "anchor": "bottom-center" },
+    { "id": "shop",    "path": "decorations/shop.png",    "size": [118, 98], "anchor": "bottom-center", "note": "Static shop. Animated version: spritesheets.shop_anim." },
+    { "id": "sign",    "path": "decorations/sign.png",    "size": [22, 31], "anchor": "bottom-center" }
+  ]
+}
