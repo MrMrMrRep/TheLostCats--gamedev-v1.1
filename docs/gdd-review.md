@@ -39,10 +39,13 @@ Celeste feels good because of **consistency**, not just speed. Speed 2/5 and Jum
 
 | Stat | 1 | 2 | 3 | 4 | 5 |
 |---|---|---|---|---|---|
-| Jump (tiles high) | 1.5 | 2 | 2.5 | 3 | 3.5 |
+| Jump (tiles high) | 1.3 | 2.3 | 2.8 | 3.3 | 3.8 |
+| Climbs ledges up to | 1 | 2 | 2 | 3 | 3 |
 | Speed (tiles/s) | 5 | 5.5 | 6.5 | 7.5 | 8.5 |
 
 Then "a 2-tile ledge stops Geoff and The Germ" is a rule a level designer can rely on. That's the core of Lost Vikings gating.
+
+*Updated in M3 after playtesting:* jump heights carry a **0.3-tile margin** above the ledge they're meant to clear. With a jump exactly as high as the ledge (2.0 vs 2), clearing it took a frame-perfect jump.
 
 ### 3.2 One clear job per member (the gating matrix)
 Each member needs one thing that **only they** can do. Level design builds on this table:
@@ -115,7 +118,7 @@ Drain rates: climb 25/s, wall-jump 15 each, hover 45/s (about 2.2 s of hover), s
 | The Germ | 2 | 1 | ground-pound |
 | Geoff | 2 | 1 | — |
 
-Shared: time to apex 0.34 s, fall gravity 1.8×, coyote 0.1 s, buffer 0.12 s, jump cut 0.45, apex hang 0.5× when |vy| < 40 px/s, corner correction 2 px.
+Shared: same gravity for everyone (time to apex scales with √height: 0.357 s at 3.3 tiles, 0.224 s at 1.3), fall gravity 1.8×, coyote 0.1 s, buffer 0.12 s, jump cut 0.45, apex hang 0.5× when |vy| < 60 px/s with jump held, ceiling corner correction 4 px, ledge correction 3 px, fall 18 tiles/s (26 holding down). Implemented in `resources/profiles/*.tres`.
 
 ## 5. Technical and art notes from the asset pack
 

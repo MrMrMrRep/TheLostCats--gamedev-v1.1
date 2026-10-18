@@ -1,79 +1,171 @@
 class_name Player
 extends CharacterBody2D
-## Baseline platformer controller (M2): run, jump, gravity and animation states.
-## Tuned by outcome (tiles, seconds); gravity and jump speed are derived from them.
-## M3 adds coyote time, jump buffer, variable jump, apex hang and corner correction.
+## Celeste-style platformer controller (M3). All feel numbers come from the
+## MovementProfile: run accel/decel, derived gravity, fall multiplier, apex hang,
+## coyote time, jump buffer, variable jump cut, corner and ledge correction,
+## fast fall and drop-through on one-way platforms (down + jump).
+
+signal jumped
+signal landed(fall_speed: float)
 
 const TILE := 24.0
+const ONE_WAY_LAYER := 1 << 1               # physics layer 2 "one_way"
+const DROP_THROUGH_TIME := 0.2
 
-@export_group("Run")
-@export var run_speed_tiles := 7.0          ## top speed in tiles per second
-@export var accel_time := 0.08              ## seconds from standstill to top speed
-@export var decel_time := 0.06              ## seconds from top speed to standstill
-@export var air_control := 0.8              ## acceleration multiplier while airborne
-
-@export_group("Jump")
-@export var jump_height_tiles := 3.0        ## apex height in tiles
-@export var time_to_apex := 0.34            ## seconds from takeoff to apex
-@export var fall_gravity_mult := 1.8        ## heavier fall for a snappy, non-floaty arc
-@export var max_fall_tiles := 18.0          ## terminal fall speed in tiles per second
+@export var profile: MovementProfile: set = set_profile
+@export var stamina_config: StaminaConfig
 
 var facing := 1.0
+var input_enabled := true
 
-var _gravity: float
-var _jump_velocity: float
+var coyote_left: float:
+	get:
+		return _coyote
+var buffer_left: float:
+	get:
+		return _buffer
+
+var _gravity := 0.0
+var _jump_velocity := 0.0
+var _coyote := 0.0
+var _buffer := 0.0
+var _jump_held := false                     # rising from a jump; releasing jump cuts it
+var _drop_timer := 0.0
 var _was_on_floor := true
 var _anim_lock := false                     # true while a one-shot (jump_start, land) plays
 
 @onready var sprite: AnimatedSprite2D = $Sprite
+@onready var stamina: StaminaComponent = $Stamina
 
 
 func _ready() -> void:
-	_recalculate()
 	sprite.animation_finished.connect(_on_animation_finished)
+	_apply_profile()
 
 
-## Derive physics from the feel values: h = g*t^2/2 and v = g*t.
-func _recalculate() -> void:
-	var height := jump_height_tiles * TILE
-	_gravity = 2.0 * height / (time_to_apex * time_to_apex)
-	_jump_velocity = -2.0 * height / time_to_apex
+func set_profile(value: MovementProfile) -> void:
+	profile = value
+	if is_node_ready():
+		_apply_profile()
+
+
+func _apply_profile() -> void:
+	if profile == null:
+		return
+	_gravity = profile.gravity()
+	_jump_velocity = profile.jump_velocity()
+	sprite.modulate = profile.tint
+	stamina.settings = stamina_config.for_member(profile.id) if stamina_config else null
 
 
 func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
+	var dir := Input.get_axis("move_left", "move_right") if input_enabled else 0.0
+	var down := input_enabled and Input.is_action_pressed("move_down")
+	var jump_down := input_enabled and Input.is_action_pressed("jump")
 
-	# Jump.
-	if on_floor and Input.is_action_just_pressed("jump"):
-		velocity.y = _jump_velocity
+	# Forgiveness timers.
+	_coyote = profile.coyote_time if on_floor else maxf(_coyote - delta, 0.0)
+	if input_enabled and Input.is_action_just_pressed("jump"):
+		_buffer = profile.jump_buffer
+	else:
+		_buffer = maxf(_buffer - delta, 0.0)
+	if _drop_timer > 0.0:
+		_drop_timer -= delta
+		set_collision_mask_value(2, _drop_timer <= 0.0)
+
+	# Jump (buffered, with coyote time) or drop through a one-way platform.
+	if _buffer > 0.0 and _coyote > 0.0:
+		if down and on_floor and _standing_on_one_way():
+			_drop_through()
+		else:
+			_jump()
+		_buffer = 0.0
+		_coyote = 0.0
 		on_floor = false
-		_play_once(&"jump_start")
 
-	# Gravity, half before and half after the move (trapezoid step), so the
-	# apex lands exactly on jump_height_tiles at any frame rate.
-	if not on_floor:
-		_apply_gravity(delta * 0.5)
+	# Variable jump: releasing early cuts the rise.
+	if _jump_held and (not jump_down or velocity.y >= 0.0):
+		if velocity.y < 0.0:
+			velocity.y *= profile.jump_cut
+		_jump_held = false
 
 	# Horizontal: reach top speed in accel_time, stop in decel_time.
-	var dir := Input.get_axis("move_left", "move_right")
-	var top := run_speed_tiles * TILE
-	var control := 1.0 if on_floor else air_control
+	var top := profile.run_speed()
+	var control := 1.0 if on_floor else profile.air_control
 	if dir != 0.0:
 		facing = signf(dir)
-		velocity.x = move_toward(velocity.x, dir * top, top / accel_time * control * delta)
+		velocity.x = move_toward(velocity.x, dir * top, top / profile.accel_time * control * delta)
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, top / decel_time * control * delta)
+		velocity.x = move_toward(velocity.x, 0.0, top / profile.decel_time * control * delta)
 
+	# Gravity half before and half after the move (trapezoid step): the apex
+	# lands exactly on jump_height_tiles at any frame rate.
+	if not on_floor:
+		_apply_gravity(delta * 0.5, jump_down, down)
+	var air_speed := velocity.y
+	_correct_corners(delta)
 	move_and_slide()
 	if not is_on_floor():
-		_apply_gravity(delta * 0.5)
+		_apply_gravity(delta * 0.5, jump_down, down)
+
+	if is_on_floor() and not _was_on_floor:
+		landed.emit(air_speed)
+	stamina.grounded = is_on_floor()
 	_update_animation()
 
 
-## Heavier gravity on the way down; capped at terminal fall speed.
-func _apply_gravity(step: float) -> void:
-	var g := _gravity * (fall_gravity_mult if velocity.y > 0.0 else 1.0)
-	velocity.y = minf(velocity.y + g * step, max_fall_tiles * TILE)
+func _jump() -> void:
+	velocity.y = _jump_velocity
+	_jump_held = true
+	_play_once(&"jump_start")
+	jumped.emit()
+
+
+func _drop_through() -> void:
+	set_collision_mask_value(2, false)
+	_drop_timer = DROP_THROUGH_TIME
+	position.y += 1.0
+	velocity.y = maxf(velocity.y, 40.0)
+
+
+func _standing_on_one_way() -> bool:
+	var hit := move_and_collide(Vector2(0, 2), true)
+	return hit != null and (PhysicsServer2D.body_get_collision_layer(hit.get_collider_rid()) & ONE_WAY_LAYER) != 0
+
+
+## Fall faster than you rise; float near the apex while jump is held.
+func _apply_gravity(step: float, jump_down: bool, fast_fall: bool) -> void:
+	var g := _gravity
+	if jump_down and absf(velocity.y) < profile.apex_threshold:
+		g *= profile.apex_hang_mult
+	elif velocity.y > 0.0:
+		g *= profile.fall_gravity_mult
+	var cap := (profile.fast_fall_tiles if fast_fall else profile.max_fall_tiles) * TILE
+	velocity.y = minf(velocity.y + g * step, cap)
+
+
+## Nudge near-misses through instead of failing them.
+func _correct_corners(delta: float) -> void:
+	var motion := velocity * delta
+	# Rising into a ceiling edge: slide sideways up to N px.
+	if motion.y < 0.0 and test_move(global_transform, Vector2(0, motion.y)):
+		var first := facing if velocity.x == 0.0 else signf(velocity.x)
+		for i in range(1, profile.ceiling_correction_px + 1):
+			for side in [first, -first]:
+				var shift := Vector2(i * side, 0)
+				if not test_move(global_transform, shift) \
+						and not test_move(global_transform.translated(shift), Vector2(0, motion.y)):
+					position.x += shift.x
+					return
+	# Moving sideways into a ledge top in the air: pop up N px.
+	if motion.x != 0.0 and not is_on_floor() and test_move(global_transform, Vector2(motion.x, 0)):
+		for i in range(1, profile.ledge_correction_px + 1):
+			var up := Vector2(0, -i)
+			if not test_move(global_transform, up) \
+					and not test_move(global_transform.translated(up), Vector2(motion.x, 0)):
+				position.y -= i
+				return
 
 
 func _update_animation() -> void:

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MovementProfile" format=3 uid="uid://cdhspdnnhgabs"]
+
+[ext_resource type="Script" uid="uid://hsujlvahca0" path="res://scripts/resources/movement_profile.gd" id="1_gtgoh"]
+
+[resource]
+script = ExtResource("1_gtgoh")
+id = &"joep"
+display_name = "Joep"
+run_speed_tiles = 7.5
+jump_height_tiles = 3.3
+time_to_apex = 0.357

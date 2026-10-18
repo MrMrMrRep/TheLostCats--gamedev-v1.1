@@ -65,13 +65,16 @@ Each milestone ends with a **playtest in the running game** (not just "the code 
 - [x] **Done when:** you can run and jump left/right with parallax scrolling and correct animations ✅ (main scene: `scenes/dev/baseline.tscn`)
 
 ### M3 — Celeste controller + stamina
-- [ ] `MovementProfile` resource (speed tiles/s, jump tiles, time-to-apex, …), gravity and jump velocity *derived* from height and apex time
-- [ ] Accel/decel (top speed in 0.05–0.1 s), fall gravity ×1.8, coyote 0.1 s, buffer 0.12 s, variable jump cut ×0.45, apex hang, corner correction 2 px, max fall speed
-- [ ] One-way platforms: land from above, drop through with down + jump
-- [ ] `StaminaComponent` (node): `max_stamina, current_stamina, regen_rate, regen_delay, is_exhausted`, ground regen bonus, `spend()`, `try_spend()`, signals `stamina_changed`, `exhausted`, `recovered`
-- [ ] All values in `resources/config/stamina_config.tres` + profiles (from review §4)
-- [ ] Debug overlay (F3): velocity, on-floor, coyote/buffer timers, stamina
-- [ ] **Done when:** a test room with 1–4 tile gaps and ledges feels tight. Short hop vs. full jump is clearly different, and edge jumps and early presses always work
+- [x] `MovementProfile` resource (speed tiles/s, jump tiles, time-to-apex, …), gravity and jump velocity *derived* from height and apex time. 5 profiles in `resources/profiles/`
+- [x] Accel/decel (top speed in 0.08 s), fall gravity ×1.8, coyote 0.1 s, buffer 0.12 s, variable jump cut ×0.45, apex hang, ceiling corner correction 4 px + ledge correction 3 px, max fall speed + fast fall (hold down)
+- [x] One-way platforms: land from above, drop through with down + jump
+- [x] `StaminaComponent` (node): `max_stamina, current_stamina, regen_rate, regen_delay, is_exhausted`, ground regen bonus, `spend()`, `try_spend()`, signals `stamina_changed`, `exhausted`, `recovered`
+- [x] All values in `resources/config/stamina_config.tres` (per-member pools + ability costs) + profiles (from review §4)
+- [x] Stamina bar under the active member's name (HUD), only visible when below max or just changed, red while exhausted
+- [x] Debug overlay (F3): velocity, on-floor, coyote/buffer timers, stamina, fps
+- [x] Test room `scenes/dev/movement_test.tscn` (main scene): ledges 1–4, gaps 1–4, ceiling hole, one-way stack, 3-tile ledge. Keys 1–5 swap the feel per member, hold F4 drains stamina
+- [x] Headless test `tests/test_movement_feel.gd` (26 checks)
+- [x] **Done when:** a test room with 1–4 tile gaps and ledges feels tight. Short hop vs. full jump is clearly different, and edge jumps and early presses always work ✅ (tests pass; your hands-on feel check is still open)
 
 ### M4 — Band / party system
 - [ ] `BandMember` scene = shared controller + profile + ability node + stamina + health + inventory
@@ -173,4 +176,8 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 
 ```bash
 /Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_baseline_movement.gd
+```
+
+```bash
+/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_movement_feel.gd
 ```

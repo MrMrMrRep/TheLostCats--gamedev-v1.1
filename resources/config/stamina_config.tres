@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="StaminaConfig" format=3 uid="uid://dutj0esiiqpsy"]
+
+[ext_resource type="Script" uid="uid://cpcgm7b5neom7" path="res://scripts/resources/stamina_settings.gd" id="1_efvci"]
+[ext_resource type="Script" uid="uid://b8lh4x7rd2p3w" path="res://scripts/resources/stamina_config.gd" id="2_18ifm"]
+
+[sub_resource type="Resource" id="Resource_u2n7e"]
+script = ExtResource("1_efvci")
+regen_rate = 35.0
+regen_delay = 0.4
+
+[sub_resource type="Resource" id="Resource_4etyg"]
+script = ExtResource("1_efvci")
+regen_rate = 25.0
+regen_delay = 0.6
+
+[sub_resource type="Resource" id="Resource_syif1"]
+script = ExtResource("1_efvci")
+
+[sub_resource type="Resource" id="Resource_n34qa"]
+script = ExtResource("1_efvci")
+regen_rate = 25.0
+regen_delay = 0.6
+
+[resource]
+script = ExtResource("2_18ifm")
+members = Dictionary[StringName, ExtResource("1_efvci")]({
+&"germ": SubResource("Resource_n34qa"),
+&"jay": SubResource("Resource_4etyg"),
+&"joep": SubResource("Resource_u2n7e"),
+&"nikki": SubResource("Resource_syif1")
+})

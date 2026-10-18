@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://1hjoq3evq167"]
+
+[ext_resource type="Script" uid="uid://dw4t1nli8on3e" path="res://scripts/ui/debug_overlay.gd" id="1_tasbd"]
+
+[node name="DebugOverlay" type="CanvasLayer" unique_id=34814218]
+script = ExtResource("1_tasbd")
+
+[node name="Label" type="Label" parent="." unique_id=876414318]
+offset_left = 420.0
+offset_top = 8.0
+offset_right = 632.0
+offset_bottom = 88.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+horizontal_alignment = 2

@@ -2,27 +2,35 @@
 
 [ext_resource type="Script" uid="uid://o5rgw0kkegwi" path="res://scripts/characters/player.gd" id="1_yewv4"]
 [ext_resource type="SpriteFrames" uid="uid://5oh11rlg1ovv" path="res://resources/sprites/char_blue_frames.tres" id="2_76oj4"]
+[ext_resource type="Resource" uid="uid://cdhspdnnhgabs" path="res://resources/profiles/joep.tres" id="2_atpat"]
+[ext_resource type="Resource" uid="uid://dutj0esiiqpsy" path="res://resources/config/stamina_config.tres" id="3_kqtwu"]
+[ext_resource type="Script" uid="uid://tf2dofabraxb" path="res://scripts/components/stamina_component.gd" id="5_6eyoc"]
 
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_dyp2m"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_eojnx"]
 size = Vector2(12, 28)
 
-[node name="Player" type="CharacterBody2D" unique_id=848712531]
+[node name="Player" type="CharacterBody2D" unique_id=1144606452]
 collision_layer = 4
 collision_mask = 3
 floor_snap_length = 4.0
 script = ExtResource("1_yewv4")
+profile = ExtResource("2_atpat")
+stamina_config = ExtResource("3_kqtwu")
 
-[node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=129719255]
+[node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=963770160]
 sprite_frames = ExtResource("2_76oj4")
 animation = &"idle"
 autoplay = "idle"
 offset = Vector2(0, -28)
 
-[node name="Collision" type="CollisionShape2D" parent="." unique_id=634881569]
+[node name="Collision" type="CollisionShape2D" parent="." unique_id=1339707321]
 position = Vector2(0, -14)
-shape = SubResource("RectangleShape2D_dyp2m")
+shape = SubResource("RectangleShape2D_eojnx")
 
-[node name="Camera" type="Camera2D" parent="." unique_id=1467035185]
+[node name="Stamina" type="Node" parent="." unique_id=1739085896]
+script = ExtResource("5_6eyoc")
+
+[node name="Camera" type="Camera2D" parent="." unique_id=913172461]
 position = Vector2(0, -16)
 zoom = Vector2(2, 2)
 position_smoothing_enabled = true

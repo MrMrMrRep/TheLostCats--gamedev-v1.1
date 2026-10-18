@@ -1,0 +1,167 @@
+[gd_scene format=4 uid="uid://bcfjrdeabddqj"]
+
+[ext_resource type="Script" uid="uid://bpxtymxmwm3x5" path="res://scripts/levels/movement_test_room.gd" id="1_223c4"]
+[ext_resource type="Script" uid="uid://hsujlvahca0" path="res://scripts/resources/movement_profile.gd" id="2_tqsfl"]
+[ext_resource type="Resource" uid="uid://cdhspdnnhgabs" path="res://resources/profiles/joep.tres" id="3_7u3dl"]
+[ext_resource type="Resource" uid="uid://dcv8m6lxr1vtq" path="res://resources/profiles/jay.tres" id="4_32u8b"]
+[ext_resource type="Resource" uid="uid://dmyidyyoyyurq" path="res://resources/profiles/nikki.tres" id="5_kts7h"]
+[ext_resource type="Resource" uid="uid://b80a4rxjuhmvi" path="res://resources/profiles/germ.tres" id="6_dqlu5"]
+[ext_resource type="Resource" uid="uid://dvuftjhbuv6ts" path="res://resources/profiles/geoff.tres" id="7_l1ryv"]
+[ext_resource type="Texture2D" uid="uid://bx514ox8l2c01" path="res://public/assets/amwoods/background/background_layer_1.png" id="8_10w18"]
+[ext_resource type="Script" uid="uid://cxkrjii2e3jnk" path="res://scripts/levels/parallax_background.gd" id="8_tqsfl"]
+[ext_resource type="Texture2D" uid="uid://cgbbdpda26svu" path="res://public/assets/amwoods/background/background_layer_2.png" id="9_800i1"]
+[ext_resource type="Texture2D" uid="uid://c73dex62yigsd" path="res://public/assets/amwoods/background/background_layer_3.png" id="10_4nsjy"]
+[ext_resource type="TileSet" uid="uid://q6tppnguf7t6" path="res://resources/tiles/amwoods_tileset.tres" id="11_d7unt"]
+[ext_resource type="PackedScene" uid="uid://chnywh4p28hkf" path="res://scenes/characters/player.tscn" id="12_wbwvm"]
+[ext_resource type="Script" uid="uid://o5rgw0kkegwi" path="res://scripts/characters/player.gd" id="13_ua5be"]
+[ext_resource type="Resource" uid="uid://dutj0esiiqpsy" path="res://resources/config/stamina_config.tres" id="14_0m0jf"]
+[ext_resource type="PackedScene" uid="uid://716uph60xpmh" path="res://scenes/ui/hud.tscn" id="15_4g2t7"]
+[ext_resource type="Script" uid="uid://4dlfjoixdw3s" path="res://scripts/ui/hud.gd" id="16_6oi7r"]
+[ext_resource type="PackedScene" uid="uid://1hjoq3evq167" path="res://scenes/ui/debug_overlay.tscn" id="17_b7ebu"]
+[ext_resource type="Script" uid="uid://dw4t1nli8on3e" path="res://scripts/ui/debug_overlay.gd" id="18_32u63"]
+
+[node name="MovementTest" type="Node2D" unique_id=1768130703]
+script = ExtResource("1_223c4")
+profiles = Array[ExtResource("2_tqsfl")]([ExtResource("3_7u3dl"), ExtResource("4_32u8b"), ExtResource("5_kts7h"), ExtResource("6_dqlu5"), ExtResource("7_l1ryv")])
+bounds = Rect2i(0, 0, 1920, 360)
+
+[node name="Background" type="Node2D" parent="." unique_id=547530758]
+script = ExtResource("8_tqsfl")
+
+[node name="Far" type="Parallax2D" parent="Background" unique_id=793345216]
+scroll_scale = Vector2(0.2, 0)
+repeat_size = Vector2(320, 0)
+repeat_times = 3
+
+[node name="Sprite" type="Sprite2D" parent="Background/Far" unique_id=933097408]
+texture = ExtResource("8_10w18")
+centered = false
+
+[node name="Mid" type="Parallax2D" parent="Background" unique_id=1457139471]
+scroll_scale = Vector2(0.5, 0)
+repeat_size = Vector2(320, 0)
+repeat_times = 3
+
+[node name="Sprite" type="Sprite2D" parent="Background/Mid" unique_id=183246903]
+texture = ExtResource("9_800i1")
+centered = false
+
+[node name="Near" type="Parallax2D" parent="Background" unique_id=1079833863]
+scroll_scale = Vector2(0.8, 0)
+repeat_size = Vector2(320, 0)
+repeat_times = 3
+
+[node name="Sprite" type="Sprite2D" parent="Background/Near" unique_id=1523217946]
+texture = ExtResource("10_4nsjy")
+centered = false
+
+[node name="Ground" type="TileMapLayer" parent="." unique_id=811063958]
+tile_map_data = PackedByteArray("AAAAAAwAAAABAAAAAAAAAA0AAAAFAA0AAAAAAA4AAAAFAA4AAAABAAwAAAACAAAAAAABAA0AAAAGAA0AAAABAA4AAAAGAA4AAAACAAwAAAABAAAAAAACAA0AAAAHAA0AAAACAA4AAAAHAA4AAAADAAwAAAACAAAAAAADAA0AAAAIAA0AAAADAA4AAAAIAA4AAAAEAAwAAAABAAAAAAAEAA0AAAAJAA0AAAAEAA4AAAAJAA4AAAAFAAwAAAACAAAAAAAFAA0AAAAKAA0AAAAFAA4AAAAKAA4AAAAGAAwAAAABAAAAAAAGAA0AAAALAA0AAAAGAA4AAAALAA4AAAAHAAwAAAACAAAAAAAHAA0AAAAMAA0AAAAHAA4AAAAMAA4AAAAIAAwAAAABAAAAAAAIAA0AAAANAA0AAAAIAA4AAAAFAA4AAAAJAAwAAAACAAAAAAAJAA0AAAAOAA0AAAAJAA4AAAAGAA4AAAAKAAwAAAABAAAAAAAKAA0AAAAFAA0AAAAKAA4AAAAHAA4AAAALAAwAAAACAAAAAAALAA0AAAAGAA0AAAALAA4AAAAIAA4AAAAMAAwAAAABAAAAAAAMAA0AAAAHAA0AAAAMAA4AAAAJAA4AAAANAAwAAAACAAAAAAANAA0AAAAIAA0AAAANAA4AAAAKAA4AAAAOAAwAAAABAAAAAAAOAA0AAAAJAA0AAAAOAA4AAAALAA4AAAAPAAwAAAACAAAAAAAPAA0AAAAKAA0AAAAPAA4AAAAMAA4AAAAQAAwAAAABAAAAAAAQAA0AAAALAA0AAAAQAA4AAAAFAA4AAAARAAwAAAACAAAAAAARAA0AAAAMAA0AAAARAA4AAAAGAA4AAAASAAwAAAABAAAAAAASAA0AAAANAA0AAAASAA4AAAAHAA4AAAATAAwAAAACAAAAAAATAA0AAAAOAA0AAAATAA4AAAAIAA4AAAAUAAwAAAABAAAAAAAUAA0AAAAFAA0AAAAUAA4AAAAJAA4AAAAVAAwAAAACAAAAAAAVAA0AAAAGAA0AAAAVAA4AAAAKAA4AAAAWAAwAAAABAAAAAAAWAA0AAAAHAA0AAAAWAA4AAAALAA4AAAAXAAwAAAACAAAAAAAXAA0AAAAIAA0AAAAXAA4AAAAMAA4AAAAYAAwAAAABAAAAAAAYAA0AAAAJAA0AAAAYAA4AAAAFAA4AAAAZAAwAAAACAAAAAAAZAA0AAAAKAA0AAAAZAA4AAAAGAA4AAAAaAAwAAAABAAAAAAAaAA0AAAALAA0AAAAaAA4AAAAHAA4AAAAbAAwAAAACAAAAAAAbAA0AAAAMAA0AAAAbAA4AAAAIAA4AAAAcAA0AAAABAAAAAAAcAA4AAAAJAA4AAAAdAAwAAAACAAAAAAAdAA0AAAAOAA0AAAAdAA4AAAAKAA4AAAAeAAwAAAABAAAAAAAeAA0AAAAFAA0AAAAeAA4AAAALAA4AAAAfAAwAAAACAAAAAAAfAA0AAAAGAA0AAAAfAA4AAAAMAA4AAAAgAA0AAAABAAAAAAAgAA4AAAAFAA4AAAAhAA0AAAABAAAAAAAhAA4AAAAGAA4AAAAiAAwAAAABAAAAAAAiAA0AAAAJAA0AAAAiAA4AAAAHAA4AAAAjAAwAAAACAAAAAAAjAA0AAAAKAA0AAAAjAA4AAAAIAA4AAAAkAAwAAAABAAAAAAAkAA0AAAALAA0AAAAkAA4AAAAJAA4AAAAlAA0AAAABAAAAAAAlAA4AAAAKAA4AAAAmAA0AAAABAAAAAAAmAA4AAAALAA4AAAAnAA0AAAABAAAAAAAnAA4AAAAMAA4AAAAoAAwAAAABAAAAAAAoAA0AAAAFAA0AAAAoAA4AAAAFAA4AAAApAAwAAAACAAAAAAApAA0AAAAGAA0AAAApAA4AAAAGAA4AAAAqAAwAAAABAAAAAAAqAA0AAAAHAA0AAAAqAA4AAAAHAA4AAAArAA0AAAABAAAAAAArAA4AAAAIAA4AAAAsAA0AAAABAAAAAAAsAA4AAAAJAA4AAAAtAA0AAAABAAAAAAAtAA4AAAAKAA4AAAAuAA0AAAABAAAAAAAuAA4AAAALAA4AAAAvAAwAAAACAAAAAAAvAA0AAAAMAA0AAAAvAA4AAAAMAA4AAAAwAAwAAAABAAAAAAAwAA0AAAANAA0AAAAwAA4AAAAFAA4AAAAxAAwAAAACAAAAAAAxAA0AAAAOAA0AAAAxAA4AAAAGAA4AAAAyAAwAAAABAAAAAAAyAA0AAAAFAA0AAAAyAA4AAAAHAA4AAAAzAAwAAAACAAAAAAAzAA0AAAAGAA0AAAAzAA4AAAAIAA4AAAA0AAwAAAABAAAAAAA0AA0AAAAHAA0AAAA0AA4AAAAJAA4AAAA1AAwAAAACAAAAAAA1AA0AAAAIAA0AAAA1AA4AAAAKAA4AAAA2AAwAAAABAAAAAAA2AA0AAAAJAA0AAAA2AA4AAAALAA4AAAA3AAwAAAACAAAAAAA3AA0AAAAKAA0AAAA3AA4AAAAMAA4AAAA4AAwAAAABAAAAAAA4AA0AAAALAA0AAAA4AA4AAAAFAA4AAAA5AAwAAAACAAAAAAA5AA0AAAAMAA0AAAA5AA4AAAAGAA4AAAA6AAwAAAABAAAAAAA6AA0AAAANAA0AAAA6AA4AAAAHAA4AAAA7AAwAAAACAAAAAAA7AA0AAAAOAA0AAAA7AA4AAAAIAA4AAAA8AAwAAAABAAAAAAA8AA0AAAAFAA0AAAA8AA4AAAAJAA4AAAA9AAwAAAACAAAAAAA9AA0AAAAGAA0AAAA9AA4AAAAKAA4AAAA+AAwAAAABAAAAAAA+AA0AAAAHAA0AAAA+AA4AAAALAA4AAAA/AAwAAAACAAAAAAA/AA0AAAAIAA0AAAA/AA4AAAAMAA4AAABAAAwAAAABAAAAAABAAA0AAAAJAA0AAABAAA4AAAAFAA4AAABBAAwAAAACAAAAAABBAA0AAAAKAA0AAABBAA4AAAAGAA4AAABCAAwAAAABAAAAAABCAA0AAAALAA0AAABCAA4AAAAHAA4AAABDAAwAAAACAAAAAABDAA0AAAAMAA0AAABDAA4AAAAIAA4AAABEAAwAAAABAAAAAABEAA0AAAANAA0AAABEAA4AAAAJAA4AAABFAAwAAAACAAAAAABFAA0AAAAOAA0AAABFAA4AAAAKAA4AAABGAAwAAAABAAAAAABGAA0AAAAFAA0AAABGAA4AAAALAA4AAABHAAwAAAACAAAAAABHAA0AAAAGAA0AAABHAA4AAAAMAA4AAABIAAwAAAABAAAAAABIAA0AAAAHAA0AAABIAA4AAAAFAA4AAABJAAwAAAACAAAAAABJAA0AAAAIAA0AAABJAA4AAAAGAA4AAABKAAwAAAABAAAAAABKAA0AAAAJAA0AAABKAA4AAAAHAA4AAABLAAwAAAACAAAAAABLAA0AAAAKAA0AAABLAA4AAAAIAA4AAABMAAwAAAABAAAAAABMAA0AAAALAA0AAABMAA4AAAAJAA4AAABNAAwAAAACAAAAAABNAA0AAAAMAA0AAABNAA4AAAAKAA4AAABOAAwAAAABAAAAAABOAA0AAAANAA0AAABOAA4AAAALAA4AAABPAAwAAAACAAAAAABPAA0AAAAOAA0AAABPAA4AAAAMAA4AAAAAAAAAAAAMAAAAAABPAAAAAAAMAAAAAAAAAAEAAAAMAAAAAABPAAEAAAAMAAAAAAAAAAIAAAAMAAAAAABPAAIAAAAMAAAAAAAAAAMAAAAMAAAAAABPAAMAAAAMAAAAAAAAAAQAAAAMAAAAAABPAAQAAAAMAAAAAAAAAAUAAAAMAAAAAABPAAUAAAAMAAAAAAAAAAYAAAAMAAAAAABPAAYAAAAMAAAAAAAAAAcAAAAMAAAAAABPAAcAAAAMAAAAAAAAAAgAAAAMAAAAAABPAAgAAAAMAAAAAAAAAAkAAAAMAAAAAABPAAkAAAAMAAAAAAAAAAoAAAAMAAAAAABPAAoAAAAMAAAAAAAAAAsAAAAMAAAAAABPAAsAAAAMAAAAAAAIAAsAAAAKAAAAAAAMAAsAAAAMAAAAAAAMAAoAAAAKAAAAAAANAAsAAAAMAAAAAAANAAoAAAAKAAAAAAARAAsAAAAMAAAAAAARAAoAAAAMAAAAAAARAAkAAAAKAAAAAAASAAsAAAAMAAAAAAASAAoAAAAMAAAAAAASAAkAAAAKAAAAAAAWAAsAAAAMAAAAAAAWAAoAAAAMAAAAAAAWAAkAAAAMAAAAAAAWAAgAAAAKAAAAAAAXAAsAAAAMAAAAAAAXAAoAAAAMAAAAAAAXAAkAAAAMAAAAAAAXAAgAAAAKAAAAAAA0AAoA//////////81AAoA//////////82AAoA//////////84AAoA//////////85AAoA//////////86AAoA//////////8+AAoAAAAFAAkAAAA/AAoAAAAGAAkAAABAAAoAAAAHAAkAAAA+AAgAAAAFAAkAAAA/AAgAAAAGAAkAAABAAAgAAAAHAAkAAAA+AAYAAAAFAAkAAAA/AAYAAAAGAAkAAABAAAYAAAAHAAkAAABGAAsAAAAMAAAAAABGAAoAAAAMAAAAAABGAAkAAAAKAAAAAABHAAsAAAAMAAAAAABHAAoAAAAMAAAAAABHAAkAAAAKAAAAAABIAAsAAAAMAAAAAABIAAoAAAAMAAAAAABIAAkAAAAKAAAAAAA0AAkAAAAMAAAAAAA1AAkAAAAMAAAAAAA2AAkAAAAMAAAAAAA4AAkAAAAMAAAAAAA5AAkAAAAMAAAAAAA6AAkAAAAMAAAAAAA=")
+tile_set = ExtResource("11_d7unt")
+
+[node name="Labels" type="Node2D" parent="." unique_id=1522708868]
+
+[node name="@Label@39209" type="Label" parent="Labels" unique_id=906551333]
+offset_left = 30.0
+offset_top = 200.0
+offset_right = 30.0
+offset_bottom = 200.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "1-5 switch member feel   F3 debug   hold F4 drain stamina"
+
+[node name="@Label@39210" type="Label" parent="Labels" unique_id=903490130]
+offset_left = 198.0
+offset_top = 248.0
+offset_right = 198.0
+offset_bottom = 248.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "1"
+
+[node name="@Label@39211" type="Label" parent="Labels" unique_id=1252329051]
+offset_left = 294.0
+offset_top = 224.0
+offset_right = 294.0
+offset_bottom = 224.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "2"
+
+[node name="@Label@39212" type="Label" parent="Labels" unique_id=494365931]
+offset_left = 414.0
+offset_top = 200.0
+offset_right = 414.0
+offset_bottom = 200.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "3"
+
+[node name="@Label@39213" type="Label" parent="Labels" unique_id=1132550238]
+offset_left = 534.0
+offset_top = 176.0
+offset_right = 534.0
+offset_bottom = 176.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "4"
+
+[node name="@Label@39214" type="Label" parent="Labels" unique_id=1026278345]
+offset_left = 672.0
+offset_top = 236.0
+offset_right = 672.0
+offset_bottom = 236.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "gaps 1-2-3-4"
+
+[node name="@Label@39215" type="Label" parent="Labels" unique_id=1339965249]
+offset_left = 1268.0
+offset_top = 188.0
+offset_right = 1269.0
+offset_bottom = 211.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "ceiling hole"
+
+[node name="@Label@39216" type="Label" parent="Labels" unique_id=473718385]
+offset_left = 1440.0
+offset_top = 112.0
+offset_right = 1440.0
+offset_bottom = 112.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "one-way: down+jump"
+
+[node name="@Label@39217" type="Label" parent="Labels" unique_id=242706007]
+offset_left = 1664.0
+offset_top = 196.0
+offset_right = 1664.0
+offset_bottom = 196.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "3-tile ledge"
+
+[node name="Player" type="CharacterBody2D" parent="." unique_id=1144606452 instance=ExtResource("12_wbwvm")]
+position = Vector2(72, 288)
+collision_layer = 4
+collision_mask = 3
+floor_snap_length = 4.0
+script = ExtResource("13_ua5be")
+profile = ExtResource("3_7u3dl")
+stamina_config = ExtResource("14_0m0jf")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=436173239 instance=ExtResource("15_4g2t7")]
+script = ExtResource("16_6oi7r")
+
+[node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=34814218 instance=ExtResource("17_b7ebu")]
+script = ExtResource("18_32u63")

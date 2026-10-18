@@ -20,10 +20,8 @@ func _run() -> void:
 	_check(player.is_on_floor(), "starts on the floor")
 	_check(sprite.animation == &"idle", "idle animation at rest (got %s)" % sprite.animation)
 
-	# --- Jump in place: measure apex height and time to apex.
+	# --- Jump in place (held): measure apex height and time to apex.
 	Input.action_press("jump")
-	await physics_frame
-	Input.action_release("jump")
 	var t := 0.0
 	var peak := ground_y
 	var apex_time := 0.0
@@ -37,18 +35,21 @@ func _run() -> void:
 			apex_time = t
 		if player.is_on_floor() and t > 0.1:
 			break
+	Input.action_release("jump")
 	var height_tiles := (ground_y - peak) / TILE
 	print("jump: %.2f tiles, apex %.3f s, airtime %.3f s, anims %s" % [height_tiles, apex_time, t, seen.keys()])
-	_check(absf(height_tiles - 3.0) < 0.15, "jump height ~3 tiles")
-	_check(absf(apex_time - 0.34) < 0.04, "time to apex ~0.34 s")
-	_check(t < 0.34 * 2.0, "fall is faster than rise (airtime < 2x apex)")
+	var profile: MovementProfile = player.profile
+	_check(absf(height_tiles - profile.jump_height_tiles) < 0.15, "jump height ~%.1f tiles" % profile.jump_height_tiles)
+	# Apex hang (jump held) stretches the top of the arc a little.
+	_check(apex_time >= profile.time_to_apex - 0.02 and apex_time < profile.time_to_apex + 0.08, "time to apex ~%.2f s (+ apex hang)" % profile.time_to_apex)
+	_check(t - apex_time < apex_time, "fall is faster than rise (%.2f s down vs %.2f s up)" % [t - apex_time, apex_time])
 	_check(seen.has(&"jump_start") and seen.has(&"jump") and seen.has(&"fall"), "jump_start, jump, fall animations play")
 
 	# --- Run right: time to top speed, run animation, facing.
 	await _frames(20)
 	Input.action_press("move_right")
 	var accel_frames := 0
-	while player.velocity.x < 7.0 * TILE - 0.5 and accel_frames < 60:
+	while player.velocity.x < profile.run_speed() - 0.5 and accel_frames < 60:
 		await physics_frame
 		accel_frames += 1
 	print("run: top speed %.1f px/s after %d frames" % [player.velocity.x, accel_frames])
@@ -71,13 +72,12 @@ func _run() -> void:
 	# --- Jump onto the 1-tile step (cols 14, x 336..360): release right once above it.
 	Input.action_press("move_right")
 	Input.action_press("jump")
-	await physics_frame
-	Input.action_release("jump")
 	var guard := 0
 	while player.position.x < 340.0 and guard < 120:
 		await physics_frame
 		guard += 1
 	Input.action_release("move_right")
+	Input.action_release("jump")
 	await _frames(40)
 	_check(player.is_on_floor() and player.position.y < ground_y - TILE + 1.0, "jumped onto the 1-tile step (y=%.1f)" % player.position.y)
 
