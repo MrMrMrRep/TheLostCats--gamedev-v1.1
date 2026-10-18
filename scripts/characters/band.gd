@@ -16,6 +16,8 @@ var members: Array[BandMember] = []
 var active: BandMember
 var active_index := -1
 
+var locked := false                        # no switching or gather (cutscenes, transitions)
+
 var _gathering := {}                        # BandMember -> {"time": seconds left, "slot": px from leader}
 
 @onready var camera: BandCamera = $Camera
@@ -30,6 +32,8 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if locked:
+		return
 	if Input.is_action_just_pressed("switch_next"):
 		switch_to(active_index + 1)
 	elif Input.is_action_just_pressed("switch_prev"):
@@ -55,6 +59,17 @@ func switch_to(index: int, instant := false) -> void:
 	camera.follow(active, instant)
 	Game.switch_member(index)
 	active_changed.emit(active, index)
+
+
+## Put everyone in a row centred on `pos` (doors, respawn), standing still.
+func place_at(pos: Vector2, hp: Array = [], grace := 0.0) -> void:
+	_gathering.clear()
+	var start := pos.x - spawn_spacing * (members.size() - 1) / 2.0
+	for i in members.size():
+		var m := members[i]
+		var keep_hp: int = hp[i] if i < hp.size() else m.health.hp
+		m.respawn(Vector2(start + i * spawn_spacing, pos.y), keep_hp, grace)
+	camera.snap()
 
 
 ## Call the others to the active member. Slots are fixed at the call, closest

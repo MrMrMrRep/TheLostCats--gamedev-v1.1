@@ -41,6 +41,15 @@ func go_to(scene_path: String, spawn: StringName = &"") -> void:
 	transition_finished.emit(scene_path)
 
 
+## Fade to black (doors inside a level, death). Works while the tree is paused.
+func fade_out() -> void:
+	await _tween_fade(1.0)
+
+
+func fade_in() -> void:
+	await _tween_fade(0.0)
+
+
 func _tween_fade(to_alpha: float) -> void:
 	var tween := create_tween()
 	tween.tween_property(_fade, "modulate:a", to_alpha, FADE_TIME)

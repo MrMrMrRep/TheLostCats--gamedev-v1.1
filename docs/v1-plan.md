@@ -87,14 +87,18 @@ Each milestone ends with a **playtest in the running game** (not just "the code 
 - [x] **Done when:** you can play all 5 and see the different speeds and jump heights ✅ (tests pass; your hands-on check is still open)
 
 ### M5 — Level framework
-- [ ] `Room` scene: bounds (camera limits), spawn points per member, `Checkpoint`
-- [ ] Doors: room → room (all members transported, fade), level → world map, keycard door
-- [ ] Health: 3 HP / Geoff 1, 1 s i-frames + knockback + flash
-- [ ] Hazards: spikes (−1 HP), pit and electric floor (instant death)
-- [ ] Death → short death animation → **room reset** (members, pushables, enemies, items back to checkpoint state)
-- [ ] Enemies: rat (patrol, hurts on touch, stunnable), bouncer (blocks a passage, talkable)
-- [ ] Camera: deadzone + look-ahead, clamp to room bounds
-- [ ] **Done when:** you can die and respawn in every way within 1.5 s without broken state
+- [x] `Level` scene with `Room` nodes: bounds (camera limits), resettable contents. The band spawns in a row at the start, a door or a `Checkpoint` flag
+- [x] Doors: room → room (all members, fade), level exit to another scene (`SceneRouter`, world map in M8), locked door (`unlock()`; keycards wire in with the inventory in M7)
+- [x] Health: 3 HP / Geoff 1, 1 s i-frames + knockback + flashing, 1 s respawn grace
+- [x] Hazards: spikes (−1 HP), pit and electric floor (instant death). Electric has `set_enabled()` for Joep's hack (M6)
+- [x] Death → paused death animation (0.5 s) → fade → **room reset** (enemies, bouncer, doors, hazards) → band back at the checkpoint with checkpoint HP → fade in. **~1.22 s measured**
+- [x] Enemies: rat (patrol, turns at walls/ledges, hurts on touch, `stun()`/`knockback()`/`defeat()`), bouncer (blocks a doorway, only Geoff talks him aside; basic persuade, full ability in M6)
+- [x] Camera: deadzone (16×24 px) + look-ahead (40 px) + switch blend, clamped to room bounds
+- [x] Interact prompts (E) and speech lines. Test level `scenes/levels/level_test.tscn` (main scene, 3 rooms)
+- [x] Headless test `tests/test_level.gd` (31 checks)
+- [x] **Done when:** you can die and respawn in every way within 1.5 s without broken state ✅ (tests found and fixed a 0-HP-after-respawn bug)
+
+Not in M5 (placeholders until later): spike, rat and door art is drawn in code; pushables come with Jay in M6, items with M7.
 
 ### M6 — Abilities (one core each + drink)
 - [ ] **Joep:** wall-slide + wall-jump + climb climbable walls (stamina). Hack panel → opens a gate / disables an electric floor
@@ -186,4 +190,8 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 
 ```bash
 /Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_band.gd
+```
+
+```bash
+/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_level.gd
 ```

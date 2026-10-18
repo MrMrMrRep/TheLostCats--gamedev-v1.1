@@ -5,7 +5,8 @@ extends CharacterBody2D
 ## gravity, fall multiplier, apex hang, coyote time, jump buffer, variable jump
 ## cut, corner and ledge correction, fast fall and drop-through on one-way
 ## platforms (down + jump). Only the active member reads player input; the Band
-## steers inactive members through `ai_dir` (gather).
+## steers inactive members through `ai_dir` (gather). hurt() applies damage with
+## knockback and flashing i-frames; the Level handles death and respawn.
 
 signal jumped
 signal landed(fall_speed: float)
@@ -13,6 +14,10 @@ signal landed(fall_speed: float)
 const TILE := 24.0
 const ONE_WAY_LAYER := 1 << 1               # physics layer 2 "one_way"
 const DROP_THROUGH_TIME := 0.2
+const HURT_LOCK_TIME := 0.25               # no control while knocked back
+const KNOCKBACK := Vector2(150, -200)
+const FLASH_RATE := 12.0                    # blinks per second during i-frames
+const DEATH_ANIM_SPEED := 2.0               # 12-frame death anim in 0.5 s
 
 @export var profile: MovementProfile: set = set_profile
 @export var stamina_config: StaminaConfig
@@ -27,6 +32,9 @@ var coyote_left: float:
 var buffer_left: float:
 	get:
 		return _buffer
+var is_dead: bool:
+	get:
+		return _dead
 
 var _gravity := 0.0
 var _jump_velocity := 0.0
@@ -36,6 +44,8 @@ var _jump_held := false                     # rising from a jump; releasing jump
 var _drop_timer := 0.0
 var _was_on_floor := true
 var _anim_lock := false                     # true while a one-shot (jump_start, land) plays
+var _hurt_lock := 0.0
+var _dead := false
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var stamina: StaminaComponent = $Stamina
@@ -82,15 +92,24 @@ func _update_name_tag() -> void:
 		name_tag.modulate = Color("ffd36b")
 
 
+func _process(_delta: float) -> void:
+	# Blink while invulnerable.
+	sprite.visible = not health.is_invulnerable or int(Time.get_ticks_msec() / 1000.0 * FLASH_RATE) % 2 == 0
+
+
 func _physics_process(delta: float) -> void:
 	var on_floor := is_on_floor()
-	var dir := Input.get_axis("move_left", "move_right") if is_active else clampf(ai_dir, -1.0, 1.0)
-	var down := is_active and Input.is_action_pressed("move_down")
-	var jump_down := is_active and Input.is_action_pressed("jump")
+	var controlled := is_active and _hurt_lock <= 0.0
+	var dir := Input.get_axis("move_left", "move_right") if controlled else clampf(ai_dir, -1.0, 1.0)
+	var down := controlled and Input.is_action_pressed("move_down")
+	var jump_down := controlled and Input.is_action_pressed("jump")
+	if _hurt_lock > 0.0:
+		_hurt_lock -= delta
+		dir = 0.0
 
 	# Forgiveness timers.
 	_coyote = profile.coyote_time if on_floor else maxf(_coyote - delta, 0.0)
-	if is_active and Input.is_action_just_pressed("jump"):
+	if controlled and Input.is_action_just_pressed("jump"):
 		_buffer = profile.jump_buffer
 	else:
 		_buffer = maxf(_buffer - delta, 0.0)
@@ -117,7 +136,9 @@ func _physics_process(delta: float) -> void:
 	# Horizontal: reach top speed in accel_time, stop in decel_time.
 	var top := profile.run_speed()
 	var control := 1.0 if on_floor else profile.air_control
-	if dir != 0.0:
+	if _hurt_lock > 0.0:
+		pass                                # keep the knockback speed
+	elif dir != 0.0:
 		facing = signf(dir)
 		velocity.x = move_toward(velocity.x, dir * top, top / profile.accel_time * control * delta)
 	else:
@@ -137,6 +158,53 @@ func _physics_process(delta: float) -> void:
 		landed.emit(air_speed)
 	stamina.grounded = is_on_floor()
 	_update_animation()
+
+
+## Damage from a hazard or enemy at `from`. Returns true if it landed.
+func hurt(amount: int, from: Vector2) -> bool:
+	if _dead or not health.damage(amount):
+		return false
+	var away := signf(global_position.x - from.x)
+	if away == 0.0:
+		away = -facing
+	velocity = Vector2(away * KNOCKBACK.x, KNOCKBACK.y)
+	_hurt_lock = HURT_LOCK_TIME
+	_jump_held = false
+	if health.hp > 0:
+		_play_once(&"hurt")
+	return true
+
+
+## Death animation; keeps playing while the tree is paused.
+func play_death() -> void:
+	_dead = true
+	sprite.visible = true
+	sprite.process_mode = Node.PROCESS_MODE_ALWAYS
+	sprite.speed_scale = DEATH_ANIM_SPEED
+	_anim_lock = true
+	sprite.play(&"death")
+
+
+## Back to life at `pos` with `hp`, all transient state cleared.
+## `grace` gives i-frames (flashing) so a respawn can't be hit straight away.
+func respawn(pos: Vector2, hp: int, grace := 0.0) -> void:
+	_dead = false
+	global_position = pos
+	velocity = Vector2.ZERO
+	ai_dir = 0.0
+	_coyote = 0.0
+	_buffer = 0.0
+	_jump_held = false
+	_hurt_lock = 0.0
+	_drop_timer = 0.0
+	set_collision_mask_value(2, true)
+	health.restore(hp, grace)
+	stamina.refill()
+	sprite.process_mode = Node.PROCESS_MODE_INHERIT
+	sprite.speed_scale = 1.0
+	sprite.visible = true
+	_anim_lock = false
+	sprite.play(&"idle")
 
 
 func _jump() -> void:

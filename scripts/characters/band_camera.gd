@@ -1,13 +1,22 @@
 class_name BandCamera
 extends Camera2D
-## Follows the active band member. On a switch it blends to the new member in
-## SWITCH_TIME instead of cutting. Deadzone and look-ahead come in M5.
+## Follows the active band member with a deadzone (small moves don't drag the
+## view) and look-ahead (the view leads in the running direction). On a switch
+## it blends to the new member in SWITCH_TIME instead of cutting. Limits come
+## from the current room.
 
 const SWITCH_TIME := 0.25
 const TARGET_OFFSET := Vector2(0, -16)      # aim at the body, not the feet
 
+@export var deadzone := Vector2(16, 24)     ## half-size in px the target can move freely
+@export var look_ahead := 40.0              ## px the view leads while running
+@export var look_ahead_time := 0.35         ## seconds to swing fully to one side
+@export var look_ahead_min_speed := 20.0    ## px/s before look-ahead kicks in
+
 var target: Node2D
 
+var _focus := Vector2.ZERO
+var _look := 0.0
 var _from := Vector2.ZERO
 var _blend := 1.0
 var _tween: Tween
@@ -25,11 +34,11 @@ func follow(new_target: Node2D, instant := false) -> void:
 	if _tween:
 		_tween.kill()
 	if instant or not had_target:
-		_blend = 1.0
-		global_position = _target_position()
-		reset_smoothing()
+		snap()
 		return
 	_from = get_screen_center_position()
+	_focus = _target_position()
+	_look = 0.0
 	_blend = 0.0
 	position_smoothing_enabled = false
 	_tween = create_tween()
@@ -37,13 +46,42 @@ func follow(new_target: Node2D, instant := false) -> void:
 	_tween.finished.connect(_on_blend_finished)
 
 
-func _physics_process(_delta: float) -> void:
+## Jump straight to the target (after teleports, respawns, room changes).
+func snap() -> void:
+	if _tween:
+		_tween.kill()
+	_blend = 1.0
+	_focus = _target_position()
+	_look = 0.0
+	position_smoothing_enabled = true
+	global_position = _focus
+	reset_smoothing()
+
+
+func set_bounds(bounds: Rect2i) -> void:
+	limit_left = bounds.position.x
+	limit_top = bounds.position.y
+	limit_right = bounds.end.x
+	limit_bottom = bounds.end.y
+
+
+func _physics_process(delta: float) -> void:
 	if target == null:
 		return
-	if _blend < 1.0:
-		global_position = _from.lerp(_target_position(), _blend)
-	else:
-		global_position = _target_position()
+	var t := _target_position()
+	var d := t - _focus
+	if absf(d.x) > deadzone.x:
+		_focus.x = t.x - signf(d.x) * deadzone.x
+	if absf(d.y) > deadzone.y:
+		_focus.y = t.y - signf(d.y) * deadzone.y
+
+	var want := 0.0
+	if target is CharacterBody2D and absf(target.velocity.x) > look_ahead_min_speed:
+		want = signf(target.velocity.x) * look_ahead
+	_look = move_toward(_look, want, look_ahead / look_ahead_time * delta)
+
+	var goal := _focus + Vector2(_look, 0)
+	global_position = _from.lerp(goal, _blend) if _blend < 1.0 else goal
 
 
 func _target_position() -> Vector2:
@@ -51,6 +89,5 @@ func _target_position() -> Vector2:
 
 
 func _on_blend_finished() -> void:
-	global_position = _target_position()
 	position_smoothing_enabled = true
 	reset_smoothing()
