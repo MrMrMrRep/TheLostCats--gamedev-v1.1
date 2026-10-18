@@ -64,6 +64,7 @@ Suggestion: **Jay can throw a band member** up (Lost Vikings 2 did something sim
 Lost Vikings used 3 characters, and switching between 5 every room gets tedious. Suggestions:
 - Most rooms use **2–3 members**. The level start (or a split door) picks the team, which the GDD already hints at with "party splits up".
 - Inactive members **stay where they are** (Lost Vikings rule). A **"Gather" button** brings the others back to the active member when nothing blocks the path, so the player doesn't have to walk each one over.
+- Doors (built in M5): the whole group goes through only when everyone in the room stands within 3 tiles of the member using the door; otherwise that member goes alone. That lets you split into teams on purpose.
 - Switch with **Tab / Q-E (cycle)** and **1–5 (direct)**. The camera moves smoothly to the new member (0.25 s).
 
 ### 3.4 Balancing the two paces (the most important thing for you)

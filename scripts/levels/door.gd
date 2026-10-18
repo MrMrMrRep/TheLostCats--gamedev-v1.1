@@ -1,8 +1,9 @@
 @tool
 class_name Door
 extends Interactable
-## Door the band goes through together. Either to another Door in this level
+## Door to go through. Either to another Door in this level
 ## (room to room) or out of the level to another scene (e.g. the world map).
+## The whole band goes through only when everyone stands together (see Level).
 ## A locked door needs unlock() first (keycards come with the inventory in M7).
 
 @export var target_door: NodePath           ## room -> room
@@ -24,11 +25,11 @@ func _ready() -> void:
 		add_to_group(&"resettable")
 
 
-func interact(_member: BandMember, level: Level) -> void:
+func interact(member: BandMember, level: Level) -> void:
 	if locked:
 		say("Locked")
 		return
-	level.go_through(self)
+	level.go_through(self, member)
 
 
 func unlock() -> void:

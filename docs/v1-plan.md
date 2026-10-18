@@ -88,14 +88,16 @@ Each milestone ends with a **playtest in the running game** (not just "the code 
 
 ### M5 — Level framework
 - [x] `Level` scene with `Room` nodes: bounds (camera limits), resettable contents. The band spawns in a row at the start, a door or a `Checkpoint` flag
-- [x] Doors: room → room (all members, fade), level exit to another scene (`SceneRouter`, world map in M8), locked door (`unlock()`; keycards wire in with the inventory in M7)
+- [x] Doors: room → room with a fade, level exit to another scene (`SceneRouter`, world map in M8), locked door (`unlock()`; keycards wire in with the inventory in M7)
+- [x] **Door group rule:** everyone in the room goes along when they all stand within **3 tiles (72 px) horizontally and 1 tile vertically** of the member using the door (`Level.group_radius_tiles` / `group_height_tiles`); otherwise only that member goes. The prompt says "E whole band", "E group of N" or "E <name> alone"
+- [x] Split band: the camera shows the active member's room (switching to someone in another room cuts there), gather only calls members in the same room, every room keeps its own checkpoint (entry door or flag)
 - [x] Health: 3 HP / Geoff 1, 1 s i-frames + knockback + flashing, 1 s respawn grace
 - [x] Hazards: spikes (−1 HP), pit and electric floor (instant death). Electric has `set_enabled()` for Joep's hack (M6)
-- [x] Death → paused death animation (0.5 s) → fade → **room reset** (enemies, bouncer, doors, hazards) → band back at the checkpoint with checkpoint HP → fade in. **~1.22 s measured**
+- [x] Death → paused death animation (0.5 s) → fade → **reset of the dying member's room** (enemies, bouncer, doors, hazards) → the members in that room respawn at its checkpoint with checkpoint HP; members in other rooms stay put → fade in. **~1.22 s measured**
 - [x] Enemies: rat (patrol, turns at walls/ledges, hurts on touch, `stun()`/`knockback()`/`defeat()`), bouncer (blocks a doorway, only Geoff talks him aside; basic persuade, full ability in M6)
 - [x] Camera: deadzone (16×24 px) + look-ahead (40 px) + switch blend, clamped to room bounds
 - [x] Interact prompts (E) and speech lines. Test level `scenes/levels/level_test.tscn` (main scene, 3 rooms)
-- [x] Headless test `tests/test_level.gd` (31 checks)
+- [x] Headless test `tests/test_level.gd` (40 checks)
 - [x] **Done when:** you can die and respawn in every way within 1.5 s without broken state ✅ (tests found and fixed a 0-HP-after-respawn bug)
 
 Not in M5 (placeholders until later): spike, rat and door art is drawn in code; pushables come with Jay in M6, items with M7.

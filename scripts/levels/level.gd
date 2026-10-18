@@ -1,25 +1,31 @@
 class_name Level
 extends Node2D
-## A level: Rooms, the Band, HUD. Handles the room the band is in (camera
-## bounds), checkpoints, doors (room to room with a fade, or out of the level),
-## interact prompts, and death: pause, death animation, fade, reset the room,
-## respawn the band at the checkpoint, fade in (about 1.2 s in total).
+## A level: Rooms, the Band, HUD. The band can be split over rooms: a door takes
+## everyone in the room along when they all stand together (within
+## `group_radius_tiles` of the member using it), otherwise just that member. The camera shows the
+## active member's room. Each room has its own checkpoint (its entry door or a
+## flag). Death resets only the dying member's room: the members in it respawn
+## at that room's checkpoint (about 1.2 s); members elsewhere stay where they are.
 
 signal room_changed(room: Room)
 signal member_died(member: BandMember, cause: StringName)
 signal respawned
 
+const TILE := 24.0
 const DEATH_ANIM_TIME := 0.5
 const PIT_MARGIN := 16.0                    # px below the room before a fall kills
 const RESPAWN_GRACE := 1.0                  # i-frames after a respawn
 
 @export var start_room: NodePath
 @export var start_spawn: NodePath           ## Marker2D or Door where the band starts
+@export var group_radius_tiles := 3.0       ## "together" for doors: this far horizontally
+@export var group_height_tiles := 1.0       ## ... and at most this far vertically
 
-var current_room: Room
+var current_room: Room                      # the active member's room
 var is_busy := false                        # dying or going through a door
 
-var _checkpoint := {}                       # {room, position, hp, node}
+var _member_room := {}                      # BandMember -> Room
+var _checkpoints := {}                      # Room -> {position, hp: {BandMember: int}, node}
 var _highlighted: Interactable
 
 @onready var band: Band = $Band
@@ -36,6 +42,8 @@ func _ready() -> void:
 	add_to_group(&"level")
 	for m in band.members:
 		m.health.died.connect(kill.bind(m, &"hurt"))
+	band.gather_filter = func(m: BandMember) -> bool: return room_of_member(m) == room_of_member(band.active)
+	band.active_changed.connect(_on_active_changed)
 	hud.bind_band(band)
 	if debug_overlay:
 		debug_overlay.player = band.active
@@ -44,22 +52,37 @@ func _ready() -> void:
 	var spawn := _spawn_from_router()
 	if spawn == null:
 		spawn = get_node(start_spawn)
-	_enter_room(_room_of(spawn) if _room_of(spawn) else get_node(start_room) as Room)
+	var room: Room = _room_of(spawn) if _room_of(spawn) else get_node(start_room) as Room
+	for m in band.members:
+		_member_room[m] = room
+	_enter_room(room)
 	band.place_at(spawn.global_position)
-	_set_checkpoint(spawn.global_position, null)
+	_set_checkpoint(room, spawn.global_position, null)
 
 
 func _physics_process(_delta: float) -> void:
 	if is_busy:
 		return
 	for m in band.members:
-		if m.global_position.y > current_room.bounds.end.y + PIT_MARGIN:
+		if m.global_position.y > room_of_member(m).bounds.end.y + PIT_MARGIN:
 			kill(m, &"pit")
 			return
 		if m.health.hp <= 0 and not m.is_dead:   # hit while a transition was running
 			kill(m, &"hurt")
 			return
 	_update_interactables()
+
+
+func room_of_member(member: BandMember) -> Room:
+	return _member_room.get(member)
+
+
+func members_in(room: Room) -> Array[BandMember]:
+	var out: Array[BandMember] = []
+	for m in band.members:
+		if _member_room[m] == room:
+			out.append(m)
+	return out
 
 
 # --- Death and respawn -----------------------------------------------------
@@ -73,39 +96,55 @@ func kill(member: BandMember, cause: StringName = &"hazard") -> void:
 	member.play_death()
 	await get_tree().create_timer(DEATH_ANIM_TIME, true).timeout
 	await SceneRouter.fade_out()
-	_respawn()
+	_respawn(room_of_member(member))
 	get_tree().paused = false
 	await SceneRouter.fade_in()
 	is_busy = false
 	respawned.emit()
 
 
-func _respawn() -> void:
-	_enter_room(_checkpoint.room)
-	current_room.reset_state()
-	band.place_at(_checkpoint.position, _checkpoint.hp, RESPAWN_GRACE)
+func _respawn(room: Room) -> void:
+	var cp: Dictionary = _checkpoints[room]
+	room.reset_state()
+	var group := members_in(room)
+	var hp: Array = group.map(func(m: BandMember) -> int: return cp.hp.get(m, m.health.hp))
+	band.place_group(group, cp.position, hp, RESPAWN_GRACE)
+	_enter_room(room_of_member(band.active))
+	band.camera.snap()
 
 
 func activate_checkpoint(checkpoint: Checkpoint) -> void:
-	_set_checkpoint(checkpoint.global_position, checkpoint)
+	_set_checkpoint(_room_of(checkpoint), checkpoint.global_position, checkpoint)
 
 
-func _set_checkpoint(pos: Vector2, node: Checkpoint) -> void:
-	if _checkpoint.get("node"):
-		_checkpoint.node.is_current = false
-	_checkpoint = {
-		"room": current_room,
-		"position": pos,
-		"hp": band.members.map(func(m: BandMember) -> int: return m.health.hp),
-		"node": node,
-	}
+func _set_checkpoint(room: Room, pos: Vector2, node: Checkpoint) -> void:
+	var old: Dictionary = _checkpoints.get(room, {})
+	if old.get("node"):
+		old.node.is_current = false
+	var hp := {}
+	for m in members_in(room):
+		hp[m] = m.health.hp
+	_checkpoints[room] = {"position": pos, "hp": hp, "node": node}
 	if node:
 		node.is_current = true
 
 
 # --- Doors and rooms -------------------------------------------------------
 
-func go_through(door: Door) -> void:
+## Who goes through a door used by `member`: everyone in their room if they all
+## stand together around `member`, otherwise only `member`.
+func door_group(member: BandMember) -> Array[BandMember]:
+	var room_mates := members_in(room_of_member(member))
+	var together := room_mates.all(func(m: BandMember) -> bool:
+		return absf(m.global_position.x - member.global_position.x) <= group_radius_tiles * TILE \
+			and absf(m.global_position.y - member.global_position.y) <= group_height_tiles * TILE)
+	if together:
+		return room_mates
+	var solo: Array[BandMember] = [member]
+	return solo
+
+
+func go_through(door: Door, member: BandMember) -> void:
 	if is_busy:
 		return
 	if door.target_scene != "":
@@ -116,21 +155,43 @@ func go_through(door: Door) -> void:
 	if target == null:
 		push_warning("Door %s has no target" % door.get_path())
 		return
+	var group := door_group(member)
+	var room := _room_of(target)
 	is_busy = true
 	get_tree().paused = true
 	await SceneRouter.fade_out()
-	_enter_room(_room_of(target))
-	band.place_at(target.global_position)
-	_set_checkpoint(target.global_position, null)   # every room starts with a checkpoint
+	for m in group:
+		_member_room[m] = room
+	band.place_group(group, target.global_position, [], 0.0)
+	_set_checkpoint(room, target.global_position, null)   # entering a room = checkpoint
+	_enter_room(room_of_member(band.active))
+	band.camera.snap()
 	get_tree().paused = false
 	await SceneRouter.fade_in()
 	is_busy = false
 
 
+func _group_text(group: Array[BandMember], member: BandMember) -> String:
+	if group.size() == band.members.size():
+		return "whole band"
+	if group.size() == 1:
+		return "%s alone" % member.profile.display_name
+	return "group of %d" % group.size()
+
+
 func _enter_room(room: Room) -> void:
+	if room == current_room:
+		return
 	current_room = room
 	band.camera.set_bounds(room.bounds)
 	room_changed.emit(room)
+
+
+func _on_active_changed(member: BandMember, _index: int) -> void:
+	var room := room_of_member(member)
+	if room and room != current_room:
+		_enter_room(room)
+		band.camera.snap()                  # cut to the other room
 
 
 func _room_of(node: Node) -> Room:
@@ -168,5 +229,7 @@ func _update_interactables() -> void:
 		_highlighted = best
 		if best:
 			best.set_highlighted(true)
+	if best is Door and not best.locked and best.target_scene == "":
+		best.set_prompt_text("E  " + _group_text(door_group(active), active))
 	if best and Input.is_action_just_pressed("interact"):
 		best.interact(active, self)

@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 31
+const EXPECTED_CHECKS := 40
 const GY := 288.0
 const MAX_RESPAWN_TIME := 1.5
 
@@ -108,15 +108,53 @@ func _test_checkpoint() -> void:
 
 
 func _test_door() -> void:
+	var r1 = level.get_node("Rooms/Room1")
+	var r2 = level.get_node("Rooms/Room2")
 	var door = level.get_node("Rooms/Room1/DoorToRoom2")
-	_place(band.active, door.global_position)
+	var entry = level.get_node("Rooms/Room2/DoorToRoom1")
+	band.switch_to(0, true)
+	# Joep alone at the door, the others back at the checkpoint (> 3 tiles away).
+	for i in band.members.size():
+		_place(band.members[i], Vector2(door.global_position.x if i == 0 else 700 + i * 10, GY))
 	await _frames(3)
+	_check(level.door_group(band.active).size() == 1 and door._prompt_label.text.ends_with("Joep alone"),
+		"door prompt: 'Joep alone' when the others are far")
+	var others_before: Array = band.members.slice(1).map(func(m): return m.global_position)
 	await _tap("interact")
 	await _await_idle()
-	var r2 = level.get_node("Rooms/Room2")
-	_check(level.current_room == r2, "door takes the band to room 2")
-	_check(band.members.all(func(m): return r2.has_point(m.global_position)), "all 5 members came along")
+	_check(r2.has_point(band.members[0].global_position) and level.current_room == r2, "Joep goes through alone")
+	_check(band.members.slice(1).map(func(m): return m.global_position) == others_before, "the others stay in room 1")
 	_check(band.camera.limit_left == r2.bounds.position.x, "camera clamped to room 2 bounds")
+
+	# Switching to someone in room 1 cuts the camera back there.
+	band.switch_to(1, true)
+	await _frames(2)
+	_check(level.current_room == r1 and band.camera.limit_left == r1.bounds.position.x, "switching to Jay shows room 1")
+	band.switch_to(0, true)
+	await _frames(2)
+	_check(level.current_room == r2, "switching back to Joep shows room 2")
+
+	# Gather only calls members in the same room.
+	await _tap("gather")
+	await _frames(30)
+	_check(band.members.slice(1).map(func(m): return m.global_position) == others_before, "gather doesn't pull members from another room")
+
+	# A solo death resets only Joep's room; the others don't move.
+	_place(band.members[0], Vector2(61 * 24 + 12, 200))
+	await _await_respawn()
+	_check(absf(band.members[0].global_position.x - entry.global_position.x) < 20.0, "Joep respawns at the room 2 entry")
+	_check(band.members.slice(1).map(func(m): return m.global_position) == others_before, "members in room 1 are untouched by Joep's death")
+
+	# The four in room 1 stand together at the door: they all go.
+	band.switch_to(1, true)
+	for i in range(1, 5):
+		_place(band.members[i], door.global_position + Vector2(-(i - 1) * 16, 0))
+	await _frames(3)
+	_check(door._prompt_label.text.ends_with("group of 4"), "door prompt: 'group of 4' when the room's members are together")
+	await _tap("interact")
+	await _await_idle()
+	_check(band.members.all(func(m): return r2.has_point(m.global_position)), "the group of 4 joins Joep: whole band in room 2")
+	band.switch_to(0, true)
 
 
 func _test_pit() -> void:
@@ -170,8 +208,10 @@ func _test_locked_and_exit() -> void:
 	var door = level.get_node("Rooms/Room2/DoorToRoom3")
 	var bouncer = level.get_node("Rooms/Room2/Bouncer")
 	bouncer.persuade()
-	_place(band.active, door.global_position)
+	for i in band.members.size():
+		_place(band.members[i], door.global_position + Vector2(-i * 14, 0))
 	await _frames(3)
+	_check(door._prompt_label.text.ends_with("whole band"), "door prompt: 'whole band' when all 5 stand together")
 	await _tap("interact")
 	await _await_idle()
 	var r3 = level.get_node("Rooms/Room3")

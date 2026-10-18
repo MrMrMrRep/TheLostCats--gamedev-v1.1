@@ -17,6 +17,7 @@ var active: BandMember
 var active_index := -1
 
 var locked := false                        # no switching or gather (cutscenes, transitions)
+var gather_filter := func(_m: BandMember) -> bool: return true   # Level: same room only
 
 var _gathering := {}                        # BandMember -> {"time": seconds left, "slot": px from leader}
 
@@ -61,21 +62,27 @@ func switch_to(index: int, instant := false) -> void:
 	active_changed.emit(active, index)
 
 
-## Put everyone in a row centred on `pos` (doors, respawn), standing still.
+## Put everyone in a row centred on `pos` (level start), standing still.
 func place_at(pos: Vector2, hp: Array = [], grace := 0.0) -> void:
-	_gathering.clear()
-	var start := pos.x - spawn_spacing * (members.size() - 1) / 2.0
-	for i in members.size():
-		var m := members[i]
+	place_group(members, pos, hp, grace)
+	camera.snap()
+
+
+## Put `group` in a row centred on `pos` (doors, respawn). `hp[i]` per member,
+## or keep their current HP.
+func place_group(group: Array, pos: Vector2, hp: Array = [], grace := 0.0) -> void:
+	var start := pos.x - spawn_spacing * (group.size() - 1) / 2.0
+	for i in group.size():
+		var m: BandMember = group[i]
+		_gathering.erase(m)
 		var keep_hp: int = hp[i] if i < hp.size() else m.health.hp
 		m.respawn(Vector2(start + i * spawn_spacing, pos.y), keep_hp, grace)
-	camera.snap()
 
 
 ## Call the others to the active member. Slots are fixed at the call, closest
 ## member nearest the leader, so they line up instead of stacking.
 func gather() -> void:
-	var others := members.filter(func(m: BandMember) -> bool: return m != active)
+	var others := members.filter(func(m: BandMember) -> bool: return m != active and gather_filter.call(m))
 	others.sort_custom(func(a: BandMember, b: BandMember) -> bool:
 		return absf(a.position.x - active.position.x) < absf(b.position.x - active.position.x))
 	for rank in others.size():

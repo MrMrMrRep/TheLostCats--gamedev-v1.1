@@ -42,6 +42,12 @@ func interact(_member: BandMember, _level: Level) -> void:
 
 func set_highlighted(on: bool) -> void:
 	_prompt_label.visible = on
+	if not on:
+		_prompt_label.text = prompt
+
+
+func set_prompt_text(text: String) -> void:
+	_prompt_label.text = text
 
 
 func say(text: String, seconds := 1.6) -> void:
