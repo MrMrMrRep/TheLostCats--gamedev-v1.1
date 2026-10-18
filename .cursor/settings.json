@@ -1,0 +1,7 @@
+{
+  "plugins": {
+    "anthropic-agent-skills/claude-api": {
+      "enabled": true
+    }
+  }
+}
