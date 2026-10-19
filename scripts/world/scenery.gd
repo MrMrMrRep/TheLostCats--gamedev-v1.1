@@ -29,6 +29,7 @@ const STREET_Y := 288.0
 @export var map_min := 0.0                  ## world x of the map's west end
 @export var cows_until := -100000.0         ## world x: west of it only cows (no farms, mills)
 @export var foreground := Vector2.ZERO      ## world x range with foreground trees
+@export var farm_clear := Vector2.ZERO      ## world x range where farms step aside (moved west)
 @export var seed_value := 5
 
 var _turbines: Array = []                   # local x of each turbine (rotors)
@@ -260,7 +261,10 @@ func _draw_polder_near(rng: RandomNumberGenerator) -> void:
 		elif not _in_town(x):
 			var roll := rng.randf()
 			if roll < 0.25:
-				_farm(x, base)
+				var fx := x
+				if fx + 110.0 > _local(farm_clear.x) and fx < _local(farm_clear.y):
+					fx = _local(farm_clear.x) - 120.0   # make room for the building site
+				_farm(fx, base)
 			elif roll < 0.6:
 				for k in rng.randi_range(2, 4):
 					_cow(x + k * 18, base - 8, rng.randf() < 0.5)

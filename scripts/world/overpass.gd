@@ -23,6 +23,7 @@ const DECK_H := 20.0
 @export var width := 120.0                  ## deck width along our road
 @export var city_side := 1.0                ## +1: the city is east of the overpass
 @export var structure := true               ## false: only the speed signs (the city limit)
+@export var only_sign := ""                 ## with structure off: "50" or "100" draws just that sign at x 0
 
 
 func _draw() -> void:
@@ -42,6 +43,9 @@ func _pillar(x: float, top: float, bottom: float, c: Color) -> void:
 
 func _back(half: float) -> void:
 	if not structure:
+		if only_sign != "":
+			_speed_sign(0.0, only_sign)
+			return
 		_speed_sign(city_side * 30.0, "50")
 		_speed_sign(-city_side * 30.0, "100")
 		return
