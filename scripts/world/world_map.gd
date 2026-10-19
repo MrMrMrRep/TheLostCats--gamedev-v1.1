@@ -46,6 +46,9 @@ const DRIFT_MAX := 160.0                    # px, and never so far that the band
 const ZOOM_VAN_TOWN := 1.3                  # the van at speed: this far out, no further
 const ZOOM_VAN_SLOW_TOWN := 1.7             # the van crawling or parked
 const SCENIC_RATE := 0.06                   # the road-trip zoom-out: ever so slowly
+const LANE_EAST := 4.0                      # van on the motorway, heading into the city
+const LANE_WEST := -5.0                     # ...and heading out
+const LANE_CHANGE := 10.0                   # px/s: a gentle lane change
 const WALK_SPEED := 85.0                    # a calm walk on the map (levels keep their run)
 const CITY_SPEED := 190.0                   # the van's speed limit in town
 const ZOOM_ROAD := 0.5
@@ -59,6 +62,7 @@ const ZOOM_EASE_DRIVE := 0.22               # driving: a slow, calm zoom out / i
 @export var city_limit := Vector2.ZERO      ## world x range where the van keeps to CITY_SPEED
 @export var foot_limit := -100000.0         ## world x: west of it is motorway; no walking or cycling
 @export var scenic_from := -100000.0        ## world x: west of it the road trip opens up (past the last windmill)
+@export var road_from := -100000.0          ## world x where the city street begins (west of it: motorway)
 
 var leader: BandMember
 var followers: Array[BandMember] = []
@@ -79,6 +83,7 @@ var _spread := 0.0                          # px from the front member to the ba
 var _focus: Node2D                          # what the camera follows on foot / on the bikes
 var _idle_cam := 0.0                        # seconds the band has stood still (camera wander)
 var _foot_note := 0.0                       # cooldown for the "no walking/cycling" line
+var _lane_y := 0.0                          # the van's lane offset on the motorway
 var _drift := 0.0                           # current sideways drift of the shot
 
 @onready var band: Band = $Band
@@ -313,6 +318,7 @@ func board(v: Vehicle) -> void:
 		leader.show_text("The van only stops at P signs")
 		return
 	vehicle = v
+	_lane_y = v.global_position.y - GROUND_Y
 	v.occupied = true
 	v.velocity = Vector2.ZERO
 	v.facing = leader.facing
@@ -370,6 +376,15 @@ func _drive(delta: float) -> void:
 		if vehicle.global_position.x <= lo + 0.5 and dir < 0.0:
 			_foot_warning(vehicle)
 	vehicle.drive(dir, top, delta, lo, _max_x)
+	# On the motorway the van keeps to its own carriageway: a little lower
+	# heading into the city (east), a little higher heading out (west).
+	if vehicle.kind == Vehicle.Kind.VAN:
+		var vx := vehicle.global_position.x
+		var lane := 0.0
+		if vx < road_from or vx > town.y:
+			lane = LANE_EAST if vehicle.facing > 0.0 else LANE_WEST
+		_lane_y = move_toward(_lane_y, lane, LANE_CHANGE * delta)
+		vehicle.global_position.y = GROUND_Y + _lane_y
 	# The leader rides along (visible on the bikes, hidden in the van).
 	leader.global_position = vehicle.global_position
 	leader.velocity = vehicle.velocity

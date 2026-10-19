@@ -84,6 +84,7 @@ func build() -> int:
 	root.set("city_limit", Vector2(ROAD_TRANSITION, TOWN.y))
 	root.set("foot_limit", SPLIT_X)
 	root.set("scenic_from", -300.0)             # past the last windmill: the road trip opens up
+	root.set("road_from", ROAD_TRANSITION)
 
 	var sky := CanvasLayer.new(); sky.set_script(load("res://scripts/world/sky.gd"))
 	_add(root, sky, "Sky")

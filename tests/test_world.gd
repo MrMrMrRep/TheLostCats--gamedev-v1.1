@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 47
+const EXPECTED_CHECKS := 49
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -168,6 +168,7 @@ func _test_van() -> void:
 	await _frames(300)
 	Input.action_release("move_right")
 	_check(map.zoom >= map.ZOOM_VAN_TOWN - 0.02 and map.birds.active, "on the motorway the view still stays close (%.2f), birds" % map.zoom)
+	_check(van.global_position.y > map.GROUND_Y + 2.0, "heading east on the motorway the van keeps to the lower lane (%.1f)" % (van.global_position.y - map.GROUND_Y))
 	var zoom_before: float = map.zoom
 	van.global_position.x = map.scenic_from - 1500.0   # past the last windmill: the road trip
 	Input.action_press("move_left")
@@ -175,6 +176,7 @@ func _test_van() -> void:
 	Input.action_release("move_left")
 	_check(map.target_zoom_at(van.global_position.x) == map.ZOOM_ROAD and map.zoom < zoom_before - 0.2,
 		"past the last windmill the road trip opens up, ever so slowly (%.2f -> %.2f)" % [zoom_before, map.zoom])
+	_check(van.global_position.y < map.GROUND_Y - 2.0, "heading west the van keeps to the upper lane (%.1f)" % (van.global_position.y - map.GROUND_Y))
 	van.global_position.x = x_back
 	await _frames(240)
 	await _frames(70)
