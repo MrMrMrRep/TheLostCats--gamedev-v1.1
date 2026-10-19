@@ -149,6 +149,7 @@ Not in M6: quiet/stealth part of Joep's beer (nothing listens yet), whiskey/join
 - [x] **Vehicles**: engine/pedal pull that fades near top speed, coasting with drag, braking by steering back; the van pitches on a spring and puffs exhaust smoke
 - [x] **Map 18400 px, softer edges**: west of the centre the old town (churches, market square, bars and little shops), a park and the theatre, hotels; then a highway sweeps in from the distance and joins a long country road (~15 s by van). East of the centre new apartment blocks lead into the industrial outskirts
 - [x] **Traffic**: a back lane (behind the band, smaller, hazy; bikes in town) and a front lane outside town (in front of the band, reflected) — you pass and get passed, never bump. Van 2.2x walking speed; the driving zoom eases slowly (~10 s)
+- [x] **City detail + scale pass** (`docs/city-layout.md`): city drawn at the band sprites' pixel density, people-based scale for doors/windows/cars, pedestrians at band scale, real-size traffic (car-free centre, parked cars on the ring), houseboats, airport with hotels at the east end
 - [x] **Van radio** (R): dummy synth songs on 3 Dutch stations (German ones are ready for Germany), static between channels, station in the HUD
 - [x] **Controls review**: E uses the selected item when nothing is near, Esc/P pause with a controls screen, hint bars fixed (abilities are J/K, not A/B). `tests/test_controls.gd` (27 checks) presses the real keys
 

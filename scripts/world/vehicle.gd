@@ -22,6 +22,7 @@ const VAN_SHEET := preload("res://public/assets/vehicles/band_van.png")
 const VAN_FRAME := Vector2(112, 56)
 const VAN_GROUND := 50.0                    # tyre bottoms in the frame
 const VAN_FRAMES := 4
+const VAN_SCALE := 0.75                     # the sheet is drawn bigger than the world's car scale (docs/city-layout.md)
 
 # Feel per kind: [pull px/s^2, brake px/s^2, rolling px/s^2, drag 1/s]
 const FEEL := {Kind.BIKES: [820.0, 700.0, 70.0, 0.35], Kind.VAN: [560.0, 800.0, 36.0, 0.16]}
@@ -29,7 +30,7 @@ const PITCH_PER_ACCEL := 0.000045           # rad of body pitch per px/s^2
 const PITCH_MAX := 0.045
 const PITCH_SPRING := 90.0
 const PITCH_DAMP := 9.0
-const EXHAUST := Vector2(-52, -9)           # tailpipe in the van frame (facing right)
+const EXHAUST := Vector2(-39, -7)           # tailpipe (world px, facing right)
 const SMOKE_LIFE := 1.4
 
 var velocity := Vector2.ZERO
@@ -48,7 +49,7 @@ var occupied := false:
 
 
 func _ready() -> void:
-	area_size = Vector2(96, 40) if kind == Kind.VAN else Vector2(40, 24)
+	area_size = Vector2(76, 34) if kind == Kind.VAN else Vector2(40, 24)
 	super()
 
 
@@ -143,7 +144,7 @@ func _draw_van() -> void:
 	var src := Rect2(Vector2(frame * VAN_FRAME.x, 0), VAN_FRAME)
 	# Pitch around the axle under load: rear axle when the nose lifts, front when it dips.
 	var axle := Vector2(-34.0 if _pitch > 0.0 else 34.0, -6.0)
-	var xf := Transform2D(0.0, Vector2(facing, 1.0), 0.0, Vector2.ZERO)
+	var xf := Transform2D(0.0, Vector2(facing * VAN_SCALE, VAN_SCALE), 0.0, Vector2.ZERO)
 	xf = xf * Transform2D(-_pitch, axle) * Transform2D(0.0, -axle)
 	draw_set_transform_matrix(xf)
 	draw_texture_rect_region(VAN_SHEET, Rect2(Vector2(-VAN_FRAME.x / 2.0, -VAN_GROUND), VAN_FRAME), src)

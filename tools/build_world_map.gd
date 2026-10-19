@@ -13,7 +13,7 @@ extends RefCounted
 #   studio and Café De Kat, new apartment blocks, the outskirts (service
 #   station, shopping centre, car park, self storage) and all the way east the
 #   band's storage with its gated car park.
-const W := 18400
+const W := 21600
 const GY := 288.0
 const TOWN := Vector2(6400, 18240)          # canal + city
 const HIGHWAY_MERGE := 5700.0               # the highway joins our road here
@@ -28,19 +28,32 @@ const VENUE_X := 14400.0
 const STATION := Vector2(16400, 16540)      # service station, no building here
 const STORAGE_X := 17680.0                  # left end of the band's storage
 const STORAGE_GATE_X := 17745.0             # gate in front of its car park
+const CENTRE_SHOPS := ["KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR 'T SLUISJE", "FIETSEN"]
 const BARS := ["BAR DE KROEG", "CAFE 'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR"]
 # Strips laid out from a start x, left to right. Entries:
 #   [kind, seed, sign]          a WorldBuilding (kinds as in WorldBuilding.Kind)
-#   ["houses", n, seed, shops]  a CityBlock of n canal houses (shops: shop share)
+#   ["houses", n, seed, shops, style]  a CityBlock of n houses (shops: shop share;
+#                                      style: 0 canal, 1 old town, 2 ring)
 #   ["gap", px]
 const WEST_STRIP := [
-	[8, 1, "HOTEL AMSTEL"], ["houses", 2, 71, 0.2], [8, 2, "GRAND HOTEL"], ["gap", 24], [8, 3, "HOSTEL"],
-	["gap", 20], [6, 4, "VONDELPARK"], [7, 5, ""], ["houses", 3, 73, 0.3],
-	[4, 6, ""], ["houses", 4, 75, 0.8], [5, 7, "MARKT"], ["houses", 5, 77, 0.9], ["houses", 4, 79, 0.8],
-	[4, 8, ""], ["houses", 3, 81, 0.6]]
+	[8, 1, "HOTEL AMSTEL"], ["houses", 2, 71, 0.2, 2], [8, 2, "GRAND HOTEL"], ["gap", 24], [8, 3, "HOSTEL"],
+	["gap", 20], [6, 4, "VONDELPARK"], [7, 5, ""], ["houses", 3, 73, 0.3, 2],
+	[4, 6, ""], ["houses", 4, 75, 0.8, 1], [5, 7, "MARKT"], ["houses", 5, 77, 0.9, 1], ["houses", 4, 79, 0.8, 1],
+	[4, 8, ""], ["houses", 2, 81, 0.6, 1]]
 const EAST_STRIP := [
 	[9, 0, ""], ["gap", 34], [9, 1, ""], ["gap", 28], [9, 2, ""], ["gap", 40], [9, 3, ""]]
 const OUTSKIRT_BUILDINGS := [[0, 16620.0, 3, "WINKELCENTRUM"], [1, 17020.0, 5, ""], [2, 17260.0, 7, "SELF STORAGE"]]
+# Past the storage, out of town by the motorway: airport hotels, the terminal,
+# the control tower and the airfield.
+const AIRPORT_BUILDINGS := [[8, 18700.0, 4, "AIRPORT HOTEL"], [8, 18900.0, 5, "SKY INN"], [10, 19200.0, 0, "AIRPORT"], [11, 19820.0, 0, ""]]
+const AIRFIELD := Vector2(19950, 21400)
+# Districts for street furniture, traffic and pedestrians (world x ranges).
+const OLD_TOWN := Vector2(7800, 9600)
+const DISTRICTS := [[6400.0, 7800.0, 2], [7800.0, 9600.0, 1], [9600.0, 15400.0, 0], [15400.0, 16400.0, 2],
+	[16400.0, 18240.0, 3], [18600.0, 19900.0, 4]]   # kinds as in WorldStreetLife.Kind
+const PEOPLE := [Vector3(6400, 7800, 3), Vector3(7800, 9600, 6), Vector3(9600, 15400, 4), Vector3(15400, 16400, 2),
+	Vector3(16400, 18240, 1), Vector3(18600, 19900, 3)]
+const HOUSEBOATS := [9900.0, 10560.0, 11320.0, 12120.0, 12860.0, 13560.0, 14260.0, 15080.0]
 
 var root: Node2D
 
@@ -108,6 +121,13 @@ func build() -> int:
 	var storage := Node2D.new(); storage.set_script(Bd); storage.position = Vector2(STORAGE_X, GY)
 	storage.set("kind", 3); storage.set("sign_text", "THE LOST CATS - STORAGE")
 	_add(city, storage, "Storage")
+	for b in AIRPORT_BUILDINGS:
+		var ab := Node2D.new(); ab.set_script(Bd); ab.position = Vector2(b[1], GY)
+		ab.set("kind", b[0]); ab.set("seed_value", b[2]); ab.set("sign_text", b[3])
+		_add(city, ab, ["", "", "", "", "", "", "", "", "AirportHotel", "", "Terminal", "Tower"][b[0]] + str(b[2]))
+	var field := Node2D.new(); field.set_script(load("res://scripts/world/airport.gd"))
+	field.position = Vector2(AIRFIELD.x, GY); field.set("length", AIRFIELD.y - AIRFIELD.x)
+	_add(city, field, "Airfield")
 
 	# Street: invisible collision + drawn street/quay/dike.
 	var tm := TileMapLayer.new()
@@ -122,6 +142,11 @@ func build() -> int:
 	var Tr = load("res://scripts/world/traffic.gd")
 	var traffic_back := Node2D.new(); traffic_back.set_script(Tr); traffic_back.position = Vector2(0, GY)
 	traffic_back.set("lane", 0); traffic_back.set("town", TOWN); traffic_back.set("map_width", float(W))
+	traffic_back.set("car_free", _ranges([Vector2(OLD_TOWN.x, OUTSKIRTS)]))
+	traffic_back.set("parked", _ranges([Vector2(TOWN.x, OLD_TOWN.x), Vector2(OUTSKIRTS, TOWN.y), Vector2(18600, 19900)]))
+	var ped_back := Node2D.new(); ped_back.set_script(load("res://scripts/world/pedestrians.gd")); ped_back.position = Vector2(0, GY)
+	ped_back.set("side", 0); ped_back.set("busy", _people())
+	_add(root, ped_back, "PeopleBack")
 	_add(root, traffic_back, "TrafficBack")
 
 	var Bar = load("res://scripts/world/barrier.gd")
@@ -170,10 +195,41 @@ func build() -> int:
 		var pk := Area2D.new(); pk.set_script(Pk); pk.position = Vector2(p[1], GY)
 		_add(places, pk, p[0])
 
+	# Street furniture per district, in stretches Godot can cull; doors stay clear.
+	var clear := []
+	for n in places.get_children():
+		if n is Area2D or n.has_method("has_x"):
+			clear.append(n.position.x)
+	var life := _add(root, Node2D.new(), "StreetLife")
+	var SL = load("res://scripts/world/street_life.gd")
+	var chunk := 0
+	for d in DISTRICTS:
+		var x: float = d[0]
+		while x < d[1]:
+			var len := minf(1200.0, d[1] - x)
+			var sl := Node2D.new(); sl.set_script(SL); sl.position = Vector2(x, GY)
+			sl.set("kind", d[2]); sl.set("length", len); sl.set("seed_value", 100 + chunk)
+			var keep: Array[Vector2] = []
+			for cx in clear:
+				if cx > x - 60 and cx < x + len + 60:
+					keep.append(Vector2(cx - x - 45, cx - x + 45))
+			for bx in BRIDGES:
+				if bx > x - 80 and bx < x + len + 80:
+					keep.append(Vector2(bx - x - 56, bx - x + 56))
+			sl.set("keep_clear", keep)
+			_add(life, sl, "Stretch%d" % chunk)
+			chunk += 1
+			x += len
+	root.move_child(life, street.get_index() + 1)   # furniture behind the pavement people and parked cars
+
 	# Band, then the water (it reflects everything drawn before it), birds.
 	_add(root, load("res://scenes/characters/band.tscn").instantiate())
 	var traffic_front := Node2D.new(); traffic_front.set_script(Tr); traffic_front.position = Vector2(0, GY)
 	traffic_front.set("lane", 1); traffic_front.set("town", TOWN); traffic_front.set("map_width", float(W))
+	traffic_front.set("car_free", _ranges([Vector2(OLD_TOWN.x, OUTSKIRTS)]))
+	var ped_front := Node2D.new(); ped_front.set_script(load("res://scripts/world/pedestrians.gd")); ped_front.position = Vector2(0, GY)
+	ped_front.set("side", 1); ped_front.set("busy", _people())
+	_add(root, ped_front, "PeopleFront")
 	_add(root, traffic_front, "TrafficFront")
 	var water := _add(root, Node2D.new(), "Water")
 	var Wt = load("res://scripts/world/water.gd")
@@ -183,6 +239,11 @@ func build() -> int:
 		if w[3]:
 			r.set("water_color", WorldPalette.DITCH); r.set("deep_color", WorldPalette.DITCH.darkened(0.35))
 		_add(water, r, w[0])
+	var boats := Node2D.new(); boats.set_script(load("res://scripts/world/houseboats.gd")); boats.position = Vector2(0, GY)
+	var spots: Array[float] = []
+	spots.assign(HOUSEBOATS)
+	boats.set("spots", spots)
+	_add(root, boats, "Houseboats")
 	var birds := Node2D.new(); birds.set_script(load("res://scripts/world/birds.gd"))
 	_add(root, birds, "Birds")
 
@@ -221,7 +282,7 @@ func _add(parent: Node, node: Node, name: String = "") -> Node:
 func _block(parent: Node, name: String, houses: int, seed: int, sign: String, center_x: float) -> Node2D:
 	var cb := Node2D.new(); cb.set_script(load("res://scripts/world/city_block.gd"))
 	cb.set("houses", houses); cb.set("seed_value", seed); cb.set("sign_text", sign)
-	cb.position = Vector2(center_x - cb.width() / 2.0, GY)
+	cb.position = Vector2(center_x - cb.signed_center(), GY)   # the sign house sits on the door
 	_add(parent, cb, name)
 	return cb
 
@@ -235,6 +296,7 @@ func _fill(parent: Node, x0: float, x1: float, seed: int) -> void:
 		for houses in range(6, 0, -1):
 			var cb := Node2D.new(); cb.set_script(load("res://scripts/world/city_block.gd"))
 			cb.set("houses", houses); cb.set("seed_value", seed + n)
+			cb.set("shop_signs", PackedStringArray(CENTRE_SHOPS))
 			if cb.width() <= x1 - x:
 				best = cb
 				break
@@ -259,6 +321,7 @@ func _strip(parent: Node, x0: float, items: Array, prefix: String) -> float:
 		elif it[0] is String and it[0] == "houses":
 			var cb := Node2D.new(); cb.set_script(Cb)
 			cb.set("houses", it[1]); cb.set("seed_value", it[2]); cb.set("shop_rate", it[3])
+			cb.set("style", it[4] if it.size() > 4 else 0)
 			cb.set("shop_signs", PackedStringArray(BARS))
 			cb.position = Vector2(x, GY)
 			_add(parent, cb, "%s%d_Houses" % [prefix, i])
@@ -270,3 +333,15 @@ func _strip(parent: Node, x0: float, items: Array, prefix: String) -> float:
 			_add(parent, b, "%s%d_%s" % [prefix, i, ["Mall", "CarPark", "SelfStorage", "Storage", "Church", "Market", "Park", "Theater", "Hotel", "Flats"][it[0]]])
 			x += b.width()
 	return x
+
+
+func _ranges(list: Array) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	out.assign(list)
+	return out
+
+
+func _people() -> Array[Vector3]:
+	var out: Array[Vector3] = []
+	out.assign(PEOPLE)
+	return out

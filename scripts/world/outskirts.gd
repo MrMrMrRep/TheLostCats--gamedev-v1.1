@@ -15,10 +15,11 @@ extends Node2D
 ##   HOTEL          tall hotel with a vertical sign, flags and a canopy
 ##   APARTMENTS     new apartment block: glass, coloured panels, balconies
 
-enum Kind { MALL, GARAGE, SELF_STORAGE, OUR_STORAGE, CHURCH, MARKET, PARK, THEATER, HOTEL, APARTMENTS }
+enum Kind { MALL, GARAGE, SELF_STORAGE, OUR_STORAGE, CHURCH, MARKET, PARK, THEATER, HOTEL, APARTMENTS, TERMINAL, TOWER }
 
 const WIDTHS := {Kind.MALL: 320.0, Kind.GARAGE: 200.0, Kind.SELF_STORAGE: 260.0, Kind.OUR_STORAGE: 340.0,
-	Kind.CHURCH: 150.0, Kind.MARKET: 260.0, Kind.PARK: 480.0, Kind.THEATER: 250.0, Kind.HOTEL: 170.0, Kind.APARTMENTS: 210.0}
+	Kind.CHURCH: 150.0, Kind.MARKET: 260.0, Kind.PARK: 480.0, Kind.THEATER: 250.0, Kind.HOTEL: 170.0, Kind.APARTMENTS: 210.0,
+	Kind.TERMINAL: 560.0, Kind.TOWER: 70.0}
 const CONCRETE := Color("a7a3a8")
 const CONCRETE_DARK := Color("7d7981")
 const STEEL := Color("c9ccd2")
@@ -57,6 +58,8 @@ func _draw() -> void:
 		Kind.THEATER: _theater(rng)
 		Kind.HOTEL: _hotel(rng)
 		Kind.APARTMENTS: _apartments(rng)
+		Kind.TERMINAL: _terminal(rng)
+		Kind.TOWER: _tower(rng)
 
 
 func _text(x: float, y: float, w: float, text: String, size: int, c: Color) -> void:
@@ -66,7 +69,7 @@ func _text(x: float, y: float, w: float, text: String, size: int, c: Color) -> v
 func _mall(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var w := width()
-	var h := 78.0
+	var h := 104.0
 	draw_rect(Rect2(0, -h, w, h), Color("d8cbb8"))
 	draw_rect(Rect2(0, -h, w, 8), CONCRETE_DARK)                 # roof edge
 	draw_rect(Rect2(w - 3, -h, 3, h), Color("b5a893"))
@@ -77,20 +80,20 @@ func _mall(rng: RandomNumberGenerator) -> void:
 	for i in int(w / 18):
 		draw_rect(Rect2(6 + i * 18, -h + 14, 12, 10), p.GLASS)
 	# Canopy and shop fronts.
-	draw_rect(Rect2(-4, -40, w + 8, 4), CONCRETE_DARK)
+	draw_rect(Rect2(-4, -52, w + 8, 4), CONCRETE_DARK)
 	var shops := 5
 	var sw := w / shops
 	for i in shops:
 		var x := i * sw
-		draw_rect(Rect2(x + 4, -34, sw - 8, 30), p.GLASS)
-		draw_rect(Rect2(x + 4, -34, sw - 8, 1), p.TRIM)
+		draw_rect(Rect2(x + 4, -46, sw - 8, 42), p.GLASS)
+		draw_rect(Rect2(x + 4, -46, sw - 8, 1), p.TRIM)
 		for k in 3:
-			draw_rect(Rect2(x + 6 + k * (sw - 12) / 3.0, -30, 1, 26), p.GLASS.lightened(0.15))
+			draw_rect(Rect2(x + 6 + k * (sw - 12) / 3.0, -42, 1, 38), p.GLASS.lightened(0.15))
 		var sc: Color = [p.ORANGE, Color("c94a3d"), Color("5b7fa6"), Color("6f8f5a"), Color("e0b23a")][i % 5]
-		draw_rect(Rect2(x + 8, -52, sw - 16, 10), sc)
-		_text(x + 8, -44, sw - 16, SHOP_SIGNS[(i + seed_value) % SHOP_SIGNS.size()], 7, p.WHITE)
-		if rng.randf() < 0.5:
-			draw_rect(Rect2(x + sw / 2 - 4, -18, 8, 18), p.NAVY)
+		draw_rect(Rect2(x + 8, -66, sw - 16, 12), sc)
+		_text(x + 8, -57, sw - 16, SHOP_SIGNS[(i + seed_value) % SHOP_SIGNS.size()], 8, p.WHITE)
+		draw_rect(Rect2(x + sw / 2 - 8, -34, 16, 34), p.GLASS.lightened(0.25))       # sliding doors
+		draw_rect(Rect2(x + sw / 2, -34, 1, 34), p.TRIM)
 	# Trolleys and a flag pole.
 	for k in 3:
 		draw_rect(Rect2(w - 30 + k * 5, -7, 4, 4), STEEL)
@@ -143,18 +146,18 @@ func _roll_door(x: float, w: float, h: float, c: Color) -> void:
 func _self_storage(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var w := width()
-	var h := 64.0
+	var h := 86.0
 	draw_rect(Rect2(0, -h, w, h), p.ORANGE)
 	for x in range(0, int(w), 4):                                # corrugation
-		draw_rect(Rect2(x, -h, 1, h - 26), p.ORANGE.darkened(0.15))
-	draw_rect(Rect2(0, -28, w, 28), p.WHITE)
+		draw_rect(Rect2(x, -h, 1, h - 42), p.ORANGE.darkened(0.15))
+	draw_rect(Rect2(0, -44, w, 44), p.WHITE)
 	draw_rect(Rect2(0, -h, w, 4), CONCRETE_DARK)
 	draw_rect(Rect2(10, -h + 8, 120, 14), p.WHITE)
 	_text(10, -h + 19, 120, sign_text if sign_text != "" else "SELF STORAGE", 9, p.ORANGE.darkened(0.3))
-	var doors := int((w - 10) / 30)
+	var doors := int((w - 10) / 42)
 	for i in doors:
-		_roll_door(8 + i * 30, 22, 24, STEEL if rng.randf() < 0.8 else Color("5b7fa6"))
-		draw_string(ThemeDB.fallback_font, Vector2(15 + i * 30, -27), str(101 + i), HORIZONTAL_ALIGNMENT_LEFT, -1, 5, p.NAVY)
+		_roll_door(8 + i * 42, 32, 36, STEEL if rng.randf() < 0.8 else Color("5b7fa6"))
+		draw_string(ThemeDB.fallback_font, Vector2(18 + i * 42, -39), str(101 + i), HORIZONTAL_ALIGNMENT_LEFT, -1, 6, p.NAVY)
 
 
 func _our_storage(rng: RandomNumberGenerator) -> void:
@@ -175,8 +178,8 @@ func _our_storage(rng: RandomNumberGenerator) -> void:
 	_text(x0 + 20, -h + 19, ww - 40, sign_text if sign_text != "" else "STORAGE", 9, p.LIT)
 	# Loading door, a side door, small high windows.
 	_roll_door(x0 + 30, 60, 44, STEEL)
-	draw_rect(Rect2(x0 + 110, -18, 8, 18), p.NAVY)
-	draw_rect(Rect2(x0 + 116, -10, 1, 1), p.LIT)
+	draw_rect(Rect2(x0 + 104, -34, 17, 34), p.NAVY)
+	draw_rect(Rect2(x0 + 117, -18, 2, 2), p.LIT)
 	for k in 5:
 		draw_rect(Rect2(x0 + 24 + k * 34, -h + 40, 14, 6), p.GLASS if k != 2 else p.LIT)
 	# Camera and a lamp over the yard.
@@ -299,8 +302,8 @@ func _theater(rng: RandomNumberGenerator) -> void:
 		draw_rect(Rect2(cx - 2, -86, 12, 3), p.TRIM)
 		draw_rect(Rect2(cx - 2, -16, 12, 2), p.TRIM)
 	for k in 3:                                                    # doors and posters
-		draw_rect(Rect2(52 + k * 56, -40, 16, 26), Color("6b2a2a"))
-		draw_rect(Rect2(40 + k * 56, -62, 10, 14), [p.ORANGE, Color("c94a3d"), Color("5b7fa6")][k])
+		draw_rect(Rect2(50 + k * 56, -50, 18, 36), Color("6b2a2a"))
+		draw_rect(Rect2(36 + k * 56, -72, 10, 16), [p.ORANGE, Color("c94a3d"), Color("5b7fa6")][k])
 	for k in 3:                                                    # steps
 		draw_rect(Rect2(12 - k * 4, -14 + k * 5, w - 24 + k * 8, 5), stone.darkened(0.08 + k * 0.05))
 
@@ -314,7 +317,7 @@ func _hotel(rng: RandomNumberGenerator) -> void:
 	draw_rect(Rect2(w - 3, -h, 3, h), c.darkened(0.2))
 	draw_rect(Rect2(0, -h, w, 5), p.TRIM)
 	var y := -h + 14
-	while y < -40:
+	while y < -52:
 		var x := 12.0
 		while x < w - 30:
 			draw_rect(Rect2(x, y, 12, 14), p.LIT if rng.randf() < 0.25 else p.GLASS)
@@ -331,11 +334,11 @@ func _hotel(rng: RandomNumberGenerator) -> void:
 	for k in 3:
 		draw_rect(Rect2(14 + k * 12, -60, 1, 22), p.IRON)
 		draw_rect(Rect2(15 + k * 12, -60, 8, 5), [Color("c94a3d"), p.WHITE, Color("5b7fa6")][k])
-	draw_rect(Rect2(w / 2 - 30, -32, 60, 4), p.NAVY)
-	draw_rect(Rect2(w / 2 - 28, -28, 2, 28), p.IRON)
-	draw_rect(Rect2(w / 2 + 26, -28, 2, 28), p.IRON)
-	draw_rect(Rect2(w / 2 - 12, -24, 24, 24), p.GLASS.lightened(0.2))
-	draw_rect(Rect2(w / 2 - 1, -24, 2, 24), p.TRIM)
+	draw_rect(Rect2(w / 2 - 34, -44, 68, 5), p.NAVY)
+	draw_rect(Rect2(w / 2 - 32, -39, 2, 39), p.IRON)
+	draw_rect(Rect2(w / 2 + 30, -39, 2, 39), p.IRON)
+	draw_rect(Rect2(w / 2 - 14, -35, 28, 35), p.GLASS.lightened(0.2))
+	draw_rect(Rect2(w / 2 - 1, -35, 2, 35), p.TRIM)
 
 
 func _apartments(rng: RandomNumberGenerator) -> void:
@@ -360,7 +363,58 @@ func _apartments(rng: RandomNumberGenerator) -> void:
 				draw_rect(Rect2(x - 2, y + 11, 26, 2), p.TRIM)
 				draw_rect(Rect2(x - 2, y + 7, 26, 1), Color(1, 1, 1, 0.6))
 	# Ground floor: lobby, bike shed, a young tree.
-	draw_rect(Rect2(10, -22, 40, 22), p.GLASS.lightened(0.15))
-	draw_rect(Rect2(10, -24, 40, 2), p.TRIM)
+	draw_rect(Rect2(10, -36, 40, 36), p.GLASS.lightened(0.15))
+	draw_rect(Rect2(10, -38, 40, 2), p.TRIM)
+	draw_rect(Rect2(29, -36, 1, 36), p.TRIM)
 	draw_rect(Rect2(w - 70, -16, 46, 16), Color("6c6476"))
 	WorldPalette.tree(self, w - 10, 0, 10)
+
+
+func _terminal(rng: RandomNumberGenerator) -> void:
+	var p := WorldPalette
+	var w := width()
+	var h := 96.0
+	# Long low terminal: concrete base, a band of glass, a roof that overhangs.
+	draw_rect(Rect2(0, -h, w, h), Color("c9ccd2"))
+	draw_rect(Rect2(0, -h + 16, w, 46), Color("3a4a62"))
+	for x in range(0, int(w), 14):
+		draw_rect(Rect2(x, -h + 16, 1, 46), Color("8a9ab2"))
+	draw_rect(Rect2(0, -h + 38, w, 1), Color("8a9ab2"))
+	for k in 8:                                                  # warm lit bits inside
+		draw_rect(Rect2(rng.randf_range(10, w - 40), -h + 44, rng.randf_range(16, 40), 14), Color("c98f4a"))
+	draw_rect(Rect2(-12, -h - 6, w + 24, 8), Color("e9eef2"))
+	draw_rect(Rect2(-12, -h + 2, w + 24, 2), Color("8a8f99"))
+	draw_rect(Rect2(w / 2 - 90, -h - 26, 180, 20), p.NAVY)
+	_text(w / 2 - 90, -h - 11, 180, sign_text if sign_text != "" else "AIRPORT", 14, p.WHITE)
+	# Departures canopy with columns, sliding doors, a departures board.
+	draw_rect(Rect2(20, -44, w - 40, 5), Color("8a8f99"))
+	for x in range(30, int(w) - 20, 60):
+		draw_rect(Rect2(x, -39, 4, 39), Color("e9eef2"))
+	for k in 4:
+		var dx := 70 + k * 120
+		draw_rect(Rect2(dx, -36, 34, 36), Color("8ab0c8"))
+		draw_rect(Rect2(dx + 16, -36, 2, 36), p.TRIM)
+		draw_rect(Rect2(dx - 2, -40, 38, 3), Color("2a4ea0"))
+	draw_rect(Rect2(w - 110, -36, 60, 22), Color("1e1e24"))
+	for r in 4:
+		draw_rect(Rect2(w - 106, -32 + r * 5, rng.randf_range(30, 52), 2), Color("f2c14a"))
+	for k in 3:                                                  # luggage trolleys
+		draw_rect(Rect2(40 + k * 7, -9, 6, 6), Color("c9ccd2"))
+
+
+func _tower(rng: RandomNumberGenerator) -> void:
+	var p := WorldPalette
+	var w := width()
+	draw_rect(Rect2(w / 2 - 12, -230, 24, 230), Color("dcdfe4"))
+	draw_rect(Rect2(w / 2 + 6, -230, 6, 230), Color("b9bcc4"))
+	for y in range(-220, -20, 30):
+		draw_rect(Rect2(w / 2 - 3, y, 6, 8), Color("3a4a62"))
+	draw_rect(Rect2(0, -262, w, 8), Color("8a8f99"))             # cab
+	draw_rect(Rect2(4, -284, w - 8, 22), Color("3a6a8a"))
+	for x in range(6, int(w) - 6, 10):
+		draw_rect(Rect2(x, -284, 1, 22), Color("9ab8ca"))
+	draw_rect(Rect2(-2, -290, w + 4, 6), Color("e9eef2"))
+	draw_rect(Rect2(w / 2 - 1, -320, 2, 30), p.IRON)
+	draw_rect(Rect2(w / 2 - 2, -324, 4, 4), Color("e04a3a"))
+	draw_rect(Rect2(w / 2 - 20, -36, 40, 36), Color("c9ccd2"))
+	draw_rect(Rect2(w / 2 - 8, -34, 16, 34), p.NAVY)

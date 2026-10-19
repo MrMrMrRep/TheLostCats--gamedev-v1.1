@@ -140,7 +140,7 @@ func _apply_zoom() -> void:
 	var cam := band.camera
 	cam.zoom = Vector2(zoom, zoom)
 	var view_h := 360.0 / zoom
-	var water_visible := clampf(view_h * 0.22, 30.0, 160.0)
+	var water_visible := clampf(view_h * 0.13, 22.0, 160.0)   # a strip of canal; facades get the rest
 	cam.fixed_y = WATER_LINE + water_visible - view_h / 2.0
 
 
@@ -216,7 +216,7 @@ func leave_vehicle() -> bool:
 		m.visible = true
 		_bikes[m].visible = false
 	leader.set_physics_process(true)
-	place_band(v.global_position.x + (0.0 if v.kind == Vehicle.Kind.BIKES else -v.facing * 34.0), v.facing)
+	place_band(v.global_position.x + (0.0 if v.kind == Vehicle.Kind.BIKES else -v.facing * 28.0), v.facing)
 	band.camera.look_ahead = WALK_LOOK_AHEAD
 	_cooldown = INTERACT_COOLDOWN
 	_update_vehicle_hint()

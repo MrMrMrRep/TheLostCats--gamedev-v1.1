@@ -1,0 +1,140 @@
+@tool
+class_name WorldPedestrians
+extends Node2D
+## People walking along the street, at band scale (an adult is ~27 world px,
+## like Joep; kids ~19), drawn at the band sprites' density. Kept around the
+## camera only. Two sides of the street, for depth:
+##   BACK   the pavement by the facades: behind the band, 0.94 size, a touch hazy
+##   FRONT  the quay side: in front of the band (they walk past/through us)
+## Density per district via `busy` (world x ranges with weight). Never in
+## the countryside. Origin = street line.
+
+enum Side { BACK, FRONT }
+
+const SIDE_Y := {Side.BACK: -1.0, Side.FRONT: 6.0}
+const SKIN := [Color("f0c8a8"), Color("e0a882"), Color("b97a52"), Color("8a5a3a"), Color("5a3a28")]
+const HAIR := [Color("2a1e1a"), Color("5a3a22"), Color("c9a050"), Color("8a3a22"), Color("d8d0c8"), Color("1a1a1e")]
+const SHIRTS := [Color("c94a3d"), Color("2a4ea0"), Color("f2efe8"), Color("2f4f3a"), Color("e0b23a"), Color("6a4a8a"), Color("3a3a40"), Color("e07a2e"), Color("6f8f86")]
+const PANTS := [Color("2a3040"), Color("3a3a40"), Color("5a4a3a"), Color("1e2a4a"), Color("8a7a5a")]
+
+@export var side := Side.BACK
+@export var busy: Array[Vector3] = []       ## (x0, x1, people per screen width)
+
+var _people: Array = []                     # dictionaries: x, dir, speed, look, phase, kid, extra
+var _rng := RandomNumberGenerator.new()
+
+
+func _ready() -> void:
+	_rng.seed = 21 + side
+
+
+func density_at(x: float) -> float:
+	for b in busy:
+		if x >= b.x and x <= b.y:
+			return b.z
+	return 0.0
+
+
+func _view() -> Vector2:
+	var cam := get_viewport().get_camera_2d() if is_inside_tree() else null
+	if cam == null:
+		return Vector2(0, 640)
+	var half := 320.0 / cam.zoom.x + 60.0
+	var cx := cam.get_screen_center_position().x
+	return Vector2(cx - half, cx + half)
+
+
+func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		return
+	var view := _view()
+	var span := view.y - view.x
+	for p in _people:
+		p.x += p.dir * p.speed * delta
+		p.phase += p.speed * delta
+		if p.pause > 0.0:                    # window shopping
+			p.pause -= delta
+			p.x -= p.dir * p.speed * delta
+			p.phase -= p.speed * delta
+		elif _rng.randf() < delta * 0.04:
+			p.pause = _rng.randf_range(1.0, 3.5)
+	_people = _people.filter(func(p: Dictionary) -> bool:
+		return p.x > view.x - span * 0.5 and p.x < view.y + span * 0.5 and density_at(p.x) > 0.0)
+	var want := int(round(span / 640.0 * density_at((view.x + view.y) / 2.0)))
+	if _people.size() < want:
+		_spawn(view)
+	queue_redraw()
+
+
+func _spawn(view: Vector2) -> void:
+	var dir := 1.0 if _rng.randf() < 0.5 else -1.0
+	var x := view.x - 20.0 if dir > 0.0 else view.y + 20.0
+	if _people.is_empty() or _rng.randf() < 0.3:
+		x = _rng.randf_range(view.x, view.y)
+	if density_at(x) <= 0.0:
+		return
+	var kid := _rng.randf() < 0.12
+	_people.append({
+		"x": x, "dir": dir, "speed": _rng.randf_range(16, 28) * (0.8 if kid else 1.0),
+		"phase": _rng.randf() * 10.0, "pause": 0.0, "kid": kid,
+		"skin": SKIN[_rng.randi_range(0, SKIN.size() - 1)], "hair": HAIR[_rng.randi_range(0, HAIR.size() - 1)],
+		"shirt": SHIRTS[_rng.randi_range(0, SHIRTS.size() - 1)], "pants": PANTS[_rng.randi_range(0, PANTS.size() - 1)],
+		"long_hair": _rng.randf() < 0.4, "extra": _rng.randi_range(0, 5),
+	})
+
+
+func _draw() -> void:
+	var back := side == Side.BACK
+	var y: float = SIDE_Y[side]
+	var s := (0.94 if back else 1.0) * 0.5
+	for p in _people:
+		var k: float = 0.7 if p.kid else 1.0
+		draw_set_transform(Vector2(p.x, y), 0.0, Vector2(p.dir * s * k, s * k))
+		_person(p, back)
+	draw_set_transform(Vector2.ZERO)
+
+
+## A walking person in art px, ~54 tall, facing right, feet on y 0.
+func _person(p: Dictionary, back: bool) -> void:
+	var haze := 0.12 if back else 0.0
+	var o := PixelArt.OUTLINE
+	var skin: Color = (p.skin as Color).lerp(WorldPalette.HAZE, haze)
+	var shirt: Color = (p.shirt as Color).lerp(WorldPalette.HAZE, haze)
+	var pants: Color = (p.pants as Color).lerp(WorldPalette.HAZE, haze)
+	var hair: Color = (p.hair as Color).lerp(WorldPalette.HAZE, haze)
+	var walking: bool = p.pause <= 0.0
+	var swing := sin(p.phase * 0.35) * 7.0 if walking else 0.0
+	# legs (far leg darker), shoes
+	draw_line(Vector2(0, -24), Vector2(-swing, -2), pants.darkened(0.25), 6.0)
+	draw_line(Vector2(0, -24), Vector2(swing, -2), pants, 6.0)
+	draw_rect(Rect2(-swing - 3, -3, 8, 3), o)
+	draw_rect(Rect2(swing - 3, -3, 8, 3), o)
+	# far arm, torso, near arm
+	draw_line(Vector2(0, -42), Vector2(swing * 0.7, -26), shirt.darkened(0.25), 4.0)
+	draw_rect(Rect2(-7, -45, 14, 23), o)
+	draw_rect(Rect2(-6, -44, 12, 21), shirt)
+	draw_rect(Rect2(-6, -44, 3, 21), shirt.lightened(0.15))
+	draw_line(Vector2(0, -42), Vector2(-swing * 0.7, -26), shirt, 4.0)
+	draw_rect(Rect2(-swing * 0.7 - 2, -27, 4, 4), skin)
+	# head and hair
+	draw_rect(Rect2(-6, -56, 12, 12), o)
+	draw_rect(Rect2(-5, -55, 10, 10), skin)
+	draw_rect(Rect2(2, -52, 2, 2), o)                     # eye
+	draw_rect(Rect2(-6, -57, 12, 4), hair)
+	draw_rect(Rect2(-6, -55, 3, 4 if not p.long_hair else 12), hair)
+	# one small story each
+	match int(p.extra):
+		0:                                  # shopping bag
+			draw_rect(Rect2(-swing * 0.7 - 4, -24, 9, 10), Color("e8dcc0").lerp(WorldPalette.HAZE, haze))
+		1:                                  # backpack
+			draw_rect(Rect2(-11, -44, 6, 14), Color("5a4a3a").lerp(WorldPalette.HAZE, haze))
+		2:                                  # phone in hand, looking down
+			draw_rect(Rect2(6, -36, 3, 5), o)
+		3:                                  # a dog on a lead
+			var dx := 22.0
+			draw_line(Vector2(-swing * 0.7, -26), Vector2(dx, -10), o, 1.0)
+			draw_rect(Rect2(dx - 2, -12, 14, 7), Color("8a5a3a"))
+			draw_rect(Rect2(dx + 10, -16, 6, 6), Color("8a5a3a"))
+			draw_rect(Rect2(dx, -5, 2, 5), o); draw_rect(Rect2(dx + 9, -5, 2, 5), o)
+		_:
+			pass
