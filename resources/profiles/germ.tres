@@ -3,11 +3,16 @@
 [ext_resource type="Script" uid="uid://dykpd6rwwvea0" path="res://scripts/abilities/germ_ability.gd" id="1_eicti"]
 [ext_resource type="Script" uid="uid://hsujlvahca0" path="res://scripts/resources/movement_profile.gd" id="1_fvcjc"]
 
+[ext_resource type="SpriteFrames" path="res://assets/sprites/characters/_temp/drums_germ/drums_germ_frames.tres" id="9_frames"]
+
 [resource]
 script = ExtResource("1_fvcjc")
 id = &"germ"
 display_name = "The Germ"
 tint = Color(1, 0.8784314, 0.5411765, 1)
+sprite_frames = ExtResource("9_frames")
+sprite_scale = 0.75
+sprite_offset = Vector2(0, -27)
 ability = ExtResource("1_eicti")
 run_speed_tiles = 5.5
 jump_height_tiles = 1.3

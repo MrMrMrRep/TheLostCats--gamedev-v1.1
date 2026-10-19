@@ -3,11 +3,16 @@
 [ext_resource type="Script" uid="uid://hsujlvahca0" path="res://scripts/resources/movement_profile.gd" id="1_2t2o1"]
 [ext_resource type="Script" uid="uid://0topgg3wncnp" path="res://scripts/abilities/nikki_ability.gd" id="1_5lq70"]
 
+[ext_resource type="SpriteFrames" path="res://assets/sprites/characters/_temp/guitar_nikki/guitar_nikki_frames.tres" id="9_frames"]
+
 [resource]
 script = ExtResource("1_2t2o1")
 id = &"nikki"
 display_name = "Nikki"
 tint = Color(0.6039216, 1, 0.6901961, 1)
+sprite_frames = ExtResource("9_frames")
+sprite_scale = 0.75
+sprite_offset = Vector2(0, -27)
 ability = ExtResource("1_5lq70")
 run_speed_tiles = 8.5
 jump_height_tiles = 3.3

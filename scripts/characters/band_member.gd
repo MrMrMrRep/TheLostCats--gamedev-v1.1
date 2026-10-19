@@ -24,27 +24,26 @@ const DEATH_ANIM_SPEED := 2.0               # 12-frame death anim in 0.5 s
 const GIVE_RANGE := 24.0                    # 1 tile
 const KEY_RANGE := 32.0                     # how close a locked door must be to use a key
 const BEER := preload("res://resources/items/beer.tres")
-const SHEET_SCALE := 0.5                    # band sheets are drawn at 2x the world grid (54 px tall -> 27)
-const SHEET_OFFSET := Vector2(0, -48)       # 96x96 cell, feet at (48, 95)
 const PLACEHOLDER_OFFSET := Vector2(0, -28)
 const FIDGET_TIME := 6.0                    # idle this long -> play an instrument, drink or smoke
 const FIDGET_LENGTH := 5.0                  # drinking / smoking lasts this long (the instrument until you move)
-const FIDGETS: Array[StringName] = [&"idle_instrument", &"idle_drinking", &"idle_smoking"]
+const FIDGETS: Array[StringName] = [&"idle_instrument", &"idle_drinking", &"idle_smoking", &"idle_bottle"]
 # The game asks for logical animations; a sprite set without one plays the first
 # alias it has (band sheets name things differently from the placeholder).
+# (Older temp sheets use idle_fists, jump, attack_special, crouch.)
 const ANIM_ALIASES := {
-	&"idle": [&"idle_breathing"],
+	&"idle": [&"idle_breathing", &"idle_fists"],
 	&"walk": [&"run"],
-	&"jump_start": [&"jump_rise"],
+	&"jump_start": [&"jump_rise", &"jump"],
 	&"jump": [&"jump_rise"],
 	&"apex": [&"jump_apex", &"jump"],
-	&"fall": [&"jump_fall"],
-	&"land": [&"jump_land"],
+	&"fall": [&"jump_fall", &"jump"],
+	&"land": [&"jump_land", &"crouch"],
 	&"wall_slide": [&"fall"],
-	&"attack": [&"attack_special_a"],
+	&"attack": [&"attack_special_a", &"attack_special"],
 	&"air_attack": [&"attack_punch"],
-	&"hurt": [&"jump_fall"],
-	&"death": [&"crouch_hold"],
+	&"hurt": [&"jump_fall", &"jump"],
+	&"death": [&"crouch_hold", &"crouch"],
 }
 
 @export var profile: MovementProfile: set = set_profile
@@ -134,8 +133,8 @@ func _apply_profile() -> void:
 	_jump_velocity = profile.jump_velocity()
 	if profile.sprite_frames:
 		sprite.sprite_frames = profile.sprite_frames
-		sprite.scale = Vector2.ONE * SHEET_SCALE
-		sprite.offset = SHEET_OFFSET
+		sprite.scale = Vector2.ONE * profile.sprite_scale
+		sprite.offset = profile.sprite_offset
 		sprite.modulate = Color.WHITE
 		sprite_data = JTCSpriteData.load_member(profile.sprite_data) if profile.sprite_data != "" else null
 	else:
@@ -596,7 +595,7 @@ func _run_speed() -> float:
 func _update_idle() -> void:
 	var delta := get_physics_process_delta_time()
 	_idle_time += delta
-	if _fidget == &"" and _idle_time >= FIDGET_TIME and sprite_data:
+	if _fidget == &"" and _idle_time >= FIDGET_TIME and profile and profile.sprite_frames:
 		var options := FIDGETS.filter(func(f: StringName) -> bool: return _has_part(f, "") or _has_part(f, "_in"))
 		if not options.is_empty():
 			_fidget = options[randi() % options.size()]

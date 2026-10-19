@@ -15,6 +15,8 @@ const TILE := 24.0
 @export_group("Sprite")
 @export var sprite_frames: SpriteFrames     ## band sheet from the asset repo (tools/sync_sprites.sh); empty = placeholder
 @export_file("*.json") var sprite_data := "" ## <member>.json next to it: hurt/hit boxes, spawn events
+@export var sprite_scale := 0.5             ## band sheets are drawn at 2x the world (54 px -> 27)
+@export var sprite_offset := Vector2(0, -48)  ## puts the feet on the node origin (96 px cells, feet at 95)
 
 @export_group("Run")
 @export var run_speed_tiles := 7.0          ## top speed, tiles per second
