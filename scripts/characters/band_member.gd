@@ -56,6 +56,7 @@ var show_name_tag := true                   # the zoomed-out world map hides it
 var anim_override: StringName = &""         # ability animation (climb, hover, shield)
 var anim: StringName = &"idle"              # logical animation playing (see ANIM_ALIASES)
 var speed_scale := 1.0                      # world map: a calm walk instead of the level run
+var fidget_after := FIDGET_TIME             # idle this long before an instrument / drink / smoke
 var sprite_data: JTCSpriteData              # boxes and spawn events of a band sheet, else null
 var ability: MemberAbility
 var inventory: Inventory
@@ -586,6 +587,20 @@ func _update_animation() -> void:
 		sprite.flip_h = facing > 0.0
 
 
+## World map followers move without physics: animate from their speed alone
+## (walk, jog, or idle with the usual fidgets after a while).
+func animate_as_follower(vx: float) -> void:
+	sprite.flip_h = facing < 0.0
+	if absf(vx) > 1.0:
+		_idle_time = 0.0
+		_fidget = &""
+		if anim == &"fidget":
+			_anim_lock = false
+		_play(&"run" if absf(vx) > _run_speed() * 0.6 else &"walk")
+	elif not _anim_lock:
+		_update_idle()
+
+
 func _run_speed() -> float:
 	return profile.run_speed_tiles * TILE if profile else 1.0
 
@@ -595,7 +610,7 @@ func _run_speed() -> float:
 func _update_idle() -> void:
 	var delta := get_physics_process_delta_time()
 	_idle_time += delta
-	if _fidget == &"" and _idle_time >= FIDGET_TIME and profile and profile.sprite_frames:
+	if _fidget == &"" and _idle_time >= fidget_after and profile and profile.sprite_frames:
 		var options := FIDGETS.filter(func(f: StringName) -> bool: return _has_part(f, "") or _has_part(f, "_in"))
 		if not options.is_empty():
 			_fidget = options[randi() % options.size()]

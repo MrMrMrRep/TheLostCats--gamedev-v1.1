@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 39
+const EXPECTED_CHECKS := 42
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -63,15 +63,18 @@ func _test_band_line() -> void:
 	await _frames(40)
 	Input.action_release("move_right")
 	await _frames(10)
-	var xs: Array = [leader.global_position.x]
-	for f in map.followers:
-		xs.append(f.global_position.x)
-	var ordered := true
-	for i in xs.size() - 1:
-		var gap: float = xs[i] - xs[i + 1]
-		ordered = ordered and gap > 10.0 and gap < 22.0
-	_check(ordered, "the others trail behind in a line, ~16 px apart %s" % [xs.map(func(x): return int(x))])
+	var behind: bool = map.followers.all(func(f): return f.global_position.x < leader.global_position.x - 10.0)
+	_check(behind, "the others follow behind the leader %s" % [map.followers.map(func(f): return int(f.global_position.x))])
 	_check(map.followers.all(func(f): return f.global_position.x > start.global_position.x - 70.0), "the line moved along with the leader")
+	_check(map.followers.any(func(f): return f.anim == &"walk"), "followers walk (not run) at walking pace")
+	await _frames(150)                          # catch up and settle
+	var settled := true
+	for f in map.followers:
+		var gap: float = map._fstate[f].gap
+		settled = settled and absf(leader.global_position.x - f.global_position.x - gap) < 12.0
+	_check(settled, "standing still, each keeps their own distance %s" % [map.followers.map(func(f): return int(leader.global_position.x - f.global_position.x))])
+	await _frames(480)
+	_check(map.followers.any(func(f): return f.anim == &"fidget"), "after a while standing, someone starts smoking, drinking or playing")
 
 
 func _test_road_block() -> void:

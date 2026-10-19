@@ -11,7 +11,10 @@ extends Node2D
 
 const GROUND_Y := 288.0
 const TRAIL_STEP := 2.0                     # px between recorded trail points
-const FOLLOW_GAP := 16.0                    # px between members in the line
+const FOLLOW_GAP := 16.0                    # px between members riding in the bike line
+const WALK_GAP := 26.0                      # walking: each member keeps about this much more distance
+const CATCH_UP := 90.0                      # further behind than their gap + this: they jog
+const FOLLOW_ACCEL := 380.0                 # px/s^2 a follower speeds up / slows down
 const TRAIL_MAX := 400
 const WALK_LOOK_AHEAD := 80.0
 const DRIVE_LOOK_AHEAD := 160.0
@@ -47,6 +50,7 @@ var zoom := ZOOM_CITY
 var radio: VanRadio
 
 var _trail: Array[Vector2] = []
+var _fstate := {}                           # BandMember -> {v, gap, pause, walked, next_pause}
 var _bikes := {}                            # BandMember -> BikeSprite
 var _cooldown := 0.0
 var _highlighted: Interactable
@@ -91,6 +95,9 @@ func _ready() -> void:
 		if m != leader:
 			followers.append(m)
 			m.set_physics_process(false)
+			_fstate[m] = {"v": 0.0, "gap": WALK_GAP * followers.size() + randf_range(-5.0, 5.0),
+				"pause": 0.0, "walked": 0.0, "next_pause": randf_range(5.0, 12.0)}
+			m.fidget_after = randf_range(2.5, 7.0)
 	_min_x = map_min + EDGE_MARGIN
 	_max_x = map_width - EDGE_MARGIN
 	for b in find_children("*", "RoadBarrier", true, false):
@@ -112,11 +119,18 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_cooldown = maxf(_cooldown - delta, 0.0)
 	if talking:
+		if vehicle == null:
+			for m in followers:                 # stand and listen (and fidget)
+				_fstate[m].v = 0.0
+				m.animate_as_follower(0.0)
 		return
 	if vehicle:
 		_drive(delta)
 	_record_trail()
-	_update_followers()
+	if vehicle and vehicle.kind == Vehicle.Kind.BIKES:
+		_update_followers()                 # riding: a tight line on the leader's track
+	elif vehicle == null:
+		_walk_followers(delta)              # walking: each follows at their own pace
 	_update_zoom(delta)
 	_update_interact()
 
@@ -196,7 +210,17 @@ func place_band(x: float, facing: float) -> void:
 	var steps := int(absf(x - back) / TRAIL_STEP)
 	for i in steps + 1:
 		_trail.append(Vector2(lerpf(back, x, float(i) / steps), GROUND_Y))
-	_update_followers()
+	if vehicle and vehicle.kind == Vehicle.Kind.BIKES:
+		_update_followers()
+	else:
+		for m in followers:                 # walkers stand at their own distance
+			var st: Dictionary = _fstate[m]
+			st.v = 0.0
+			st.pause = 0.0
+			m.global_position = Vector2(clampf(x - facing * st.gap, _min_x, _max_x), GROUND_Y)
+			m.facing = facing
+			m.velocity = Vector2.ZERO
+			m.animate_as_follower(0.0)
 	band.camera.follow(leader, true)
 
 
@@ -299,6 +323,37 @@ func _update_followers() -> void:
 		else:
 			walked += seg
 			k -= 1
+
+
+## Walking followers behave like members following a lure: anyone further
+## from the leader than their own gap walks after them (jogs when far
+## behind), now and then someone pauses for a moment, and when they stand
+## still long enough they smoke, drink or play.
+func _walk_followers(delta: float) -> void:
+	var lx := leader.global_position.x
+	for m in followers:
+		var st: Dictionary = _fstate[m]
+		var dx := lx - m.global_position.x
+		var dist := absf(dx)
+		var want := 0.0
+		if dist > st.gap + 6.0:
+			want = signf(dx) * WALK_SPEED * (1.9 if dist > st.gap + CATCH_UP else 1.0)
+		if st.pause > 0.0:
+			st.pause -= delta
+			if dist < st.gap + CATCH_UP:
+				want = 0.0
+		elif absf(st.v) > 1.0:
+			st.walked += absf(st.v) * delta
+			if st.walked > st.next_pause * WALK_SPEED and dist < st.gap + 40.0:
+				st.pause = randf_range(0.4, 1.3)    # stops for a second (a look around, a sip)
+				st.walked = 0.0
+				st.next_pause = randf_range(5.0, 12.0)
+		st.v = move_toward(st.v, want, FOLLOW_ACCEL * delta)
+		m.global_position = Vector2(clampf(m.global_position.x + st.v * delta, _min_x, _max_x), GROUND_Y)
+		if absf(st.v) > 1.0:
+			m.facing = signf(st.v)
+		m.velocity = Vector2(st.v, 0.0)
+		m.animate_as_follower(st.v)
 
 
 func _move_follower(m: BandMember, p: Vector2) -> void:
