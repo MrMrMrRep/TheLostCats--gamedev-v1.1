@@ -305,9 +305,6 @@ func build() -> int:
 		var g := Node2D.new(); g.set_script(FG); g.position = Vector2(f[1], GY)
 		g.set("length", f[2] - f[1]); g.set("kind", f[3]); g.set("top", f[4])
 		_add(root, g, f[0])
-	var rh := Node2D.new(); rh.set_script(load("res://scripts/world/outskirts.gd")); rh.position = Vector2(ROUND_HOTEL_X, GY + 150)
-	rh.set("kind", 12); rh.set("sign_text", "HOTEL")
-	_add(root, rh, "RoundHotel")                 # in front of the viaduct, from the ground far below
 	var site_front := Node2D.new(); site_front.set_script(load("res://scripts/world/construction.gd"))
 	site_front.position = Vector2(SITE_FRONT_X, GY); site_front.set("front", true); site_front.set("length", 260.0)
 	_add(root, site_front, "ConstructionFront")
@@ -318,6 +315,20 @@ func build() -> int:
 	# Foreground trees along the country road, in a layer that moves faster.
 	var fg := Node2D.new(); fg.set_script(Px); fg.set("factor", 1.35)
 	_add(root, fg, "Foreground")
+	# The round hotel stands close to the camera, between us and the road: in
+	# the foreground layer, bigger, rising from below the view, out of focus.
+	var near := 1.35
+	var focus := CanvasGroup.new()
+	focus.use_mipmaps = true
+	focus.fit_margin = 24.0
+	var mat := ShaderMaterial.new(); mat.shader = load("res://shaders/defocus.gdshader")
+	focus.material = mat
+	focus.position = Vector2(ROUND_HOTEL_X * near, GY + 330.0)
+	focus.scale = Vector2(1.7, 1.7)
+	_add(fg, focus, "RoundHotelNear")
+	var rh := Node2D.new(); rh.set_script(load("res://scripts/world/outskirts.gd"))
+	rh.set("kind", 12); rh.set("sign_text", "HOTEL")
+	_add(focus, rh, "RoundHotel")
 	var fgs := Node2D.new(); fgs.set_script(Sc)
 	fgs.set("kind", 4); fgs.set("town", TOWN); fgs.set("map_width", float(W)); fgs.set("map_min", MAP_MIN)
 	fgs.set("foreground", Vector2(GRASS_BANK.x + 350.0, CONSTRUCTION.x - 300.0)); fgs.set("seed_value", 23)
