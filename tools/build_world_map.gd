@@ -24,7 +24,7 @@ const PARK_END := 7083.0                    # hotels | park: the canal starts he
 const CANAL_FROM := PARK_END
 const VIADUCT := Vector2(SPLIT_X, 7083)     # west of the park the road runs over a viaduct, to the fork
 const GRASS_BANK := Vector2(3800, SPLIT_X)  # then a grass bank in front, then the polder ditch
-const CANOPIES := [7083.0, SPLIT_X, 18240.0]  # dense trees in front hide each change
+const CANOPIES := [7083.0, SPLIT_X, GRASS_BANK.x, 18240.0]  # dense trees in front hide each change
 const OVERPASS_X := 6330.0                  # the ring road crosses over; the city limit starts here
 const CONSTRUCTION := Vector2(5790, 6200)   # building site behind the road
 const ROUND_HOTEL_X := 5120.0               # the round glass hotel, rising from below the viaduct
@@ -81,6 +81,7 @@ func build() -> int:
 	root.set("map_min", MAP_MIN)
 	root.set("city_limit", Vector2(OVERPASS_X, TOWN.y))
 	root.set("foot_limit", SPLIT_X)
+	root.set("scenic_from", -300.0)             # past the last windmill: the road trip opens up
 
 	var sky := CanvasLayer.new(); sky.set_script(load("res://scripts/world/sky.gd"))
 	_add(root, sky, "Sky")
@@ -312,7 +313,7 @@ func build() -> int:
 	_add(root, fg, "Foreground")
 	var fgs := Node2D.new(); fgs.set_script(Sc)
 	fgs.set("kind", 4); fgs.set("town", TOWN); fgs.set("map_width", float(W)); fgs.set("map_min", MAP_MIN)
-	fgs.set("foreground", Vector2(MAP_MIN, CONSTRUCTION.x - 300.0)); fgs.set("seed_value", 23)
+	fgs.set("foreground", Vector2(GRASS_BANK.x + 350.0, CONSTRUCTION.x - 300.0)); fgs.set("seed_value", 23)
 	_add(fg, fgs, "Scenery")
 
 	var hud := CanvasLayer.new(); hud.set_script(load("res://scripts/ui/map_hud.gd"))

@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 46
+const EXPECTED_CHECKS := 47
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -151,6 +151,7 @@ func _test_van() -> void:
 	var speed: float = van.velocity.x
 	Input.action_release("move_right")
 	_check(absf(speed - map.CITY_SPEED) < 5.0, "in town the van keeps to the city limit (%.0f px/s)" % speed)
+	_check(map.zoom >= map.ZOOM_VAN_TOWN - 0.01, "driving in town the view stays close (%.2f, never past %.1fx)" % [map.zoom, map.ZOOM_VAN_TOWN])
 	await _frames(30)
 	var coasted: float = van.velocity.x
 	_check(coasted > speed * 0.6 and coasted < speed - 5.0, "letting go coasts (%.0f -> %.0f px/s)" % [speed, coasted])
@@ -160,17 +161,20 @@ func _test_van() -> void:
 	_check(van.velocity.x < coasted - 150.0 and not van._skids.is_empty(), "steering back brakes hard, wheels lock: skid marks (%.0f px/s)" % van.velocity.x)
 	var zoom_now: float = map.zoom
 	await _frames(330)                          # let it roll to a stop and wait
-	_check(map._slow_time > map.SLOW_DELAY and absf(map.zoom - map.ZOOM_VAN_SLOW_TOWN) < maxf(absf(zoom_now - map.ZOOM_VAN_SLOW_TOWN) - 0.05, 0.08),
-		"standing still in the van: the camera eases to the close-up zoom (%.2f -> %.2f)" % [zoom_now, map.zoom])
-	_check(map.target_zoom_at(van.global_position.x) == map.ZOOM_VAN_TOWN and map.zoom < 1.9, "driving in town: zoom slowly eases out toward %.1fx (%.2f)" % [map.ZOOM_VAN_TOWN, map.zoom])
+	_check(map.zoom > zoom_now + 0.05, "standing still in the van: the camera eases in (%.2f -> %.2f)" % [zoom_now, map.zoom])
 	var x_back: float = van.global_position.x
-	var zoom_before: float = map.zoom
-	van.global_position.x = 700.0               # out of town, on the dike road
-	Input.action_press("move_right")            # keep driving: no slow-down zoom
-	await _frames(600)
+	van.global_position.x = 2500.0              # out of town, on the motorway, before the windmills end
+	Input.action_press("move_right")
+	await _frames(300)
 	Input.action_release("move_right")
-	_check(map.target_zoom_at(700.0) == 0.5 and map.zoom < zoom_before - 0.2 and map.birds.active,
-		"on the road outside town: after a pause, zoom slowly out toward 0.5x (%.2f -> %.2f), birds" % [zoom_before, map.zoom])
+	_check(map.zoom >= map.ZOOM_VAN_TOWN - 0.02 and map.birds.active, "on the motorway the view still stays close (%.2f), birds" % map.zoom)
+	var zoom_before: float = map.zoom
+	van.global_position.x = map.scenic_from - 1500.0   # past the last windmill: the road trip
+	Input.action_press("move_left")
+	await _frames(600)
+	Input.action_release("move_left")
+	_check(map.target_zoom_at(van.global_position.x) == map.ZOOM_ROAD and map.zoom < zoom_before - 0.2,
+		"past the last windmill the road trip opens up, ever so slowly (%.2f -> %.2f)" % [zoom_before, map.zoom])
 	van.global_position.x = x_back
 	await _frames(240)
 	await _frames(70)

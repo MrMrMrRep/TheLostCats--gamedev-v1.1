@@ -39,12 +39,13 @@ const ZOOM_IDLE := 1.5                      # ...very slowly out to here
 const IDLE_ZOOM_RATE := 0.05
 const DRIFT_PERIOD := 48.0                  # seconds for one slow sway left and right
 const DRIFT_MAX := 160.0                    # px, and never so far that the band leaves the frame
-const ZOOM_VAN_TOWN := 1.3                  # driving in town: a little closer
-const ZOOM_VAN_SLOW_TOWN := 1.7             # crawling / stopped in the van (after SLOW_DELAY)
-const ZOOM_VAN_SLOW_ROAD := 0.85
-const SLOW_SPEED := 50.0
-const SLOW_DELAY := 1.2
-const ROAD_ZOOM_DELAY := 3.5                # out of town: wait this long before zooming out
+# In the van the view stays close wherever you drive: a little tempo zoom
+# between parked and full speed, never further out than ZOOM_VAN_TOWN. Only
+# the road trip proper (west of `scenic_from`, past the last windmill) opens
+# up, very slowly, to ZOOM_ROAD.
+const ZOOM_VAN_TOWN := 1.3                  # the van at speed: this far out, no further
+const ZOOM_VAN_SLOW_TOWN := 1.7             # the van crawling or parked
+const SCENIC_RATE := 0.06                   # the road-trip zoom-out: ever so slowly
 const WALK_SPEED := 85.0                    # a calm walk on the map (levels keep their run)
 const CITY_SPEED := 190.0                   # the van's speed limit in town
 const ZOOM_ROAD := 0.5
@@ -57,6 +58,7 @@ const ZOOM_EASE_DRIVE := 0.22               # driving: a slow, calm zoom out / i
 @export var map_min := 0.0                  ## west end of the map (the cow land goes below 0)
 @export var city_limit := Vector2.ZERO      ## world x range where the van keeps to CITY_SPEED
 @export var foot_limit := -100000.0         ## world x: west of it is motorway; no walking or cycling
+@export var scenic_from := -100000.0        ## world x: west of it the road trip opens up (past the last windmill)
 
 var leader: BandMember
 var followers: Array[BandMember] = []
@@ -72,14 +74,12 @@ var _cooldown := 0.0
 var _highlighted: Interactable
 var _min_x := 0.0
 var _max_x := 0.0
-var _slow_time := 0.0
 var _tempo := 0.0                           # 0 standing .. 1 full speed (eases down slowly)
 var _spread := 0.0                          # px from the front member to the back one framed
 var _focus: Node2D                          # what the camera follows on foot / on the bikes
 var _idle_cam := 0.0                        # seconds the band has stood still (camera wander)
 var _foot_note := 0.0                       # cooldown for the "no walking/cycling" line
 var _drift := 0.0                           # current sideways drift of the shot
-var _road_time := 0.0
 
 @onready var band: Band = $Band
 @onready var hud: MapHud = $MapHud
@@ -181,7 +181,9 @@ func in_town(x: float) -> bool:
 ## Zoom the van wants at world x (on foot and on the bikes it's the tempo).
 func target_zoom_at(x: float) -> float:
 	if vehicle and vehicle.kind == Vehicle.Kind.VAN:
-		return ZOOM_VAN_TOWN if in_town(x) else ZOOM_ROAD
+		if x < scenic_from:
+			return ZOOM_ROAD
+		return lerpf(ZOOM_VAN_SLOW_TOWN, ZOOM_VAN_TOWN, _tempo)
 	return _tempo_zoom()
 
 
@@ -224,20 +226,16 @@ func _update_focus(delta: float, instant := false) -> void:
 
 func _update_zoom(delta: float) -> void:
 	var x := vehicle.global_position.x if vehicle else leader.global_position.x
-	var target := target_zoom_at(x)
+	var target := 0.0
 	var rate := ZOOM_EASE
 	if vehicle and vehicle.kind == Vehicle.Kind.VAN:
-		rate = ZOOM_EASE_DRIVE
-		_slow_time = _slow_time + delta if absf(vehicle.velocity.x) < SLOW_SPEED else 0.0
-		_road_time = 0.0 if in_town(x) else _road_time + delta
-		if not in_town(x) and _road_time < ROAD_ZOOM_DELAY:
-			target = ZOOM_VAN_TOWN              # just onto the road: hold, then open up
-		if _slow_time > SLOW_DELAY:             # crawling or parked: ease in for a closer look
-			target = ZOOM_VAN_SLOW_TOWN if in_town(x) else ZOOM_VAN_SLOW_ROAD
-			rate = ZOOM_EASE_DRIVE * 1.6
+		var frac := clampf(absf(vehicle.velocity.x) / CITY_SPEED, 0.0, 1.0)
+		_tempo = frac if frac > _tempo else move_toward(_tempo, frac, delta / TEMPO_SETTLE)
+		target = target_zoom_at(x)
+		rate = ZOOM_OUT_RATE * 0.5 if target < zoom else ZOOM_IN_RATE
+		if x < scenic_from:
+			rate = SCENIC_RATE                  # the road trip: open up ever so slowly
 	else:
-		_slow_time = 0.0
-		_road_time = 0.0
 		var speed := absf(vehicle.velocity.x) if vehicle else absf(leader.velocity.x)
 		var ref := vehicle.top_speed() if vehicle else WALK_SPEED
 		var frac := clampf(speed / ref, 0.0, 1.0)
