@@ -1,9 +1,16 @@
 @tool
 extends RefCounted
-## Builds scenes/world/world_map.tscn: sky, parallax scenery, canal houses with
-## bridges, street, places, band, water, birds, HUD. Run in the editor:
-##   load("res://tools/build_world_map.gd").new().build()
-## Re-run after changing the layout numbers below.
+## ######################################################################
+## RETIRED (2026-10-19): DO NOT RUN. It OVERWRITES scenes/world/world_map.tscn
+## and throws away every manual edit made in the editor since.
+## The scene is the source of truth now: move, duplicate and add pieces in
+## the editor (docs/editing-the-world.md). Scripted changes go in small
+## editor scripts that edit specific nodes in place (tools/scene_edits/).
+## build() refuses to run unless you call build(true).
+## ######################################################################
+## (History) Built world_map.tscn: sky, parallax scenery, canal houses with
+## bridges, street, places, band, water, birds, HUD. The numbers below are the
+## original layout and no longer match the scene.
 
 # West to east:
 #   road block, a long country road (polder) with a farm where the van waits,
@@ -74,7 +81,10 @@ const HOUSEBOATS := [9900.0, 10560.0, 11320.0, 12120.0, 12860.0, 13560.0, 14260.
 var root: Node2D
 
 
-func build() -> int:
+func build(force := false) -> int:
+	if not force:
+		push_error("build_world_map.gd is RETIRED: it would overwrite world_map.tscn and all manual edits. See the header.")
+		return ERR_UNAVAILABLE
 	root = Node2D.new()
 	root.name = "WorldMap"
 	root.set_script(load("res://scripts/world/world_map.gd"))
