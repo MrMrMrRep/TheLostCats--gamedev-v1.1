@@ -87,3 +87,8 @@ All traffic uses these sizes, so on the highway at 0.5× zoom the cars are as bi
 - Doors on the big buildings (mall, self storage, storage, theatre, hotel, flats) now 34+ px
 
 **Not yet**: the other big buildings (church, theatre, hotels, mall…) still use the older, coarser drawing; background layers (skyline, back street) are still 1×; people don't react to the band; night lighting.
+
+## 7. Views into the city (2026-10-19)
+
+The bridges and side-street gaps are **one-point perspective views** from eye height (`bridge.gd`): facades along both sides recede to a vanishing point with skewed windows, doors, awnings and roof edges; the left row is lit, the right in shade; trees, lamps and people on the quays; a brick bridge further down the side canal; haze with depth. Six canal views (150 px wide) and two side streets (110 px, cobbles, pavements, cyclists).
+**Landmark**: the view at the bridge east of the studio ends at the **Pontsteiger** (Houthaven) — low wing, two towers, the top block on its white truss, sky through the gap.

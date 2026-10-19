@@ -23,7 +23,10 @@ const OUTSKIRTS := 15400.0                  # canal centre ends: apartments, the
 const STUDIO_X := 11800.0
 const STUDIO_AREA := Vector2(11660, 11960)
 const BRIDGES := [10200.0, 10900.0, 12500.0, 13200.0, 13900.0, 14900.0]
-const BRIDGE_W := 96.0
+const BRIDGE_W := 150.0
+const LANDMARK_BRIDGE := 12500.0            # its canal view ends at the Pontsteiger
+const SIDE_STREETS := [11250.0, 13550.0]    # gaps with a view down a side street
+const SIDE_STREET_W := 110.0
 const VENUE_X := 14400.0
 const STATION := Vector2(16400, 16540)      # service station, no building here
 const STORAGE_X := 17680.0                  # left end of the band's storage
@@ -84,8 +87,12 @@ func build() -> int:
 	var Br = load("res://scripts/world/bridge.gd")
 	for i in BRIDGES.size():
 		var b := Node2D.new(); b.set_script(Br); b.position = Vector2(BRIDGES[i], GY)
-		b.set("width", BRIDGE_W); b.set("seed_value", 3 + i)
+		b.set("width", BRIDGE_W); b.set("seed_value", 3 + i); b.set("landmark", BRIDGES[i] == LANDMARK_BRIDGE)
 		_add(bridges, b, "Bridge%d" % (i + 1))
+	for i in SIDE_STREETS.size():
+		var st := Node2D.new(); st.set_script(Br); st.position = Vector2(SIDE_STREETS[i], GY)
+		st.set("width", SIDE_STREET_W); st.set("kind", 1); st.set("seed_value", 20 + i)
+		_add(bridges, st, "SideStreet%d" % (i + 1))
 
 	# Canal houses filling the town, leaving bridges, studio, station, venue.
 	var city := _add(root, Node2D.new(), "City")
@@ -95,6 +102,8 @@ func build() -> int:
 		Vector2(venue.position.x, venue.position.x + venue.width())]
 	for bx in BRIDGES:
 		keep_out.append(Vector2(bx - BRIDGE_W / 2.0, bx + BRIDGE_W / 2.0))
+	for sx in SIDE_STREETS:
+		keep_out.append(Vector2(sx - SIDE_STREET_W / 2.0, sx + SIDE_STREET_W / 2.0))
 	keep_out.sort_custom(func(a, b): return a.x < b.x)
 	var old_town_end := _strip(city, TOWN.x + 10.0, WEST_STRIP, "West")
 	assert(old_town_end <= CENTRE, "west strip runs into the centre (%d)" % old_town_end)
@@ -213,9 +222,9 @@ func build() -> int:
 			for cx in clear:
 				if cx > x - 60 and cx < x + len + 60:
 					keep.append(Vector2(cx - x - 45, cx - x + 45))
-			for bx in BRIDGES:
-				if bx > x - 80 and bx < x + len + 80:
-					keep.append(Vector2(bx - x - 56, bx - x + 56))
+			for bx in BRIDGES + SIDE_STREETS:
+				if bx > x - 100 and bx < x + len + 100:
+					keep.append(Vector2(bx - x - 80, bx - x + 80))
 			sl.set("keep_clear", keep)
 			_add(life, sl, "Stretch%d" % chunk)
 			chunk += 1
