@@ -16,7 +16,9 @@ extends Node2D
 enum Lane { BACK, FRONT }
 enum Kind { CAR, VAN, TRUCK, BIKE, BUS }
 
-const LANE_Y := {Lane.BACK: -2.0, Lane.FRONT: 19.0}
+const LANE_Y := {Lane.BACK: 0.0, Lane.FRONT: 19.0}   # tyres on the road surface
+const LIVERIES := ["BAKKER BAS", "POST", "BLOEMEN", "KOERIER", "LOODGIETER", "VERHUIZER", "", "", ""]
+const TRUCK_LIVERIES := ["TRANSPORT", "VERSE MELK", "DE VRIES", "KAAS", "BIER", ""]
 const BACK_SCALE := 0.9
 const COLOURS := [Color("c94a3d"), Color("5b7fa6"), Color("f2efe8"), Color("2a2a2e"), Color("e0b23a"), Color("6f8f5a"), Color("8a8f99"), Color("3a4a6a")]
 const FADE := 40.0                          # front-lane cars fade out where the road becomes the quay
@@ -30,8 +32,8 @@ const FADE := 40.0                          # front-lane cars fade out where the
 @export var per_screen_road := 4            ## vehicles per screen width outside town
 @export var per_screen_town := 2            ## per screen width in town
 
-var _cars: Array = []                       # [x, dir, speed, kind, colour, phase]
-var _parked: Array = []                     # [x, kind, colour] (static)
+var _cars: Array = []                       # [x, dir, speed, kind, colour, phase, seed]
+var _parked: Array = []                     # [x, kind, colour, seed] (static)
 var _rng := RandomNumberGenerator.new()
 
 
@@ -45,7 +47,8 @@ func _ready() -> void:
 			while x < r.y - 70:
 				if prng.randf() < 0.82:
 					var k := Kind.VAN if prng.randf() < 0.18 else Kind.CAR
-					_parked.append([x, k, COLOURS[prng.randi_range(0, COLOURS.size() - 1)]])
+					var sd := prng.randi()
+					_parked.append([x, k, CarArt.colour(sd), sd])
 				x += prng.randf_range(72, 90) if prng.randf() < 0.85 else prng.randf_range(120, 200)
 
 
@@ -121,7 +124,8 @@ func _spawn(view: Vector2) -> void:
 		Kind.TRUCK: _rng.randf_range(80, 120), Kind.BIKE: _rng.randf_range(40, 60), Kind.BUS: _rng.randf_range(70, 110)}[kind]
 	if _in_town(x) and kind != Kind.BIKE:
 		speed *= 0.55
-	_cars.append([x, dir, speed, kind, COLOURS[_rng.randi_range(0, COLOURS.size() - 1)], 0.0])
+	var sd := _rng.randi()
+	_cars.append([x, dir, speed, kind, CarArt.colour(sd), 0.0, sd])
 
 
 func _draw() -> void:
@@ -131,64 +135,42 @@ func _draw() -> void:
 	var view := _view()
 	for pc in _parked:
 		if pc[0] > view.x - 100 and pc[0] < view.y + 100:
-			_vehicle(Vector2(pc[0], y), 1.0, s, pc[1], pc[2], 1.0, 0.0, back)
+			_vehicle(Vector2(pc[0], y), 1.0 if pc[3] % 2 == 0 else -1.0, s, pc[1], pc[2], 1.0, 0.0, back, pc[3])
 	for c in _cars:
 		var alpha := 1.0
 		if lane == Lane.FRONT and _in_town(c[0]):
 			alpha = clampf(1.0 - _town_depth(c[0]) / FADE, 0.0, 1.0)
-		_vehicle(Vector2(c[0], y), c[1], s, c[3], c[4], alpha, c[5], back)
+		_vehicle(Vector2(c[0], y), c[1], s, c[3], c[4], alpha, c[5], back, c[6])
 	draw_set_transform(Vector2.ZERO)
 
 
-func _vehicle(pos: Vector2, dir: float, s: float, kind: int, col: Color, alpha: float, phase: float, back: bool) -> void:
+func _vehicle(pos: Vector2, dir: float, s: float, kind: int, col: Color, alpha: float, phase: float, back: bool, seed: int) -> void:
 	if back:
-		col = col.lerp(WorldPalette.HAZE, 0.15)
+		col = col.lerp(WorldPalette.HAZE, 0.12)
 	draw_set_transform(pos, 0.0, Vector2(dir * s, s))
 	match kind:
-		Kind.CAR: _car(Color(col, alpha), alpha, phase)
-		Kind.VAN: _van(Color(col, alpha), alpha, phase)
-		Kind.TRUCK: _truck(Color(col, alpha), alpha, phase)
-		Kind.BUS: _bus(alpha, phase)
-		_: _bike(Color(col, alpha), alpha, phase)
+		Kind.CAR: CarArt.car(self, CarArt.style_for(seed), col, alpha, phase, seed)
+		Kind.VAN:
+			CarArt.shadow(self, 150, alpha)
+			_van(Color(col, alpha), alpha, phase, LIVERIES[absi(seed) % LIVERIES.size()])
+		Kind.TRUCK:
+			CarArt.shadow(self, 300, alpha)
+			_truck(Color(col, alpha), alpha, phase, TRUCK_LIVERIES[absi(seed) % TRUCK_LIVERIES.size()])
+		Kind.BUS:
+			CarArt.shadow(self, 340, alpha)
+			_bus(alpha, phase)
+		_:
+			CarArt.shadow(self, 40, alpha)
+			_bike(Color(col, alpha), alpha, phase)
 
 
 # --- Vehicles in art px, facing right, wheels on y 0 -------------------------
-
-func _wheel(x: float, r: float, alpha: float, phase: float) -> void:
-	draw_circle(Vector2(x, -r), r + 1, Color(PixelArt.OUTLINE, alpha))
-	draw_circle(Vector2(x, -r), r, Color(0.14, 0.14, 0.16, alpha))
-	draw_circle(Vector2(x, -r), r * 0.5, Color(0.62, 0.62, 0.66, alpha))
-	var a := phase * 2.0 / r
-	draw_line(Vector2(x, -r), Vector2(x + cos(a) * r * 0.5, -r + sin(a) * r * 0.5), Color(0.3, 0.3, 0.34, alpha), 1.0)
-
 
 func _glass(alpha: float) -> Color:
 	return Color(Color("3a4a62"), alpha)
 
 
-func _car(c: Color, alpha: float, phase: float) -> void:
-	var o := Color(PixelArt.OUTLINE, alpha)
-	# body (124 x 44 art = 62 x 22 world)
-	draw_rect(Rect2(-62, -30, 124, 18), o)
-	draw_rect(Rect2(-61, -29, 122, 16), c)
-	draw_rect(Rect2(-36, -44, 66, 15), o)                     # cabin
-	draw_rect(Rect2(-35, -43, 64, 14), c)
-	draw_rect(Rect2(-32, -41, 27, 11), _glass(alpha))
-	draw_rect(Rect2(-2, -41, 27, 11), _glass(alpha))
-	draw_rect(Rect2(-30, -40, 8, 2), Color(1, 1, 1, 0.3 * alpha))
-	draw_rect(Rect2(-4, -43, 3, 30), c.darkened(0.25))       # door seam
-	draw_rect(Rect2(8, -26, 6, 2), c.darkened(0.35))          # handles
-	draw_rect(Rect2(-22, -26, 6, 2), c.darkened(0.35))
-	draw_rect(Rect2(-61, -29, 122, 3), c.lightened(0.2))      # top light
-	draw_rect(Rect2(56, -26, 5, 4), Color(Color("f6e8b0"), alpha))
-	draw_rect(Rect2(-61, -26, 4, 4), Color(Color("d83a2a"), alpha))
-	draw_rect(Rect2(-62, -15, 124, 3), Color(Color("3a3a40"), alpha))   # bumpers line
-	draw_rect(Rect2(26, -38, 4, 4), c.darkened(0.3))          # mirror
-	_wheel(-38, 10, alpha, phase)
-	_wheel(38, 10, alpha, phase)
-
-
-func _van(c: Color, alpha: float, phase: float) -> void:
+func _van(c: Color, alpha: float, phase: float, livery: String) -> void:
 	var o := Color(PixelArt.OUTLINE, alpha)
 	draw_rect(Rect2(-76, -64, 152, 52), o)
 	draw_rect(Rect2(-75, -63, 150, 50), c)
@@ -199,11 +181,15 @@ func _van(c: Color, alpha: float, phase: float) -> void:
 	draw_rect(Rect2(68, -30, 6, 5), Color(Color("f6e8b0"), alpha))
 	draw_rect(Rect2(-75, -30, 4, 6), Color(Color("d83a2a"), alpha))
 	draw_rect(Rect2(-76, -15, 152, 3), Color(Color("3a3a40"), alpha))
-	_wheel(-48, 11, alpha, phase)
-	_wheel(50, 11, alpha, phase)
+	draw_rect(Rect2(-6, -60, 2, 44), c.darkened(0.25))                  # sliding door
+	if livery != "":
+		draw_string(ThemeDB.fallback_font, Vector2(-70, -40), livery, HORIZONTAL_ALIGNMENT_CENTER, 104, 11,
+			Color(Color.WHITE if c.get_luminance() < 0.6 else Color("1d1a22"), alpha))
+	CarArt.wheel(self, -48, 11, alpha, phase)
+	CarArt.wheel(self, 50, 11, alpha, phase)
 
 
-func _truck(c: Color, alpha: float, phase: float) -> void:
+func _truck(c: Color, alpha: float, phase: float, livery: String) -> void:
 	var o := Color(PixelArt.OUTLINE, alpha)
 	var box := Color(Color("eeeae2"), alpha)
 	draw_rect(Rect2(-150, -84, 214, 70), o)                   # box (300 x 84 art)
@@ -217,9 +203,11 @@ func _truck(c: Color, alpha: float, phase: float) -> void:
 	draw_rect(Rect2(110, -60, 34, 22), _glass(alpha))
 	draw_rect(Rect2(142, -28, 6, 6), Color(Color("f6e8b0"), alpha))
 	draw_rect(Rect2(-150, -16, 300, 4), Color(Color("3a3a40"), alpha))
-	_wheel(-120, 12, alpha, phase)
-	_wheel(-92, 12, alpha, phase)
-	_wheel(110, 12, alpha, phase)
+	if livery != "":
+		draw_string(ThemeDB.fallback_font, Vector2(-140, -50), livery, HORIZONTAL_ALIGNMENT_CENTER, 190, 16, c)
+	CarArt.wheel(self, -120, 12, alpha, phase)
+	CarArt.wheel(self, -92, 12, alpha, phase)
+	CarArt.wheel(self, 110, 12, alpha, phase)
 
 
 func _bus(alpha: float, phase: float) -> void:
@@ -237,8 +225,8 @@ func _bus(alpha: float, phase: float) -> void:
 	draw_rect(Rect2(-60, -70, 22, 52), stripe.darkened(0.2))  # doors
 	draw_rect(Rect2(60, -70, 22, 52), stripe.darkened(0.2))
 	draw_rect(Rect2(110, -79, 50, 6), Color(Color("f2c14a"), alpha))
-	_wheel(-120, 12, alpha, phase)
-	_wheel(110, 12, alpha, phase)
+	CarArt.wheel(self, -120, 12, alpha, phase)
+	CarArt.wheel(self, 110, 12, alpha, phase)
 
 
 func _bike(c: Color, alpha: float, phase: float) -> void:
