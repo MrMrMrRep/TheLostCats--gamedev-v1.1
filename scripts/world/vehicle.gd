@@ -28,7 +28,7 @@ const VAN_SCALE := 0.75                     # the sheet is drawn bigger than the
 
 # Feel per kind: [pull px/s^2, brake px/s^2, rolling px/s^2, drag 1/s]
 const FEEL := {Kind.BIKES: [420.0, 520.0, 60.0, 0.3], Kind.VAN: [240.0, 520.0, 34.0, 0.12]}
-const TOP_SPEED := {Kind.BIKES: 150.0, Kind.VAN: 320.0}    # px/s; the band walks 85
+const TOP_SPEED := {Kind.BIKES: 150.0, Kind.VAN: 295.0}    # px/s; the band walks 85
 const LIMIT_EASE := 220.0                   # px/s^2 the van slows down to a speed limit
 const SKID_FROM := 60.0                     # braking above this locks the wheels
 const SKID_LIFE := 6.0
