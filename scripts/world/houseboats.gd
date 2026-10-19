@@ -4,22 +4,32 @@ extends Node2D
 ## Houseboats moored along the canal, in front of the quay wall (closer to us
 ## than the street), drawn at the band sprites' density. They sit on the water
 ## line and draw their own soft reflection (they're in front of the water).
-## `spots` = local x of each boat; origin = street line.
+## One node per boat: drag it along the canal, duplicate it for another boat,
+## change `seed_value` for a different look. (`spots` can still list several
+## boats for one node: local x of each.) Origin = the boat's left end on the
+## street line.
 
 const WATER_Y := 22.0                       # world px below the street line
 
-@export var spots: Array[float] = []:
+@export var spots: Array[float] = []:      ## several boats from this node (local x each); empty = one boat here
 	set(value):
 		spots = value
 		queue_redraw()
-@export var seed_value := 3
+@export var seed_value := 3:                ## the boat's look
+	set(value):
+		seed_value = value
+		look_state = 0
+		queue_redraw()
+@export_storage var look_state := 0         # keeps the exact look a boat had before the boats were split up
 
 
 func _draw() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
+	if look_state != 0:
+		rng.state = look_state
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
-	for sx in spots:
+	for sx in (spots if not spots.is_empty() else [0.0]):
 		_boat(sx * 2.0, WATER_Y * 2.0, rng)
 	draw_set_transform(Vector2.ZERO)
 

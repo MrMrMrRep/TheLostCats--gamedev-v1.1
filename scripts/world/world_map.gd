@@ -11,64 +11,42 @@ extends Node2D
 
 const GROUND_Y := 288.0
 const TRAIL_STEP := 2.0                     # px between recorded trail points
-const FOLLOW_GAP := 16.0                    # px between members riding in the bike line
-const WALK_GAP := 26.0                      # walking: each member keeps about this much more distance
-const CATCH_UP := 90.0                      # further behind than their gap + this: they jog
-const FOLLOW_ACCEL := 380.0                 # px/s^2 a follower speeds up / slows down
 const TRAIL_MAX := 400
-const WALK_LOOK_AHEAD := 80.0
-const DRIVE_LOOK_AHEAD := 160.0
 const INTERACT_COOLDOWN := 0.3
 const EDGE_MARGIN := 30.0                   # vehicles stop this far from a road block
 const WATER_LINE := GROUND_Y + 22.0         # top of the canal
+# Tuning lives in resources/config/ (edit in the inspector, see
+# docs/editing-the-world.md): the camera in map_camera_config.tres, the band's
+# walk in band_map_config.tres, the bikes and the van in vehicle_config.tres.
 # On foot and on the bikes the zoom follows the band's tempo, not the place:
 # close when strolling or standing, further out the faster they go, and
-# always wide enough for the group (a straggler may drop out of frame).
-const ZOOM_WALK := 3.0                      # standing / strolling
-const ZOOM_WALK_MOVING := 2.4               # walking at full pace
-const ZOOM_BIKE_SLOW := 2.6                 # on the bikes, rolling slowly
-const ZOOM_BIKE := 2.0                      # on the bikes at speed
-const ZOOM_OUT_RATE := 1.1                  # zooming out keeps up with the band
-const ZOOM_IN_RATE := 0.28                  # zooming in is slow: it takes a while to settle
-const TEMPO_SETTLE := 2.5                   # seconds for the tempo to calm down after slowing
-const FOCUS_CAP := 170.0                    # members further back than this don't widen the shot
-const FIT_MARGIN := 80.0                    # px of room around the group
-const FOCUS_LEAD := 34.0                    # the shot leads in the walking direction
-const IDLE_ZOOM_AFTER := 15.0               # band idle this long: the camera starts to wander
-const ZOOM_IDLE := 1.5                      # ...very slowly out to here
-const IDLE_ZOOM_RATE := 0.05
-const DRIFT_PERIOD := 48.0                  # seconds for one slow sway left and right
-const DRIFT_MAX := 160.0                    # px, and never so far that the band leaves the frame
-# In the van the view stays close wherever you drive: a little tempo zoom
-# between parked and full speed, never further out than ZOOM_VAN_TOWN. Only
-# the road trip proper (west of `scenic_from`, past the last windmill) opens
-# up, very slowly, to ZOOM_ROAD.
-const ZOOM_VAN_TOWN := 1.3                  # the van at speed: this far out, no further
-const ZOOM_VAN_SLOW_TOWN := 1.7             # the van crawling or parked
-const SCENIC_RATE := 0.06                   # the road-trip zoom-out: ever so slowly
-const LANE_EAST := 4.0                      # van on the motorway, heading into the city
-const LANE_WEST := -5.0                     # ...and heading out
-const LANE_CHANGE := 10.0                   # px/s: a gentle lane change
-const WALK_SPEED := 85.0                    # a calm walk on the map (levels keep their run)
-const CITY_SPEED := 190.0                   # the van's speed limit in town
-const ZOOM_ROAD := 0.5
-const ZOOM_EASE := 0.9                      # higher = faster zoom changes (on foot)
-const ZOOM_EASE_DRIVE := 0.22               # driving: a slow, calm zoom out / in
+# always wide enough for the group (a straggler may drop out of frame). In the
+# van the view stays close wherever you drive; only the road trip proper (west
+# of the ScenicFrom marker, past the last windmill) opens up, very slowly.
 
-@export var map_width := 3840
+@export var map_width := 3840               ## east end of the map (world x)
 @export var start_spawn: NodePath
-@export var town := Vector2(1100, 3640)     ## world x range of the city
 @export var map_min := 0.0                  ## west end of the map (the cow land goes below 0)
-@export var city_limit := Vector2.ZERO      ## world x range where the van keeps to CITY_SPEED
-@export var foot_limit := -100000.0         ## world x: west of it is motorway; no walking or cycling
-@export var scenic_from := -100000.0        ## world x: west of it the road trip opens up (past the last windmill)
-@export var road_from := -100000.0          ## world x where the city street begins (west of it: motorway)
+
+# Rule lines, read from the markers in the Markers folder (drag them in the editor).
+var town := Vector2(1100, 3640)             # TownWest..TownEast: the city (no birds)
+var city_limit := Vector2.ZERO              # SpeedLimitStart..SpeedLimitEnd: the van keeps to city_speed
+var foot_limit := -100000.0                 # FootLimit: west of it is motorway; no walking or cycling
+var scenic_from := -100000.0                # ScenicFrom: west of it the road trip opens up
+var road_from := -100000.0                  # RoadTransition: the city street begins (west of it: motorway)
+
+var cam_cfg: MapCameraConfig:
+	get: return MapCameraConfig.current()
+var band_cfg: BandMapConfig:
+	get: return BandMapConfig.current()
+var veh_cfg: VehicleConfig:
+	get: return VehicleConfig.current()
 
 var leader: BandMember
 var followers: Array[BandMember] = []
 var vehicle: Vehicle                        # the one the band is using, or null on foot
 var talking := false
-var zoom := ZOOM_WALK
+var zoom := 3.0
 var radio: VanRadio
 
 var _trail: Array[Vector2] = []
@@ -98,6 +76,8 @@ static func of(node: Node) -> WorldMap:
 
 func _ready() -> void:
 	add_to_group(&"world_map")
+	_read_markers()
+	zoom = cam_cfg.zoom_walk
 	band.locked = true                      # no switching or gather on the map
 	_focus = Node2D.new()
 	_focus.name = "CameraFocus"
@@ -107,14 +87,14 @@ func _ready() -> void:
 	add_child(radio)
 	radio.tuned.connect(hud.set_radio)
 	var cam := band.camera
-	cam.position_smoothing_speed = 4.0
-	cam.deadzone = Vector2(24, 40)
-	cam.look_ahead = WALK_LOOK_AHEAD
+	cam.position_smoothing_speed = cam_cfg.smoothing_speed
+	cam.deadzone = cam_cfg.deadzone
+	cam.look_ahead = cam_cfg.walk_look_ahead
 	cam.sticky_look = true                  # stopping doesn't swing the view back
 	cam.set_bounds(Rect2i(int(map_min), -10000, int(map_width - map_min), 20000))
 	leader = band.active
 	for m in band.members:
-		m.speed_scale = WALK_SPEED / m.profile.run_speed()
+		m.speed_scale = band_cfg.walk_speed / m.profile.run_speed()
 		m.show_name_tag = false
 		m.name_tag.visible = false
 		var bike := BikeSprite.new()
@@ -125,9 +105,10 @@ func _ready() -> void:
 		if m != leader:
 			followers.append(m)
 			m.set_physics_process(false)
-			_fstate[m] = {"v": 0.0, "gap": WALK_GAP * followers.size() + randf_range(-5.0, 5.0),
-				"pause": 0.0, "walked": 0.0, "next_pause": randf_range(5.0, 12.0)}
-			m.fidget_after = randf_range(2.5, 7.0)
+			var bc := band_cfg
+			_fstate[m] = {"v": 0.0, "gap": bc.walk_gap * followers.size() + randf_range(-bc.gap_jitter, bc.gap_jitter),
+				"pause": 0.0, "walked": 0.0, "next_pause": randf_range(bc.pause_every.x, bc.pause_every.y)}
+			m.fidget_after = randf_range(bc.fidget_after.x, bc.fidget_after.y)
 	_min_x = map_min + EDGE_MARGIN
 	_max_x = map_width - EDGE_MARGIN
 	for b in find_children("*", "RoadBarrier", true, false):
@@ -147,6 +128,7 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	LiveConfig.poll()
 	_cooldown = maxf(_cooldown - delta, 0.0)
 	if talking:
 		if vehicle == null:
@@ -187,8 +169,8 @@ func in_town(x: float) -> bool:
 func target_zoom_at(x: float) -> float:
 	if vehicle and vehicle.kind == Vehicle.Kind.VAN:
 		if x < scenic_from:
-			return ZOOM_ROAD
-		return lerpf(ZOOM_VAN_SLOW_TOWN, ZOOM_VAN_TOWN, _tempo)
+			return cam_cfg.zoom_road
+		return lerpf(cam_cfg.zoom_van_slow, cam_cfg.zoom_van, _tempo)
 	return _tempo_zoom()
 
 
@@ -196,63 +178,66 @@ func target_zoom_at(x: float) -> float:
 ## closer than what fits the group.
 func _tempo_zoom() -> float:
 	var on_bikes := vehicle != null and vehicle.kind == Vehicle.Kind.BIKES
-	var near := ZOOM_BIKE_SLOW if on_bikes else ZOOM_WALK
-	var far := ZOOM_BIKE if on_bikes else ZOOM_WALK_MOVING
-	return minf(lerpf(near, far, _tempo), 640.0 / (_spread + FIT_MARGIN))
+	var c := cam_cfg
+	var near := c.zoom_bike_slow if on_bikes else c.zoom_walk
+	var far := c.zoom_bike if on_bikes else c.zoom_walk_moving
+	return minf(lerpf(near, far, _tempo), 640.0 / (_spread + c.fit_margin))
 
 
-## The camera aims at the middle of the group (members within FOCUS_CAP of the
+## The camera aims at the middle of the group (members within focus_cap of the
 ## front), leading a little in the direction the band goes.
 func _update_focus(delta: float, instant := false) -> void:
 	if vehicle and vehicle.kind == Vehicle.Kind.VAN:
 		return
+	var c := cam_cfg
 	var front := leader.global_position.x
 	var lo := front
 	var hi := front
 	for m in followers:
 		var mx := m.global_position.x
-		if absf(mx - front) <= FOCUS_CAP:
+		if absf(mx - front) <= c.focus_cap:
 			lo = minf(lo, mx)
 			hi = maxf(hi, mx)
 	var spread := hi - lo
-	var goal := (lo + hi) / 2.0 + leader.facing * FOCUS_LEAD * _tempo
+	var goal := (lo + hi) / 2.0 + leader.facing * c.focus_lead * _tempo
 	# Idle for long: drift slowly sideways, keeping the band (partly) in frame.
 	var want_drift := 0.0
-	if _idle_cam > IDLE_ZOOM_AFTER:
-		var t := _idle_cam - IDLE_ZOOM_AFTER
+	if _idle_cam > c.idle_after:
+		var t := _idle_cam - c.idle_after
 		var room := maxf(0.0, 640.0 / zoom / 2.0 - 40.0)
-		want_drift = sin(t * TAU / DRIFT_PERIOD) * minf(room, DRIFT_MAX) * clampf(t / 20.0, 0.0, 1.0)
-	_drift = 0.0 if instant else lerpf(_drift, want_drift, 1.0 - exp(-delta * 0.8))
+		want_drift = sin(t * TAU / c.drift_period) * minf(room, c.drift_max) * clampf(t / 20.0, 0.0, 1.0)
+	_drift = 0.0 if instant else lerpf(_drift, want_drift, 1.0 - exp(-delta * c.drift_ease))
 	goal += _drift
-	var k := 1.0 if instant else 1.0 - exp(-delta * 3.0)
+	var k := 1.0 if instant else 1.0 - exp(-delta * c.focus_ease)
 	_spread = lerpf(_spread, spread, k)
 	_focus.global_position = Vector2(lerpf(_focus.global_position.x, goal, k), leader.global_position.y)
 
 
 func _update_zoom(delta: float) -> void:
 	var x := vehicle.global_position.x if vehicle else leader.global_position.x
+	var c := cam_cfg
 	var target := 0.0
-	var rate := ZOOM_EASE
+	var rate := 0.0
 	if vehicle and vehicle.kind == Vehicle.Kind.VAN:
-		var frac := clampf(absf(vehicle.velocity.x) / CITY_SPEED, 0.0, 1.0)
-		_tempo = frac if frac > _tempo else move_toward(_tempo, frac, delta / TEMPO_SETTLE)
+		var frac := clampf(absf(vehicle.velocity.x) / veh_cfg.city_speed, 0.0, 1.0)
+		_tempo = frac if frac > _tempo else move_toward(_tempo, frac, delta / c.tempo_settle)
 		target = target_zoom_at(x)
-		rate = ZOOM_OUT_RATE * 0.5 if target < zoom else ZOOM_IN_RATE
+		rate = c.zoom_out_rate * 0.5 if target < zoom else c.zoom_in_rate
 		if x < scenic_from:
-			rate = SCENIC_RATE                  # the road trip: open up ever so slowly
+			rate = c.scenic_rate                # the road trip: open up ever so slowly
 	else:
 		var speed := absf(vehicle.velocity.x) if vehicle else absf(leader.velocity.x)
-		var ref := vehicle.top_speed() if vehicle else WALK_SPEED
+		var ref := vehicle.top_speed() if vehicle else band_cfg.walk_speed
 		var frac := clampf(speed / ref, 0.0, 1.0)
 		# The tempo picks up at once and calms down slowly, so a short stop
 		# doesn't make the view jump, and slowing down eases in over time.
-		_tempo = frac if frac > _tempo else move_toward(_tempo, frac, delta / TEMPO_SETTLE)
+		_tempo = frac if frac > _tempo else move_toward(_tempo, frac, delta / c.tempo_settle)
 		target = _tempo_zoom()
-		rate = ZOOM_OUT_RATE if target < zoom else ZOOM_IN_RATE
+		rate = c.zoom_out_rate if target < zoom else c.zoom_in_rate
 		_idle_cam = _idle_cam + delta if speed < 2.0 and not talking else 0.0
-		if _idle_cam > IDLE_ZOOM_AFTER:         # long idle: wander out, very very slowly
-			target = ZOOM_IDLE
-			rate = IDLE_ZOOM_RATE
+		if _idle_cam > c.idle_after:            # long idle: wander out, very very slowly
+			target = c.zoom_idle
+			rate = c.idle_zoom_rate
 	zoom = lerpf(zoom, target, 1.0 - exp(-delta * rate))
 	if absf(zoom - target) < 0.002:
 		zoom = target
@@ -266,8 +251,24 @@ func _apply_zoom() -> void:
 	var cam := band.camera
 	cam.zoom = Vector2(zoom, zoom)
 	var view_h := 360.0 / zoom
-	var water_visible := clampf(view_h * 0.13, 22.0, 160.0)   # a strip of canal; facades get the rest
+	var c := cam_cfg
+	var water_visible := clampf(view_h * c.water_share, c.water_min, c.water_max)   # a strip of canal; facades get the rest
 	cam.fixed_y = WATER_LINE + water_visible - view_h / 2.0
+
+
+## The rule lines come from the markers in the Markers folder (missing
+## markers keep the values above).
+func _read_markers() -> void:
+	town = Vector2(_marker_x(&"TownWest", town.x), _marker_x(&"TownEast", town.y))
+	city_limit = Vector2(_marker_x(&"SpeedLimitStart", city_limit.x), _marker_x(&"SpeedLimitEnd", city_limit.y))
+	foot_limit = _marker_x(&"FootLimit", foot_limit)
+	scenic_from = _marker_x(&"ScenicFrom", scenic_from)
+	road_from = _marker_x(&"RoadTransition", road_from)
+
+
+func _marker_x(marker: StringName, fallback: float) -> float:
+	var m := get_node_or_null(NodePath("Markers/" + marker)) as Node2D
+	return m.global_position.x if m else fallback
 
 
 func vehicles() -> Array[Vehicle]:
@@ -289,7 +290,7 @@ func place_band(x: float, facing: float) -> void:
 	leader.respawn(Vector2(x, GROUND_Y), leader.health.hp)
 	leader.facing = facing
 	_trail.clear()
-	var back := x - facing * FOLLOW_GAP * followers.size()
+	var back := x - facing * band_cfg.bike_gap * followers.size()
 	var steps := int(absf(x - back) / TRAIL_STEP)
 	for i in steps + 1:
 		_trail.append(Vector2(lerpf(back, x, float(i) / steps), GROUND_Y))
@@ -335,7 +336,7 @@ func board(v: Vehicle) -> void:
 		band.camera.follow(_focus)
 	else:
 		band.camera.follow(v)
-		band.camera.look_ahead = DRIVE_LOOK_AHEAD
+		band.camera.look_ahead = cam_cfg.drive_look_ahead
 	if not riding:
 		radio.power(true)
 	_cooldown = INTERACT_COOLDOWN
@@ -361,7 +362,7 @@ func leave_vehicle() -> bool:
 		_bikes[m].visible = false
 	leader.set_physics_process(true)
 	place_band(v.global_position.x + (0.0 if v.kind == Vehicle.Kind.BIKES else -v.facing * 28.0), v.facing)
-	band.camera.look_ahead = WALK_LOOK_AHEAD
+	band.camera.look_ahead = cam_cfg.walk_look_ahead
 	_cooldown = INTERACT_COOLDOWN
 	_update_vehicle_hint()
 	return true
@@ -371,7 +372,7 @@ func _drive(delta: float) -> void:
 	var dir := Input.get_axis("move_left", "move_right")
 	var top := vehicle.top_speed()
 	if vehicle.kind == Vehicle.Kind.VAN and x_in(city_limit, vehicle.global_position.x):
-		top = minf(top, CITY_SPEED)
+		top = minf(top, veh_cfg.city_speed)
 	var lo := _min_x
 	if vehicle.kind == Vehicle.Kind.BIKES:
 		lo = maxf(lo, foot_limit)            # bikes stop at the motorway fork
@@ -382,10 +383,11 @@ func _drive(delta: float) -> void:
 	# heading into the city (east), a little higher heading out (west).
 	if vehicle.kind == Vehicle.Kind.VAN:
 		var vx := vehicle.global_position.x
+		var vc := veh_cfg
 		var lane := 0.0
 		if vx < road_from or vx > town.y:
-			lane = LANE_EAST if vehicle.facing > 0.0 else LANE_WEST
-		_lane_y = move_toward(_lane_y, lane, LANE_CHANGE * delta)
+			lane = vc.lane_east if vehicle.facing > 0.0 else vc.lane_west
+		_lane_y = move_toward(_lane_y, lane, vc.lane_change * delta)
 		vehicle.global_position.y = GROUND_Y + _lane_y
 	# The leader rides along (visible on the bikes, hidden in the van).
 	leader.global_position = vehicle.global_position
@@ -413,11 +415,12 @@ func _record_trail() -> void:
 			_trail.pop_front()
 
 
-## Each follower stands FOLLOW_GAP px further back along the leader's path.
+## Each follower stands bike_gap px further back along the leader's path.
 func _update_followers() -> void:
 	if _trail.is_empty():
 		return
-	var want := FOLLOW_GAP
+	var gap := band_cfg.bike_gap
+	var want := gap
 	var walked := 0.0
 	var i := 0
 	var k := _trail.size() - 1
@@ -427,7 +430,7 @@ func _update_followers() -> void:
 			var t := (want - walked) / seg if seg > 0.0 else 0.0
 			_move_follower(followers[i], _trail[k].lerp(_trail[k - 1], t))
 			i += 1
-			want += FOLLOW_GAP
+			want += gap
 		else:
 			walked += seg
 			k -= 1
@@ -446,24 +449,25 @@ func _foot_warning(at: Node2D) -> void:
 
 func _walk_followers(delta: float) -> void:
 	var lx := leader.global_position.x
+	var bc := band_cfg
 	for m in followers:
 		var st: Dictionary = _fstate[m]
 		var dx := lx - m.global_position.x
 		var dist := absf(dx)
 		var want := 0.0
 		if dist > st.gap + 6.0:
-			want = signf(dx) * WALK_SPEED * (1.9 if dist > st.gap + CATCH_UP else 1.0)
+			want = signf(dx) * bc.walk_speed * (bc.jog_factor if dist > st.gap + bc.catch_up else 1.0)
 		if st.pause > 0.0:
 			st.pause -= delta
-			if dist < st.gap + CATCH_UP:
+			if dist < st.gap + bc.catch_up:
 				want = 0.0
 		elif absf(st.v) > 1.0:
 			st.walked += absf(st.v) * delta
-			if st.walked > st.next_pause * WALK_SPEED and dist < st.gap + 40.0:
-				st.pause = randf_range(0.4, 1.3)    # stops for a second (a look around, a sip)
+			if st.walked > st.next_pause * bc.walk_speed and dist < st.gap + 40.0:
+				st.pause = randf_range(bc.pause_length.x, bc.pause_length.y)   # a look around, a sip
 				st.walked = 0.0
-				st.next_pause = randf_range(5.0, 12.0)
-		st.v = move_toward(st.v, want, FOLLOW_ACCEL * delta)
+				st.next_pause = randf_range(bc.pause_every.x, bc.pause_every.y)
+		st.v = move_toward(st.v, want, bc.follow_accel * delta)
 		m.global_position = Vector2(clampf(m.global_position.x + st.v * delta, _min_x, _max_x), GROUND_Y)
 		if absf(st.v) > 1.0:
 			m.facing = signf(st.v)

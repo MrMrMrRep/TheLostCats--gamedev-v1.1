@@ -47,27 +47,27 @@ func _run() -> void:
 
 
 func _test_zoom_walking() -> void:
-	_check(is_equal_approx(map.zoom, map.ZOOM_WALK), "standing still: close zoom (%.2f)" % map.zoom)
+	_check(is_equal_approx(map.zoom, map.cam_cfg.zoom_walk), "standing still: close zoom (%.2f)" % map.zoom)
 	Input.action_press("move_right")
 	await _frames(180)
 	Input.action_release("move_right")
 	var walking: float = map.zoom
-	_check(walking < map.ZOOM_WALK - 0.25, "walking on: the zoom opens up with the tempo (%.2f)" % walking)
+	_check(walking < map.cam_cfg.zoom_walk - 0.25, "walking on: the zoom opens up with the tempo (%.2f)" % walking)
 	await _frames(60)
-	_check(map.zoom < map.ZOOM_WALK - 0.2, "just stopped: no jump, the zoom eases in slowly (%.2f)" % map.zoom)
+	_check(map.zoom < map.cam_cfg.zoom_walk - 0.2, "just stopped: no jump, the zoom eases in slowly (%.2f)" % map.zoom)
 	await _frames(600)
-	_check(map.zoom > map.ZOOM_WALK - 0.12, "after a while standing it's close again (%.2f)" % map.zoom)
-	map._idle_cam = map.IDLE_ZOOM_AFTER + 0.1   # as if the band had stood here for 15 s
+	_check(map.zoom > map.cam_cfg.zoom_walk - 0.12, "after a while standing it's close again (%.2f)" % map.zoom)
+	map._idle_cam = map.cam_cfg.idle_after + 0.1   # as if the band had stood here for 15 s
 	var close: float = map.zoom
 	await _frames(180)
 	_check(map.zoom < close - 0.05 and absf(map._drift) > 0.5,
 		"idle for long: the camera slowly zooms out and drifts (%.2f -> %.2f, drift %.1f)" % [close, map.zoom, map._drift])
-	await _place_leader(map.get_node("Places/Start").global_position.x)
+	await _place_leader(_place("Start").global_position.x)
 	await _frames(240)
 
 
 func _test_band_line() -> void:
-	var start = map.get_node("Places/Start")
+	var start = _place("Start")
 	var leader = map.leader
 	_check(absf(leader.global_position.x - start.global_position.x) < 1.0, "the band starts at the studio")
 	Input.action_press("move_right")
@@ -97,7 +97,7 @@ func _test_road_block() -> void:
 
 
 func _test_geordie_quest() -> void:
-	var geordie = map.get_node("Places/Geordie")
+	var geordie = _place("Geordie")
 	_check(geordie.marker() == "!", "Geordie shows ! (has a quest)")
 	await _place_leader(geordie.global_position.x)
 	await _tap("interact")
@@ -114,7 +114,7 @@ func _test_geordie_quest() -> void:
 
 
 func _test_bikes() -> void:
-	var bikes = map.get_node("Places/Bikes")
+	var bikes = _place("Bikes")
 	await _place_leader(bikes.global_position.x)
 	await _tap("interact")
 	await _frames(2)
@@ -138,9 +138,9 @@ func _test_bikes() -> void:
 
 
 func _test_van() -> void:
-	var van = map.get_node("Places/Van")
+	var van = _place("Van")
 	_check(not map.in_town(van.global_position.x), "the van waits out of town (x %.0f)" % van.global_position.x)
-	van.global_position.x = map.get_node("Places/ParkingStudio").global_position.x
+	van.global_position.x = _place("ParkingStudio").global_position.x
 	await _place_leader(van.global_position.x)
 	await _tap("interact")
 	await _frames(2)
@@ -153,8 +153,8 @@ func _test_van() -> void:
 	await _frames(150)
 	var speed: float = van.velocity.x
 	Input.action_release("move_right")
-	_check(absf(speed - map.CITY_SPEED) < 5.0, "in town the van keeps to the city limit (%.0f px/s)" % speed)
-	_check(map.zoom >= map.ZOOM_VAN_TOWN - 0.01, "driving in town the view stays close (%.2f, never past %.1fx)" % [map.zoom, map.ZOOM_VAN_TOWN])
+	_check(absf(speed - map.veh_cfg.city_speed) < 5.0, "in town the van keeps to the city limit (%.0f px/s)" % speed)
+	_check(map.zoom >= map.cam_cfg.zoom_van - 0.01, "driving in town the view stays close (%.2f, never past %.1fx)" % [map.zoom, map.cam_cfg.zoom_van])
 	await _frames(30)
 	var coasted: float = van.velocity.x
 	_check(coasted > speed * 0.6 and coasted < speed - 5.0, "letting go coasts (%.0f -> %.0f px/s)" % [speed, coasted])
@@ -170,14 +170,14 @@ func _test_van() -> void:
 	Input.action_press("move_right")
 	await _frames(300)
 	Input.action_release("move_right")
-	_check(map.zoom >= map.ZOOM_VAN_TOWN - 0.02 and map.birds.active, "on the motorway the view still stays close (%.2f), birds" % map.zoom)
+	_check(map.zoom >= map.cam_cfg.zoom_van - 0.02 and map.birds.active, "on the motorway the view still stays close (%.2f), birds" % map.zoom)
 	_check(van.global_position.y > map.GROUND_Y + 2.0, "heading east on the motorway the van keeps to the lower lane (%.1f)" % (van.global_position.y - map.GROUND_Y))
 	var zoom_before: float = map.zoom
 	van.global_position.x = map.scenic_from - 1500.0   # past the last windmill: the road trip
 	Input.action_press("move_left")
 	await _frames(600)
 	Input.action_release("move_left")
-	_check(map.target_zoom_at(van.global_position.x) == map.ZOOM_ROAD and map.zoom < zoom_before - 0.2,
+	_check(map.target_zoom_at(van.global_position.x) == map.cam_cfg.zoom_road and map.zoom < zoom_before - 0.2,
 		"past the last windmill the road trip opens up, ever so slowly (%.2f -> %.2f)" % [zoom_before, map.zoom])
 	_check(van.global_position.y < map.GROUND_Y - 2.0, "heading west the van keeps to the upper lane (%.1f)" % (van.global_position.y - map.GROUND_Y))
 	van.global_position.x = x_back
@@ -186,7 +186,7 @@ func _test_van() -> void:
 	await _tap("interact")
 	await _frames(2)
 	_check(map.vehicle == van, "outside a P spot you can't get out (x %.0f)" % van.global_position.x)
-	var spot = map.get_node("Places/ParkingVenue")
+	var spot = _place("ParkingVenue")
 	van.global_position.x = spot.global_position.x
 	await _frames(20)
 	await _tap("interact")
@@ -196,7 +196,7 @@ func _test_van() -> void:
 
 
 func _test_package() -> void:
-	var pkg = map.get_node("Places/PackageEast")
+	var pkg = _place("PackageEast")
 	var before: int = game.coins
 	await _place_leader(pkg.global_position.x - 20.0)
 	Input.action_press("move_right")
@@ -212,12 +212,12 @@ func _test_return_from_gig() -> void:
 	game.set_flag(&"cafe_finished")
 	router.pending_spawn = &"VenueDoor"
 	map = await _load_map()
-	var door = map.get_node("Places/VenueDoor")
-	var spot = map.get_node("Places/ParkingVenue")
+	var door = _place("VenueDoor")
+	var spot = _place("ParkingVenue")
 	_check(absf(map.leader.global_position.x - door.global_position.x) < 1.0, "back from the gig: the band stands at the venue door")
-	_check(absf(map.get_node("Places/Van").global_position.x - spot.global_position.x) < 1.0, "the van is where it was parked")
-	_check(map.get_node("Places/PackageEast").collected, "a collected package stays collected")
-	var geordie = map.get_node("Places/Geordie")
+	_check(absf(_place("Van").global_position.x - spot.global_position.x) < 1.0, "the van is where it was parked")
+	_check(_place("PackageEast").collected, "a collected package stays collected")
+	var geordie = _place("Geordie")
 	_check(geordie.marker() == "?", "Geordie shows ? (gig done)")
 	await _place_leader(geordie.global_position.x)
 	await _tap("interact")
@@ -232,7 +232,7 @@ func _test_return_from_gig() -> void:
 
 
 func _test_studio_door() -> void:
-	var door = map.get_node("Places/StudioDoor")
+	var door = _place("StudioDoor")
 	var target := [""]
 	router.transition_started.connect(func(p): target[0] = p, CONNECT_ONE_SHOT)
 	await _place_leader(door.global_position.x)
@@ -248,8 +248,8 @@ func _test_studio_door() -> void:
 
 
 func _test_storage_gate() -> void:
-	var gate = map.get_node("Places/StorageGate")
-	_check(absf(map.get_node("Places/Geordie").global_position.x - gate.global_position.x) < 160.0, "Geordie waits in front of the storage")
+	var gate = _place("StorageGate")
+	_check(absf(_place("Geordie").global_position.x - gate.global_position.x) < 160.0, "Geordie waits in front of the storage")
 	var target := [""]
 	router.transition_started.connect(func(p): target[0] = p, CONNECT_ONE_SHOT)
 	await _place_leader(gate.global_position.x)
@@ -273,12 +273,12 @@ func _test_storage_gate() -> void:
 	await _frames(2)
 	router.pending_spawn = &"StudioDoor"
 	map = await _load_map()
-	gate = map.get_node("Places/StorageGate")
+	gate = _place("StorageGate")
 	_check(absf(map.leader.global_position.x - gate.global_position.x) < 1.0, "back out of the level: at the storage gate, not the studio")
 
 
 func _test_venue_door() -> void:
-	var door = map.get_node("Places/VenueDoor")
+	var door = _place("VenueDoor")
 	var target := [""]
 	router.transition_started.connect(func(p): target[0] = p, CONNECT_ONE_SHOT)
 	await _place_leader(door.global_position.x)
@@ -323,3 +323,8 @@ func _check(ok: bool, label: String) -> void:
 	print(("  ok   " if ok else "  FAIL ") + label)
 	if not ok:
 		failures += 1
+
+
+## A place on the map by name (they sit in district folders under Places).
+func _place(node_name: String):
+	return map.get_node("Places").find_child(node_name, true, false)

@@ -105,7 +105,7 @@ func _test_camera_blend(band) -> void:
 	band.members[4].global_position = Vector2(300, 144)
 	await _frames(20)
 	await _tap("select_5")
-	var target: Vector2 = band.members[4].global_position + band.camera.TARGET_OFFSET
+	var target: Vector2 = band.members[4].global_position + band.camera.target_offset
 	_check(cam.global_position.distance_to(target) > 20.0, "camera blends (not a cut) after switching")
 	await _frames(20)
 	_check(cam.global_position.distance_to(target) < 1.0, "camera reaches the new member within 0.25 s")

@@ -1,15 +1,29 @@
 @tool
 class_name Npc
 extends Interactable
-## A person on the world map you can talk to (E). Shows "!" when they have a
-## quest for you and "?" when you've done it. The lines to say depend on the
-## quest state; `talked()` moves the quest along. Geordie gives the tour-day-1
-## quest: get to Café De Kat, play, come back. He waits at the storage.
+## A person on the world map you can talk to (E). Place as many as you like:
+## duplicate one in the editor, drag it, and set its name, look and `talk_lines`
+## lines in the inspector. Only the one with `tour_quest` on (Geordie) gives
+## the tour-day-1 quest (get to Café De Kat, play, come back); he shows "!"
+## when he has it for you and "?" when you've done it.
 
 const MARKER_COLOR := Color("ffd36b")
 
-@export var speaker := "Geordie"
-@export var tint := Color(0.75, 0.6, 0.45)
+@export var speaker := "Geordie"            ## name shown in the dialogue box
+@export var tint := Color(0.75, 0.6, 0.45):  ## colour of the placeholder sprite
+	set(value):
+		tint = value
+		if _sprite:
+			_sprite.modulate = value
+@export var sprite_frames: SpriteFrames = preload("res://resources/sprites/char_blue_frames.tres")
+@export var face_left := true:
+	set(value):
+		face_left = value
+		if _sprite:
+			_sprite.flip_h = value
+@export var tour_quest := false             ## on for Geordie: gives the tour quest (his lines are in npc.gd)
+## What they say, one box per line (when `tour_quest` is off).
+@export_multiline var talk_lines: PackedStringArray = ["Lovely day for it."]
 
 var _sprite: AnimatedSprite2D
 
@@ -18,10 +32,10 @@ func _ready() -> void:
 	area_size = Vector2(36, 36)
 	super()
 	_sprite = AnimatedSprite2D.new()
-	_sprite.sprite_frames = load("res://resources/sprites/char_blue_frames.tres")
+	_sprite.sprite_frames = sprite_frames
 	_sprite.animation = &"idle"
 	_sprite.offset = Vector2(0, -28)
-	_sprite.flip_h = true
+	_sprite.flip_h = face_left
 	_sprite.modulate = tint
 	add_child(_sprite)
 	if not Engine.is_editor_hint():
@@ -31,6 +45,10 @@ func _ready() -> void:
 
 ## What they say right now.
 func lines() -> Array[String]:
+	if not tour_quest:
+		var out: Array[String] = []
+		out.assign(talk_lines)
+		return out
 	match Game.get_flag(&"quest_cafe", ""):
 		"":
 			return [
@@ -50,6 +68,8 @@ func lines() -> Array[String]:
 
 ## Called after the conversation: advance the quest.
 func talked() -> void:
+	if not tour_quest:
+		return
 	match Game.get_flag(&"quest_cafe", ""):
 		"":
 			Game.set_flag(&"quest_cafe", "active")
@@ -59,6 +79,8 @@ func talked() -> void:
 
 
 func marker() -> String:
+	if not tour_quest:
+		return ""
 	var q: String = Game.get_flag(&"quest_cafe", "") if not Engine.is_editor_hint() else ""
 	if q == "":
 		return "!"

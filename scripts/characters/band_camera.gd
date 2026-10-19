@@ -2,17 +2,16 @@ class_name BandCamera
 extends Camera2D
 ## Follows the active band member with a deadzone (small moves don't drag the
 ## view) and look-ahead (the view leads in the running direction). On a switch
-## it blends to the new member in SWITCH_TIME instead of cutting. Limits come
+## it blends to the new member in `switch_time` instead of cutting. Limits come
 ## from the current room.
-
-const SWITCH_TIME := 0.25
-const TARGET_OFFSET := Vector2(0, -16)      # aim at the body, not the feet
 
 @export var deadzone := Vector2(16, 24)     ## half-size in px the target can move freely
 @export var look_ahead := 40.0              ## px the view leads while running
 @export var look_ahead_time := 0.35         ## seconds to swing fully to one side
 @export var look_ahead_min_speed := 20.0    ## px/s before look-ahead kicks in
 @export var sticky_look := false            ## keep leading after a stop (no swing back); turn around to swing
+@export var switch_time := 0.25             ## seconds to blend to another member on a switch
+@export var target_offset := Vector2(0, -16)  ## aim at the body, not the feet
 
 var target: Node2D
 var fixed_y := NAN                          # world map: keep the view at this height
@@ -44,7 +43,7 @@ func follow(new_target: Node2D, instant := false) -> void:
 	_blend = 0.0
 	position_smoothing_enabled = false
 	_tween = create_tween()
-	_tween.tween_property(self, "_blend", 1.0, SWITCH_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_tween.tween_property(self, "_blend", 1.0, switch_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	_tween.finished.connect(_on_blend_finished)
 
 
@@ -96,7 +95,7 @@ func _physics_process(delta: float) -> void:
 
 
 func _target_position() -> Vector2:
-	return target.global_position + TARGET_OFFSET
+	return target.global_position + target_offset
 
 
 func _on_blend_finished() -> void:

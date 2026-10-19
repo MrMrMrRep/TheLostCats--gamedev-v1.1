@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="BandMapConfig" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/band_map_config.gd" id="1_78x7n"]
+
+[resource]
+script = ExtResource("1_78x7n")

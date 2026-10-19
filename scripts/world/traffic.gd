@@ -8,9 +8,10 @@ extends Node2D
 ##   BACK   the lane behind us (in front of the facades), drawn behind the band,
 ##          a touch smaller and hazier. Parked cars stand here too.
 ##   FRONT  the near lane outside town, drawn in front of the band (reflected).
-## District rules: in `car_free` ranges (old town + canal belt) only bikes
-## ride; in `parked` ranges cars stand along the street; elsewhere in town a
-## few cars and bikes; outside town proper traffic on both lanes.
+## District rules come from the Zone nodes (WorldZone): in "bikes only" zones
+## (old town + canal belt) only bikes ride; in "parked cars" zones cars stand
+## along the street; elsewhere in town a few cars and bikes; outside town
+## proper traffic on both lanes. Numbers: resources/config/traffic_config.tres.
 ## Origin at x 0, y = the street line.
 
 enum Lane { BACK, FRONT }
@@ -27,10 +28,9 @@ const FADE := 40.0                          # front-lane cars fade out where the
 @export var town := Vector2(1100, 3640)
 @export var map_width := 3840.0
 @export var map_min := 0.0
-@export var car_free: Array[Vector2] = []   ## world x ranges: bikes only
-@export var parked: Array[Vector2] = []     ## world x ranges with cars parked along the street
-@export var per_screen_road := 4            ## vehicles per screen width outside town
-@export var per_screen_town := 2            ## per screen width in town
+
+var car_free: Array[Vector2] = []           # world x ranges: bikes only (from the zones)
+var parked: Array[Vector2] = []             # world x ranges with cars parked along the street
 
 var _cars: Array = []                       # [x, dir, speed, kind, colour, phase, seed]
 var _parked: Array = []                     # [x, kind, colour, seed] (static)
@@ -39,14 +39,17 @@ var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	_rng.seed = 7 + lane
+	car_free = WorldZone.ranges(self, func(z: WorldZone) -> bool: return z.bikes_only)
+	parked = WorldZone.ranges(self, func(z: WorldZone) -> bool: return z.parked_cars)
+	var cfg := TrafficConfig.current()
 	if lane == Lane.BACK:
 		var prng := RandomNumberGenerator.new()
 		prng.seed = 31
 		for r in parked:
 			var x := r.x + prng.randf_range(10, 60)
 			while x < r.y - 70:
-				if prng.randf() < 0.82:
-					var k := Kind.VAN if prng.randf() < 0.18 else Kind.CAR
+				if prng.randf() < cfg.parked_fill:
+					var k := Kind.VAN if prng.randf() < cfg.parked_vans else Kind.CAR
 					var sd := prng.randi()
 					_parked.append([x, k, CarArt.colour(sd), sd])
 				x += prng.randf_range(72, 90) if prng.randf() < 0.85 else prng.randf_range(120, 200)
@@ -87,7 +90,8 @@ func _process(delta: float) -> void:
 			return false
 		return not (c[3] != Kind.BIKE and _in(car_free, c[0])))   # cars turn off before the car-free zone
 	var mid := (view.x + view.y) / 2.0
-	var want := int(round(span / 640.0 * (per_screen_town if _in_town(mid) else per_screen_road)))
+	var cfg := TrafficConfig.current()
+	var want := int(round(span / 640.0 * (cfg.per_screen_town if _in_town(mid) else cfg.per_screen_road)))
 	if lane == Lane.FRONT and _in_town(mid):
 		want = 0
 	if _cars.size() < want:
@@ -117,6 +121,7 @@ func _spawn(view: Vector2) -> void:
 		if absf(x - (view.x + view.y) / 2.0) < (view.y - view.x) * 0.45:
 			return
 	x = clampf(x, map_min, map_width)
+	var cfg := TrafficConfig.current()
 	var kind := Kind.CAR
 	if _in(car_free, x):
 		if lane == Lane.FRONT:
@@ -126,14 +131,16 @@ func _spawn(view: Vector2) -> void:
 		if lane == Lane.FRONT:
 			return
 		var r := _rng.randf()
-		kind = Kind.BIKE if r < 0.45 else (Kind.BUS if r < 0.52 else (Kind.VAN if r < 0.62 else Kind.CAR))
+		var bus := cfg.town_bikes + cfg.town_buses
+		kind = Kind.BIKE if r < cfg.town_bikes else (Kind.BUS if r < bus else (Kind.VAN if r < bus + cfg.town_vans else Kind.CAR))
 	else:
 		var r := _rng.randf()
-		kind = Kind.TRUCK if r < 0.18 else (Kind.VAN if r < 0.36 else (Kind.BUS if r < 0.4 else Kind.CAR))
-	var speed: float = {Kind.CAR: _rng.randf_range(110, 190), Kind.VAN: _rng.randf_range(100, 170),
-		Kind.TRUCK: _rng.randf_range(80, 120), Kind.BIKE: _rng.randf_range(40, 60), Kind.BUS: _rng.randf_range(70, 110)}[kind]
+		var van := cfg.road_trucks + cfg.road_vans
+		kind = Kind.TRUCK if r < cfg.road_trucks else (Kind.VAN if r < van else (Kind.BUS if r < van + cfg.road_buses else Kind.CAR))
+	var sr := cfg.speed_range(kind)
+	var speed := _rng.randf_range(sr.x, sr.y)
 	if _in_town(x) and kind != Kind.BIKE:
-		speed *= 0.55
+		speed *= cfg.town_slowdown
 	var sd := _rng.randi()
 	_cars.append([x, dir, speed, kind, CarArt.colour(sd), 0.0, sd])
 

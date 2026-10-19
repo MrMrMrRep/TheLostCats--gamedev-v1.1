@@ -26,16 +26,7 @@ const VAN_GROUND := 50.0                    # tyre bottoms in the frame
 const VAN_FRAMES := 4
 const VAN_SCALE := 0.75                     # the sheet is drawn bigger than the world's car scale (docs/city-layout.md)
 
-# Feel per kind: [pull px/s^2, brake px/s^2, rolling px/s^2, drag 1/s]
-const FEEL := {Kind.BIKES: [420.0, 520.0, 60.0, 0.3], Kind.VAN: [240.0, 520.0, 34.0, 0.12]}
-const TOP_SPEED := {Kind.BIKES: 150.0, Kind.VAN: 295.0}    # px/s; the band walks 85
-const LIMIT_EASE := 220.0                   # px/s^2 the van slows down to a speed limit
-const SKID_FROM := 60.0                     # braking above this locks the wheels
-const SKID_LIFE := 6.0
-const PITCH_PER_ACCEL := 0.000045           # rad of body pitch per px/s^2
-const PITCH_MAX := 0.045
-const PITCH_SPRING := 90.0
-const PITCH_DAMP := 9.0
+# Speeds, pull/brake/rolling/drag, skids and body pitch: resources/config/vehicle_config.tres
 const EXHAUST := Vector2(-39, -7)           # tailpipe (world px, facing right)
 const SMOKE_LIFE := 1.4
 
@@ -66,8 +57,13 @@ func interact(_member: BandMember, map: Node) -> void:
 		map.board(self)
 
 
+## The tuning numbers (shared by bikes and van; edit the .tres in the inspector).
+static func cfg() -> VehicleConfig:
+	return VehicleConfig.current()
+
+
 func top_speed() -> float:
-	return TOP_SPEED[kind]
+	return cfg().van_top_speed if kind == Kind.VAN else cfg().bikes_top_speed
 
 
 func display_name() -> String:
@@ -76,16 +72,17 @@ func display_name() -> String:
 
 ## Drive toward `dir` (-1..1) with top speed `top` px/s; stays within [min_x, max_x].
 func drive(dir: float, top: float, delta: float, min_x: float, max_x: float) -> void:
-	var f: Array = FEEL[kind]
+	var c := cfg()
+	var f := c.feel(kind == Kind.VAN)
 	var v := velocity.x
 	var before_v := v
 	var was_skidding := skidding
 	skidding = false
 	if dir != 0.0 and v != 0.0 and signf(dir) != signf(v):
 		v = move_toward(v, 0.0, f[1] * delta)          # braking
-		skidding = kind == Kind.VAN and absf(v) > SKID_FROM * (0.4 if was_skidding else 1.0)
+		skidding = kind == Kind.VAN and absf(v) > c.skid_from * (0.4 if was_skidding else 1.0)
 	elif absf(v) > top + 2.0:
-		v = move_toward(v, signf(v) * top, LIMIT_EASE * delta)   # speed limit: ease off
+		v = move_toward(v, signf(v) * top, c.limit_ease * delta)   # speed limit: ease off
 	elif dir != 0.0:
 		facing = signf(dir)
 		var frac := clampf(absf(v) / top, 0.0, 1.0)
@@ -122,12 +119,13 @@ func _process(delta: float) -> void:
 	if Engine.is_editor_hint() or kind != Kind.VAN:
 		return
 	# Body pitch: accelerating squats the rear (nose up), braking dips the nose.
-	var target := clampf(accel * facing * PITCH_PER_ACCEL, -PITCH_MAX, PITCH_MAX)   # forward accel lifts the nose
+	var c := cfg()
+	var target := clampf(accel * facing * c.pitch_per_accel, -c.pitch_max, c.pitch_max)   # forward accel lifts the nose
 	if skidding:                            # stamping on the brake: a deep nose dive with a shudder
-		target = -PITCH_MAX * 1.5 * signf(velocity.x * facing) + randf_range(-0.006, 0.006)
+		target = -c.pitch_max * 1.5 * signf(velocity.x * facing) + randf_range(-0.006, 0.006)
 	if not occupied:
 		target = 0.0
-	_pitch_vel += ((target - _pitch) * PITCH_SPRING - _pitch_vel * PITCH_DAMP) * delta
+	_pitch_vel += ((target - _pitch) * c.pitch_spring - _pitch_vel * c.pitch_damp) * delta
 	_pitch += _pitch_vel * delta
 	# Exhaust: a lazy puff now and then with the engine on, more under load.
 	if occupied:
@@ -139,7 +137,7 @@ func _process(delta: float) -> void:
 			_smoke.append([pipe, 0.0, randf_range(1.5, 2.5) + strain * 1.5, Vector2(-facing * randf_range(4, 10), randf_range(-14, -8))])
 	for sk in _skids:
 		sk[2] += delta
-	_skids = _skids.filter(func(sk: Array) -> bool: return sk[2] < SKID_LIFE)
+	_skids = _skids.filter(func(sk: Array) -> bool: return sk[2] < c.skid_marks_last)
 	if skidding and randf() < 0.6:          # tyre smoke at both wheels
 		for wx: float in [-26.0, 26.0]:
 			_smoke.append([global_position + Vector2(wx * facing, -2), 0.0, randf_range(2.0, 3.5),
@@ -173,7 +171,7 @@ func _draw_van() -> void:
 	for sk in _skids:                       # skid marks first, under the wheels
 		var a := to_local(Vector2(sk[0], global_position.y)).x
 		var b := to_local(Vector2(sk[1], global_position.y)).x
-		draw_rect(Rect2(minf(a, b), -1.5, absf(b - a), 1.5), Color(0.08, 0.08, 0.09, 0.55 * (1.0 - sk[2] / SKID_LIFE)))
+		draw_rect(Rect2(minf(a, b), -1.5, absf(b - a), 1.5), Color(0.08, 0.08, 0.09, 0.55 * (1.0 - sk[2] / cfg().skid_marks_last)))
 	var frame := int(_odometer / 3.0) % VAN_FRAMES
 	var src := Rect2(Vector2(frame * VAN_FRAME.x, 0), VAN_FRAME)
 	# Pitch around the axle under load: rear axle when the nose lifts, front when it dips.

@@ -6,7 +6,8 @@ extends Node2D
 ## camera only. Two sides of the street, for depth:
 ##   BACK   the pavement by the facades: behind the band, 0.94 size, a touch hazy
 ##   FRONT  the quay side: in front of the band (they walk past/through us)
-## Density per district via `busy` (world x ranges with weight). Never in
+## How busy each district is comes from the Zone nodes (WorldZone, "people
+## per screen"); speeds etc. from resources/config/people_config.tres. Never in
 ## the countryside. Origin = street line.
 
 enum Side { BACK, FRONT }
@@ -18,7 +19,7 @@ const SHIRTS := [Color("c94a3d"), Color("2a4ea0"), Color("f2efe8"), Color("2f4f3
 const PANTS := [Color("2a3040"), Color("3a3a40"), Color("5a4a3a"), Color("1e2a4a"), Color("8a7a5a")]
 
 @export var side := Side.BACK
-@export var busy: Array[Vector3] = []       ## (x0, x1, people per screen width)
+var busy: Array[Vector3] = []               # (x0, x1, people per screen width), from the zones
 
 var _people: Array = []                     # dictionaries: x, dir, speed, look, phase, kid, extra
 var _rng := RandomNumberGenerator.new()
@@ -26,12 +27,16 @@ var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
 	_rng.seed = 21 + side
+	busy.clear()
+	for z in WorldZone.all(self):
+		var r := z.span()
+		busy.append(Vector3(r.x, r.y, z.people_per_screen))
 
 
 func density_at(x: float) -> float:
 	for b in busy:
 		if x >= b.x and x <= b.y:
-			return b.z
+			return b.z * PeopleConfig.current().busy_scale
 	return 0.0
 
 
@@ -49,6 +54,7 @@ func _process(delta: float) -> void:
 		return
 	var view := _view()
 	var span := view.y - view.x
+	var cfg := PeopleConfig.current()
 	for p in _people:
 		p.x += p.dir * p.speed * delta
 		p.phase += p.speed * delta
@@ -56,8 +62,8 @@ func _process(delta: float) -> void:
 			p.pause -= delta
 			p.x -= p.dir * p.speed * delta
 			p.phase -= p.speed * delta
-		elif _rng.randf() < delta * 0.04:
-			p.pause = _rng.randf_range(1.0, 3.5)
+		elif _rng.randf() < delta * cfg.stop_chance:
+			p.pause = _rng.randf_range(cfg.stop_length.x, cfg.stop_length.y)
 	_people = _people.filter(func(p: Dictionary) -> bool:
 		return p.x > view.x - span * 0.5 and p.x < view.y + span * 0.5 and density_at(p.x) > 0.0)
 	var want := int(round(span / 640.0 * density_at((view.x + view.y) / 2.0)))
@@ -73,9 +79,10 @@ func _spawn(view: Vector2) -> void:
 		x = _rng.randf_range(view.x, view.y)
 	if density_at(x) <= 0.0:
 		return
-	var kid := _rng.randf() < 0.12
+	var cfg := PeopleConfig.current()
+	var kid := _rng.randf() < cfg.kids
 	_people.append({
-		"x": x, "dir": dir, "speed": _rng.randf_range(16, 28) * (0.8 if kid else 1.0),
+		"x": x, "dir": dir, "speed": _rng.randf_range(cfg.walk_speed.x, cfg.walk_speed.y) * (cfg.kid_speed if kid else 1.0),
 		"phase": _rng.randf() * 10.0, "pause": 0.0, "kid": kid,
 		"skin": SKIN[_rng.randi_range(0, SKIN.size() - 1)], "hair": HAIR[_rng.randi_range(0, HAIR.size() - 1)],
 		"shirt": SHIRTS[_rng.randi_range(0, SHIRTS.size() - 1)], "pants": PANTS[_rng.randi_range(0, PANTS.size() - 1)],

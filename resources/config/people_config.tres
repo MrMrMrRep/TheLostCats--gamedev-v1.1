@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="PeopleConfig" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/people_config.gd" id="1_upxq7"]
+
+[resource]
+script = ExtResource("1_upxq7")
