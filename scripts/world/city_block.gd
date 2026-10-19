@@ -53,8 +53,12 @@ const STREETS := ["Prinsengracht", "Herengracht", "Keizersgracht", "Spiegelstraa
 		queue_redraw()
 
 
+var _glow: NightGlow                        # lit windows at night (game only)
+
+
 func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	_glow = NightGlow.attach(self)
 
 
 ## The row's houses: {w, upper, wall, brick, gable, shop, salt} (w in world px).
@@ -113,6 +117,8 @@ func width() -> float:
 
 
 func _draw() -> void:
+	if _glow:
+		_glow.clear()
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
 	var x := 0.0
 	var rows := layout()
@@ -123,6 +129,8 @@ func _draw() -> void:
 		_house(x, d, i, signed)
 		x += d.w * 2.0
 	draw_set_transform(Vector2.ZERO)
+	if _glow:
+		_glow.queue_redraw()
 
 
 # --- One house (all in art px; y up is negative) ------------------------------
@@ -289,6 +297,9 @@ func _window(x: float, y: float, w: float, h: float, rng: RandomNumberGenerator,
 	var frame := p.TRIM if (brick or wall.get_luminance() < 0.6) else Color("2f4f3a")
 	var lit := rng.randf() < 0.14
 	var glass := Color("f2c66a") if lit else Color("26304a")
+	if _glow:                               # art px -> world px
+		_glow.add_window(Rect2((x + 2) * 0.5, (y + 2) * 0.5, (w - 4) * 0.5, (h - 4) * 0.5),
+			NightGlow.window_threshold(x, y, lit))
 	# Lintel: a brick arch with a keystone, or a stone cap on plaster.
 	if brick:
 		draw_rect(Rect2(x - 3, y - 5, w + 6, 5), wall.lightened(0.18))

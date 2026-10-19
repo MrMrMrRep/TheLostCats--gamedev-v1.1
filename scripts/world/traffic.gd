@@ -22,7 +22,9 @@ const LIVERIES := ["BAKKER BAS", "POST", "BLOEMEN", "KOERIER", "LOODGIETER", "VE
 const TRUCK_LIVERIES := ["TRANSPORT", "VERSE MELK", "DE VRIES", "KAAS", "BIER", ""]
 const BACK_SCALE := 0.9
 const COLOURS := [Color("c94a3d"), Color("5b7fa6"), Color("f2efe8"), Color("2a2a2e"), Color("e0b23a"), Color("6f8f5a"), Color("8a8f99"), Color("3a4a6a")]
-const FADE := 40.0                          # front-lane cars fade out where the road becomes the quay
+const FADE := 40.0
+# Per kind: half length and light height (art px): CAR (length from CarArt), VAN, TRUCK, BIKE, BUS.
+const LIGHTS := [Vector2(60, -26), Vector2(76, -28), Vector2(150, -40), Vector2(22, -34), Vector2(170, -30)]                          # front-lane cars fade out where the road becomes the quay
 
 @export var lane := Lane.BACK
 @export var town := Vector2(1100, 3640)
@@ -33,12 +35,14 @@ var car_free: Array[Vector2] = []           # world x ranges: bikes only (from t
 var parked: Array[Vector2] = []             # world x ranges with cars parked along the street
 
 var _cars: Array = []                       # [x, dir, speed, kind, colour, phase, seed]
+var _glow: NightGlow                        # head and tail lights at night (game only)
 var _parked: Array = []                     # [x, kind, colour, seed] (static)
 var _rng := RandomNumberGenerator.new()
 
 
 func _ready() -> void:
 	_rng.seed = 7 + lane
+	_glow = NightGlow.attach(self)
 	car_free = WorldZone.ranges(self, func(z: WorldZone) -> bool: return z.bikes_only)
 	parked = WorldZone.ranges(self, func(z: WorldZone) -> bool: return z.parked_cars)
 	var cfg := TrafficConfig.current()
@@ -158,6 +162,28 @@ func _draw() -> void:
 			alpha = clampf(1.0 - _town_depth(c[0]) / FADE, 0.0, 1.0)
 		_vehicle(Vector2(c[0], _lane_y(c[0])), c[1], s, c[3], c[4], alpha, c[5], back, c[6])
 	draw_set_transform(Vector2.ZERO)
+	_lights(s)
+
+
+## Headlights (a beam on the road ahead) and red tail lights, at night.
+func _lights(s: float) -> void:
+	if _glow == null:
+		return
+	_glow.clear()
+	if WorldDayCycle.night_now > 0.0:
+		for c in _cars:
+			var kind: int = c[3]
+			var half: float = LIGHTS[kind].x
+			if kind == Kind.CAR:
+				half = CarArt.SPECS[CarArt.style_for(c[6])][0] / 2.0
+			var y: float = _lane_y(c[0]) + LIGHTS[kind].y * s
+			var dir: float = c[1]
+			var front := Vector2(c[0] + dir * half * s, y)
+			_glow.add_halo(front + Vector2(dir * 4.0, 0), 5.0, 0.0, Color(1.0, 0.95, 0.8, 0.8))
+			_glow.add_halo(front + Vector2(dir * 26.0, 6.0 - LIGHTS[kind].y * s * 0.6), 30.0, 0.0, Color(1.0, 0.92, 0.7, 0.3), 0.25)
+			if kind != Kind.BIKE:
+				_glow.add_halo(Vector2(c[0] - dir * half * s, y), 4.0, 0.0, Color(1.0, 0.15, 0.1, 0.7))
+	_glow.queue_redraw()
 
 
 func _vehicle(pos: Vector2, dir: float, s: float, kind: int, col: Color, alpha: float, phase: float, back: bool, seed: int) -> void:

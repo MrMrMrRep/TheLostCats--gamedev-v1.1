@@ -41,6 +41,7 @@ var _smoke_timer := 0.0
 var skidding := false
 var _skids: Array = []                      # [world x from, world x to, age]
 var facing := 1.0
+var _glow: NightGlow                        # the van's lights at night (game only)
 var occupied := false:
 	set(value):
 		occupied = value
@@ -50,6 +51,8 @@ var occupied := false:
 func _ready() -> void:
 	area_size = Vector2(76, 34) if kind == Kind.VAN else Vector2(40, 24)
 	super()
+	if kind == Kind.VAN:
+		_glow = NightGlow.attach(self)
 
 
 func interact(_member: BandMember, map: Node) -> void:
@@ -186,3 +189,17 @@ func _draw_van() -> void:
 		var r: float = puff[2] + t * 5.0
 		var c := Color(0.85, 0.85, 0.88, 0.75 * (1.0 - t))
 		draw_circle(to_local(puff[0]), r, c)
+	_van_lights()
+
+
+## Head and tail lights while someone drives it, at night.
+func _van_lights() -> void:
+	if _glow == null:
+		return
+	_glow.clear()
+	if occupied and WorldDayCycle.night_now > 0.0:
+		var f := facing
+		_glow.add_halo(Vector2(f * 41.0, -12.0), 5.0, 0.0, Color(1.0, 0.95, 0.8, 0.85))
+		_glow.add_halo(Vector2(f * 70.0, 2.0), 40.0, 0.0, Color(1.0, 0.92, 0.7, 0.32), 0.25)
+		_glow.add_halo(Vector2(-f * 41.0, -12.0), 4.0, 0.0, Color(1.0, 0.15, 0.1, 0.75))
+	_glow.queue_redraw()

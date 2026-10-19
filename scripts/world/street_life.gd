@@ -27,6 +27,13 @@ enum Kind { CANAL, OLD_TOWN, RING, INDUSTRY, AIRPORT }
 @export var keep_clear: Array[Vector2] = []
 
 
+var _glow: NightGlow                        # lamp light at night (game only)
+
+
+func _ready() -> void:
+	_glow = NightGlow.attach(self)
+
+
 func _clear(x: float, half: float) -> bool:
 	for r in keep_clear:
 		if x + half > r.x and x - half < r.y:
@@ -35,6 +42,14 @@ func _clear(x: float, half: float) -> bool:
 
 
 func _draw() -> void:
+	if _glow:
+		_glow.clear()
+	_draw_life()
+	if _glow:
+		_glow.queue_redraw()
+
+
+func _draw_life() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
@@ -130,6 +145,8 @@ func _lamp(x: float) -> void:
 	draw_rect(Rect2(x, -93, 1, 11), post)
 	draw_rect(Rect2(x - 6, -82, 13, 2), post)
 	draw_rect(Rect2(x - 1, -100, 3, 4), post)
+	if _glow:                               # art px -> world px
+		_glow.add_lamp(Vector2(x * 0.5, -44.0), 20.0, 0.0, 0.03 + NightGlow.spot_hash(x, 1.0) * 0.1)
 
 
 func _tall_lamp(x: float) -> void:
@@ -138,6 +155,8 @@ func _tall_lamp(x: float) -> void:
 	draw_rect(Rect2(x - 4, -4, 8, 4), post.darkened(0.2))
 	draw_rect(Rect2(x - 2, -150, 26, 3), post)
 	draw_rect(Rect2(x + 16, -148, 12, 4), Color("f6e8b0"))
+	if _glow:
+		_glow.add_lamp(Vector2(x * 0.5 + 11.0, -72.0), 26.0, 0.0, 0.03 + NightGlow.spot_hash(x, 2.0) * 0.1, Color(1.0, 0.9, 0.7, 0.5))
 
 
 func _bollards(x: float, n: int) -> void:

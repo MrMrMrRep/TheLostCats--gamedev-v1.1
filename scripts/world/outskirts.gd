@@ -40,8 +40,12 @@ const CAR_COLOURS := [Color("c94a3d"), Color("5b7fa6"), Color("fbf8f2"), Color("
 		queue_redraw()
 
 
+var _glow: NightGlow                        # lit windows and lamps at night (game only)
+
+
 func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	_glow = NightGlow.attach(self)
 
 
 ## A wall at the band sprites' density: texture (0 plaster, 1 brick, 2 smooth),
@@ -64,6 +68,8 @@ func _box(r: Rect2, c: Color, tex: int) -> void:
 ## A framed window at the sprites' density: outline, frame, glass with a sky
 ## reflection (or a lit room), mullions, a sill with its shadow. `bars` = panes across.
 func _win(r: Rect2, lit := false, bars := 1) -> void:
+	if _glow:
+		_glow.add_window(r.grow(-1.0), NightGlow.window_threshold(r.position.x, r.position.y, lit))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
 	var a := Rect2(r.position * 2.0, r.size * 2.0)
 	var frame := WorldPalette.TRIM
@@ -87,6 +93,14 @@ func width() -> float:
 
 
 func _draw() -> void:
+	if _glow:
+		_glow.clear()
+	_draw_kind()
+	if _glow:
+		_glow.queue_redraw()
+
+
+func _draw_kind() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	match kind:
@@ -290,6 +304,8 @@ func _market(rng: RandomNumberGenerator) -> void:
 	for lx in [6.0, w - 8.0]:
 		draw_rect(Rect2(lx, -50, 2, 50), p.IRON)
 		draw_rect(Rect2(lx - 3, -54, 8, 4), p.LIT)
+		if _glow:
+			_glow.add_lamp(Vector2(lx + 1, -52), 14.0, 0.0, 0.05)
 	draw_rect(Rect2(w / 2 - 26, -64, 52, 12), p.NAVY)
 	_text(w / 2 - 26, -55, 52, sign_text if sign_text != "" else "MARKT", 8, p.LIT)
 	draw_rect(Rect2(w / 2 - 1, -52, 2, 12), p.IRON)
@@ -319,6 +335,8 @@ func _park(rng: RandomNumberGenerator) -> void:
 	for lx in [w * 0.1, w * 0.4, w * 0.7, w * 0.95]:
 		draw_rect(Rect2(lx, -44, 2, 44), p.IRON)
 		draw_rect(Rect2(lx - 3, -48, 8, 4), p.LIT)
+		if _glow:
+			_glow.add_lamp(Vector2(lx + 1, -46), 14.0, 0.0, 0.05)
 	var rx := 0.0
 	while rx < w:
 		draw_rect(Rect2(rx, -12, 1, 12), p.IRON)

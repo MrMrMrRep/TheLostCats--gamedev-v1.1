@@ -1,0 +1,79 @@
+class_name WorldDayCycle
+extends Node
+## Runs the clock on the world map and dresses the world for the hour: a tint
+## over the street (CanvasModulate), the sky's colours, sun, moon and stars,
+## and the night lights (every NightGlow). The clock lives in Game.time_of_day
+## so it carries over between scenes; it only moves on the map. Lengths of the
+## parts of the day and the colours: resources/config/day_config.tres.
+## Dev: start at an hour with  -- --time=21 ; N = one hour on (Shift+N back).
+
+signal hour_changed(hour: float)
+
+static var night_now := 0.0                 # 0 by day .. 1 at night (new glows read it)
+
+var paused := false                         # e.g. during a conversation
+var _tint: CanvasModulate
+var _sky: WorldSky
+var _shown_minute := -1
+
+
+func _ready() -> void:
+	var cfg := DayConfig.current()
+	if Game.time_of_day < 0.0:
+		Game.time_of_day = cfg.start_hour
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--time="):
+			Game.time_of_day = fposmod(arg.trim_prefix("--time=").to_float(), 24.0)
+	_tint = CanvasModulate.new()
+	_tint.name = "NightTint"
+	add_child(_tint)
+	_sky = get_parent().get_node_or_null("Sky") as WorldSky
+	apply()
+
+
+func _process(delta: float) -> void:
+	var cfg := DayConfig.current()
+	if cfg.clock_runs and not paused:
+		Game.time_of_day = cfg.advance(Game.time_of_day, delta)
+	apply()
+
+
+## Set the clock (the story: a gig at 18:00, 4:00 after a show).
+func set_hour(hour: float) -> void:
+	Game.time_of_day = fposmod(hour, 24.0)
+	apply()
+
+
+func hour() -> float:
+	return Game.time_of_day
+
+
+## "08:00"
+func clock_text() -> String:
+	var m := int(Game.time_of_day * 60.0)
+	return "%02d:%02d" % [(m / 60) % 24, m % 60]
+
+
+func apply() -> void:
+	var cfg := DayConfig.current()
+	var h := Game.time_of_day
+	var tint := cfg.tint(h)
+	_tint.color = tint
+	var night := cfg.night(h)
+	if _sky:
+		_sky.set_time(h, cfg.sky(h), night, tint.lerp(Color.WHITE, 0.1))
+	if absf(night - night_now) > 0.003 or (night == 0.0 and night_now != 0.0) or (night == 1.0 and night_now != 1.0):
+		night_now = night
+		get_tree().call_group(&"night_glow", &"set_night", night)
+	var minute := int(h * 60.0)
+	if minute != _shown_minute:
+		_shown_minute = minute
+		hour_changed.emit(h)
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	if not OS.is_debug_build():
+		return
+	var k := event as InputEventKey
+	if k and k.pressed and not k.echo and k.keycode == KEY_N:
+		set_hour(Game.time_of_day + (-1.0 if k.shift_pressed else 1.0))

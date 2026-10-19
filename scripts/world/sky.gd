@@ -1,8 +1,10 @@
 class_name WorldSky
 extends CanvasLayer
-## Screen-space sky behind everything: dithered blue gradient, the sun, and two
-## cloud layers that drift slowly and shift a little with the camera
-## (parallax). Independent of the camera zoom, so it always fills the screen.
+## Screen-space sky behind everything: dithered gradient, the sun, the moon
+## and stars at night, and two cloud layers that drift slowly and shift a
+## little with the camera (parallax). Independent of the camera zoom, so it
+## always fills the screen. The day/night cycle (WorldDayCycle) sets its
+## colours and the time via set_time(); without it, it's a sunny morning.
 
 const VIEW := Vector2(640, 360)
 const FAR_PARALLAX := 0.04
@@ -10,7 +12,10 @@ const NEAR_PARALLAX := 0.1
 const FAR_DRIFT := 3.0                      # px/s
 const NEAR_DRIFT := 7.0
 
-var _gradient: Control
+var _gradient: _Gradient
+var _stars: _Stars
+var _sun: _Disc
+var _moon: _Disc
 var _far: _CloudBand
 var _near: _CloudBand
 
@@ -19,12 +24,38 @@ func _ready() -> void:
 	layer = -20
 	_gradient = _Gradient.new()
 	add_child(_gradient)
+	_stars = _Stars.new()
+	add_child(_stars)
+	_moon = _Disc.new()
+	_moon.moon = true
+	add_child(_moon)
+	_sun = _Disc.new()
+	add_child(_sun)
 	_far = _CloudBand.new()
 	_far.setup(11, 0.75, 30.0, 110.0, 7)
 	add_child(_far)
 	_near = _CloudBand.new()
 	_near.setup(23, 1.1, 20.0, 150.0, 5)
 	add_child(_near)
+	set_time(8.0, [WorldPalette.SKY_TOP, WorldPalette.SKY_MID, WorldPalette.SKY_LOW], 0.0, Color.WHITE)
+
+
+## Colours [top, mid, low], clock hour, night 0..1, tint for the clouds.
+func set_time(hour: float, colours: Array[Color], night: float, cloud_tint: Color) -> void:
+	_gradient.set_colours(colours)
+	_stars.set_amount(night)
+	# The sun crosses from the east (right) in the morning to the west at dusk;
+	# the moon follows the same path through the night.
+	var t := (hour - 6.0) / 14.5
+	_sun.visible = t > -0.05 and t < 1.05
+	_sun.position = Vector2(lerpf(600.0, 40.0, t), 200.0 - sin(clampf(t, 0.0, 1.0) * PI) * 170.0).round()
+	_sun.warm = 1.0 - sin(clampf(t, 0.0, 1.0) * PI)
+	var m := fposmod(hour - 19.0, 24.0) / 12.0
+	_moon.visible = m < 1.0 and night > 0.01
+	_moon.position = Vector2(lerpf(600.0, 40.0, m), 210.0 - sin(m * PI) * 160.0).round()
+	_moon.modulate.a = night
+	_far.modulate = cloud_tint
+	_near.modulate = cloud_tint
 
 
 func _process(_delta: float) -> void:
@@ -38,6 +69,23 @@ func _process(_delta: float) -> void:
 class _Gradient:
 	extends Control
 
+	var top := WorldPalette.SKY_TOP
+	var mid := WorldPalette.SKY_MID
+	var low := WorldPalette.SKY_LOW
+
+	## Redraws only when a colour visibly changed (the gradient is a lot of rects).
+	func set_colours(c: Array[Color]) -> void:
+		var d := 0.0
+		for i in 3:
+			var old: Color = [top, mid, low][i]
+			d = maxf(d, absf(old.r - c[i].r) + absf(old.g - c[i].g) + absf(old.b - c[i].b))
+		if d < 0.012:
+			return
+		top = c[0]
+		mid = c[1]
+		low = c[2]
+		queue_redraw()
+
 	func _ready() -> void:
 		size = WorldSky.VIEW
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -46,18 +94,62 @@ class _Gradient:
 		var p := WorldPalette
 		for y in int(WorldSky.VIEW.y):
 			var t := float(y) / (WorldSky.VIEW.y * 0.8)
-			var c := p.SKY_TOP.lerp(p.SKY_MID, clampf(t * 1.6, 0.0, 1.0)) if t < 0.6 \
-				else p.SKY_MID.lerp(p.SKY_LOW, clampf((t - 0.55) * 2.2, 0.0, 1.0))
+			var c := top.lerp(mid, clampf(t * 1.6, 0.0, 1.0)) if t < 0.6 \
+				else mid.lerp(low, clampf((t - 0.55) * 2.2, 0.0, 1.0))
 			draw_rect(Rect2(0, y, WorldSky.VIEW.x, 1), c)
 			if int(t * 24) % 2 == 0:            # light 2x2 dither on alternate bands
-				var dc := c.lerp(p.SKY_LOW, 0.12)
+				var dc := c.lerp(low, 0.12)
 				for x in range(y % 2, int(WorldSky.VIEW.x), 2):
 					draw_rect(Rect2(x, y, 1, 1), dc)
-		# sun with soft halo
-		var s := Vector2(470, 46)
-		WorldPalette.disc(self, s.x, s.y, 22, p.SUN.lerp(p.SKY_MID, 0.75))
-		WorldPalette.disc(self, s.x, s.y, 19, p.SUN.lerp(p.SKY_MID, 0.45))
-		WorldPalette.disc(self, s.x, s.y, 16, p.SUN)
+
+
+## The sun (warmer and bigger near the horizon) or the moon, with a soft halo.
+class _Disc:
+	extends Node2D
+
+	var moon := false
+	var warm := 0.0:
+		set(value):
+			if absf(value - warm) > 0.02:
+				warm = value
+				queue_redraw()
+
+	func _draw() -> void:
+		var p := WorldPalette
+		if moon:
+			WorldPalette.disc(self, 0, 0, 16, Color(0.85, 0.88, 1.0, 0.12))
+			WorldPalette.disc(self, 0, 0, 11, Color("e8ecf4"))
+			draw_rect(Rect2(-4, -2, 3, 3), Color("c8ccd8"))
+			draw_rect(Rect2(2, 3, 2, 2), Color("c8ccd8"))
+			return
+		var sun := p.SUN.lerp(Color("ff8a3a"), warm * 0.8)
+		WorldPalette.disc(self, 0, 0, 22, Color(sun, 0.25))
+		WorldPalette.disc(self, 0, 0, 19, Color(sun, 0.45))
+		WorldPalette.disc(self, 0, 0, 16, sun)
+
+
+## Stars, fading in with the night.
+class _Stars:
+	extends Node2D
+
+	var _pts: Array[Vector3] = []
+	var _amount := 0.0
+
+	func _ready() -> void:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = 404
+		for i in 90:
+			_pts.append(Vector3(rng.randf_range(0, WorldSky.VIEW.x), rng.randf_range(0, WorldSky.VIEW.y * 0.6), rng.randf_range(0.35, 1.0)))
+
+	func set_amount(night: float) -> void:
+		if absf(night - _amount) > 0.02 or (night == 0.0) != (_amount == 0.0):
+			_amount = night
+			visible = night > 0.0
+			queue_redraw()
+
+	func _draw() -> void:
+		for s in _pts:
+			draw_rect(Rect2(int(s.x), int(s.y), 1, 1), Color(1, 1, 0.92, s.z * _amount))
 
 
 ## A repeating band of clouds, redrawn only when the offset moves a pixel.

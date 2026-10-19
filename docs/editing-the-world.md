@@ -205,5 +205,38 @@ time to the top, fall speed), **Forgiveness** (coyote time, jump buffer,
 corner help). These are for the levels; on the map everyone walks at
 `walk_speed`.
 
+### day_config.tres: day and night
+The clock starts at **08:00** and runs only on the world map. It shows
+top right under the coins. A full day now takes 15 real minutes.
+
+| Value | Now | Meaning |
+|---|---|---|
+| start_hour | 8 | Clock time when a new game starts |
+| clock_runs | on | Off: time stands still (handy while building) |
+| night_minutes | 3 | Real minutes from 22:00 to 05:00 |
+| dawn_minutes | 1 | 05:00 to 07:00 |
+| morning_minutes | 4 | 07:00 to 12:00 |
+| afternoon_minutes | 4 | 12:00 to 17:00 |
+| evening_minutes | 2 | 17:00 to 20:00 (golden hour) |
+| dusk_minutes | 1 | 20:00 to 22:00 |
+| *_starts | | When each part begins (clock hour), if you want to shift them |
+| lights_on_from / lights_full_at | 19 / 21 | Street lights and windows come on one by one |
+| lights_dim_from / lights_off_at | 5.5 / 7 | ...and go off again in the morning |
+| night_windows | 0.55 | How many windows are lit deep in the night |
+| world_tint, sky_top/mid/low | | The colours over the day (click a gradient to edit: left = midnight, middle = noon) |
+
+While testing: press **N** to jump an hour ahead (Shift+N back).
+
+**Lights you can place:**
+- `WorldLight`: a glow that comes on at night, with an optional pool of
+  light on the street. Put one on a lantern, a sign or a doorway.
+  Settings: `radius`, `color`, `pool`, `comes_on` (0 = first at dusk, higher
+  = later in the night).
+- `WorldLampRow`: a row of motorway lamp posts. Two are already in
+  `Signs` (MotorwayLampsWest, MotorwayLampsEast). Settings: `length`,
+  `spacing`, `height`.
+
+House windows, street lamps, cars and the van light up by themselves.
+
 ### Stamina: `resources/config/stamina_config.tres`
 Per member and per ability.

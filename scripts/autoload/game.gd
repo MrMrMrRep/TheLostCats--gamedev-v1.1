@@ -10,6 +10,7 @@ const MEMBERS: Array[StringName] = [&"joep", &"jay", &"nikki", &"germ", &"geoff"
 
 var active_member: int = 0
 var coins: int = 0
+var time_of_day := -1.0                     # clock hour 0..24 on the world map (-1: not started, uses DayConfig.start_hour)
 var _flags: Dictionary = {}
 
 

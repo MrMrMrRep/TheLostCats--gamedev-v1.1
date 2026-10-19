@@ -1,12 +1,13 @@
 class_name MapHud
 extends CanvasLayer
-## World map HUD: the current objective (top left), coins (top right) and a
-## hint about the vehicle the band is in, and the van radio's station.
+## World map HUD: the current objective (top left), coins and the clock (top
+## right), a hint about the vehicle the band is in, and the van radio's station.
 
 var _objective: Label
 var _coins: Label
 var _vehicle: Label
 var _radio: Label
+var _clock: Label
 
 
 func _ready() -> void:
@@ -15,7 +16,8 @@ func _ready() -> void:
 	_coins = _label(Vector2(472, 6), Vector2(160, 14), HORIZONTAL_ALIGNMENT_RIGHT)
 	_vehicle = _label(Vector2(8, 22), Vector2(420, 14), HORIZONTAL_ALIGNMENT_LEFT)
 	_vehicle.add_theme_color_override("font_color", Color(1, 1, 1, 0.75))
-	_radio = _label(Vector2(212, 22), Vector2(420, 14), HORIZONTAL_ALIGNMENT_RIGHT)
+	_clock = _label(Vector2(472, 22), Vector2(160, 14), HORIZONTAL_ALIGNMENT_RIGHT)
+	_radio = _label(Vector2(212, 38), Vector2(420, 14), HORIZONTAL_ALIGNMENT_RIGHT)
 	_radio.add_theme_color_override("font_color", Color("ffd36b"))
 	Game.coins_changed.connect(func(_c: int) -> void: refresh())
 	Game.flag_changed.connect(func(_f: StringName, _v: Variant) -> void: refresh())
@@ -25,6 +27,10 @@ func _ready() -> void:
 func refresh() -> void:
 	_coins.text = "Coins: %d" % Game.coins
 	_objective.text = objective_text()
+
+
+func set_clock(text: String) -> void:
+	_clock.text = text
 
 
 func set_vehicle_hint(text: String) -> void:

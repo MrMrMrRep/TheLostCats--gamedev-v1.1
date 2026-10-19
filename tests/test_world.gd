@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 49
+const EXPECTED_CHECKS := 55
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -28,6 +28,7 @@ func _run() -> void:
 	map = await _load_map()
 
 	await _test_zoom_walking()
+	await _test_day_night()
 	await _test_band_line()
 	await _test_road_block()
 	await _test_geordie_quest()
@@ -44,6 +45,26 @@ func _run() -> void:
 		failures += 1
 	print("FAILURES: %d" % failures)
 	quit(1 if failures > 0 else 0)
+
+
+func _test_day_night() -> void:
+	var day = map.day
+	_check(absf(game.time_of_day - 8.0) < 0.5, "a new day starts around 08:00 (%s)" % day.clock_text())
+	var t0: float = game.time_of_day
+	await _frames(120)
+	_check(game.time_of_day > t0, "the clock runs on the map (%s)" % day.clock_text())
+	_check(day._tint.color.is_equal_approx(Color.WHITE), "in the morning the street is in full daylight")
+	day.set_hour(23.0)
+	await _frames(2)
+	var glows := root.get_tree().get_nodes_in_group(&"night_glow")
+	var on := glows.filter(func(g): return g.visible and g.night > 0.99)
+	_check(day._tint.color.get_luminance() < 0.45 and on.size() > 20,
+		"at 23:00 it's dark and the lights are on (%d of %d glows)" % [on.size(), glows.size()])
+	_check(map.hud._clock.text == "23:00", "the HUD shows the time (%s)" % map.hud._clock.text)
+	day.set_hour(12.0)
+	await _frames(2)
+	_check(glows.all(func(g): return not g.visible), "at noon all the night lights are off")
+	day.set_hour(8.0)
 
 
 func _test_zoom_walking() -> void:

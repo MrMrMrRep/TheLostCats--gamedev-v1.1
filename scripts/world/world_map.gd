@@ -48,6 +48,7 @@ var vehicle: Vehicle                        # the one the band is using, or null
 var talking := false
 var zoom := 3.0
 var radio: VanRadio
+var day: WorldDayCycle                      # the clock, the night tint and lights
 
 var _trail: Array[Vector2] = []
 var _fstate := {}                           # BandMember -> {v, gap, pause, walked, next_pause}
@@ -86,6 +87,11 @@ func _ready() -> void:
 	radio.name = "VanRadio"
 	add_child(radio)
 	radio.tuned.connect(hud.set_radio)
+	day = WorldDayCycle.new()
+	day.name = "DayCycle"
+	add_child(day)
+	day.hour_changed.connect(func(_h: float) -> void: hud.set_clock(day.clock_text()))
+	hud.set_clock(day.clock_text())
 	var cam := band.camera
 	cam.position_smoothing_speed = cam_cfg.smoothing_speed
 	cam.deadzone = cam_cfg.deadzone
@@ -129,6 +135,7 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	LiveConfig.poll()
+	day.paused = talking                    # time stands still during a conversation
 	_cooldown = maxf(_cooldown - delta, 0.0)
 	if talking:
 		if vehicle == null:
