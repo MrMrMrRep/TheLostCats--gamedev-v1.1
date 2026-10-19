@@ -31,6 +31,10 @@ const STREET_Y := 288.0
 @export var foreground := Vector2.ZERO      ## world x range with foreground trees
 @export var farm_clear := Vector2.ZERO      ## world x range where farms step aside (moved west)
 @export var seed_value := 5
+@export_range(0.1, 1.5) var tower_scale := 0.45:  ## skyline: height of the church towers (1 = the old, very tall ones)
+	set(value):
+		tower_scale = value
+		queue_redraw()
 
 var _turbines: Array = []                   # local x of each turbine (rotors)
 var _mills: Array = []                      # local x of each windmill (sails)
@@ -123,7 +127,7 @@ func _draw_skyline(rng: RandomNumberGenerator) -> void:
 	var spires := int((end - _local(centre.x)) / 260.0) + 1
 	for i in spires:
 		var sx := _local(centre.x) + 60 + i * 260 + rng.randf_range(-30, 30)
-		var th := rng.randf_range(70, 96)
+		var th := rng.randf_range(70, 96) * tower_scale   # old Amsterdam: towers only just above the roofs
 		match i % 3:
 			0:                                  # church tower with a needle spire
 				draw_rect(Rect2(sx, base - th, 12, th + 2), p.HAZE_DARK)
@@ -140,7 +144,8 @@ func _draw_skyline(rng: RandomNumberGenerator) -> void:
 				WorldPalette.disc(self, sx + 7, base - th * 0.7, 11, p.HAZE_DARK)
 				draw_rect(Rect2(sx + 6, base - th * 0.7 - 18, 2, 7), p.HAZE_DARK)
 		for k in 3:                             # clock / windows, a touch lighter
-			draw_rect(Rect2(sx + 4, base - th + 10 + k * 14, 4, 6), p.HAZE.lerp(p.HAZE_DARK, 0.3))
+			if 10 + k * 14 + 6 < th:
+				draw_rect(Rect2(sx + 4, base - th + 10 + k * 14, 4, 6), p.HAZE.lerp(p.HAZE_DARK, 0.3))
 	var crane := _local((centre.x + centre.y) / 2.0) + 90
 	draw_rect(Rect2(crane, base - 80, 2, 80), p.HAZE_DARK)
 	draw_rect(Rect2(crane - 30, base - 80, 60, 2), p.HAZE_DARK)

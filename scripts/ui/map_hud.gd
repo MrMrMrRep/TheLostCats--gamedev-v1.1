@@ -83,6 +83,7 @@ func _skip_button(pos: Vector2, hours: int) -> void:
 		b.add_theme_stylebox_override(state, sb)
 	b.pressed.connect(func() -> void: skip_requested.emit(float(hours)))
 	add_child(b)
+	b.size = Vector2.ZERO                    # shrink to fit the small font (else it keeps the default height)
 
 
 func _label(pos: Vector2, size_px: Vector2, align: HorizontalAlignment) -> Label:
