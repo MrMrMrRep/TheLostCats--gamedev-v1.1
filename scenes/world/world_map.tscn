@@ -41,7 +41,7 @@
 [ext_resource type="Script" uid="uid://b627am7gjrq0l" path="res://scripts/world/world_zone.gd" id="38_ao3qg"]
 [ext_resource type="Script" uid="uid://buh4jk6e7dhc7" path="res://scripts/world/world_marker.gd" id="39_x5aeg"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ao3qg"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x5aeg"]
 shader = ExtResource("27_078hn")
 shader_parameter/water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
 shader_parameter/deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
@@ -50,7 +50,7 @@ shader_parameter/water_top_uv = 0.8
 shader_parameter/px_per_world = 2.0
 shader_parameter/tint = 0.42
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_x5aeg"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ink1j"]
 shader = ExtResource("27_078hn")
 shader_parameter/water_color = Color(0.16862746, 0.34117648, 0.4745098, 1)
 shader_parameter/deep_color = Color(0.12156863, 0.2509804, 0.3764706, 1)
@@ -59,7 +59,7 @@ shader_parameter/water_top_uv = 0.8
 shader_parameter/px_per_world = 2.0
 shader_parameter/tint = 0.42
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ink1j"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_nmepv"]
 shader = ExtResource("27_078hn")
 shader_parameter/water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
 shader_parameter/deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
@@ -856,7 +856,6 @@ target_scene = "res://scenes/levels/abilities_test.tscn"
 position = Vector2(17630, 288)
 script = ExtResource("22_2eufk")
 tour_quest = true
-talk_lines = PackedStringArray("Lovely day for it.")
 
 [node name="ParkingStorage" type="Node2D" parent="Places/Storage" unique_id=880753896]
 position = Vector2(17550, 288)
@@ -881,7 +880,7 @@ map_min = -4000.0
 [node name="Water" type="Node2D" parent="." unique_id=985293818]
 
 [node name="DitchWest" type="ColorRect" parent="Water" unique_id=675744894]
-material = SubResource("ShaderMaterial_ao3qg")
+material = SubResource("ShaderMaterial_x5aeg")
 offset_left = -4400.0
 offset_top = 326.0
 offset_right = 3800.0
@@ -893,7 +892,7 @@ water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
 deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
 
 [node name="Canal" type="ColorRect" parent="Water" unique_id=77260768]
-material = SubResource("ShaderMaterial_x5aeg")
+material = SubResource("ShaderMaterial_ink1j")
 offset_left = 7083.0
 offset_top = 310.0
 offset_right = 18240.0
@@ -903,7 +902,7 @@ color = Color(0.16862746, 0.34117648, 0.4745098, 1)
 script = ExtResource("28_12evo")
 
 [node name="DitchEast" type="ColorRect" parent="Water" unique_id=1656000291]
-material = SubResource("ShaderMaterial_ink1j")
+material = SubResource("ShaderMaterial_nmepv")
 offset_left = 18240.0
 offset_top = 326.0
 offset_right = 22000.0
