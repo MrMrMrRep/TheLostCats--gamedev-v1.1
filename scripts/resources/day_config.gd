@@ -9,6 +9,8 @@ const PATH := "res://resources/config/day_config.tres"
 
 @export_range(0.0, 24.0, 0.25) var start_hour := 8.0   ## clock time when a new game starts
 @export var clock_runs := true              ## off: time stands still (handy while building)
+@export var time_buttons := true            ## show the +1 / +4 / +8 hour buttons under the clock (testing)
+@export var sleep_fade := 0.6               ## seconds the screen takes to fade out (and back in) when skipping time
 
 @export_group("How long each part lasts (real minutes)")
 @export var night_minutes := 3.0            ## from night_starts until dawn_starts

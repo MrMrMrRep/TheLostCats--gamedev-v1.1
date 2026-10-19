@@ -225,7 +225,10 @@ top right under the coins. A full day now takes 15 real minutes.
 | night_windows | 0.55 | How many windows are lit deep in the night |
 | world_tint, sky_top/mid/low | | The colours over the day (click a gradient to edit: left = midnight, middle = noon) |
 
-While testing: press **N** to jump an hour ahead (Shift+N back).
+While testing: click **+1 / +4 / +8** under the clock to sleep that many
+hours (the screen fades to black and you wake up later), or press **N** to
+jump an hour ahead (Shift+N back). Turn off `time_buttons` to hide the
+buttons; `sleep_fade` sets how slowly the screen fades.
 
 **Lights you can place:**
 - `WorldLight`: a glow that comes on at night, with an optional pool of

@@ -92,6 +92,7 @@ func _ready() -> void:
 	add_child(day)
 	day.hour_changed.connect(func(_h: float) -> void: hud.set_clock(day.clock_text()))
 	hud.set_clock(day.clock_text())
+	hud.skip_requested.connect(day.sleep)
 	var cam := band.camera
 	cam.position_smoothing_speed = cam_cfg.smoothing_speed
 	cam.deadzone = cam_cfg.deadzone

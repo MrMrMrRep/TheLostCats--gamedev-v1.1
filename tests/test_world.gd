@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 55
+const EXPECTED_CHECKS := 56
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -64,6 +64,11 @@ func _test_day_night() -> void:
 	day.set_hour(12.0)
 	await _frames(2)
 	_check(glows.all(func(g): return not g.visible), "at noon all the night lights are off")
+	day.set_hour(8.0)
+	map.hud.skip_requested.emit(4.0)           # the +4 button: sleep and wake up 4 hours later
+	while day.sleeping:
+		await _frames(1)
+	_check(absf(game.time_of_day - 12.0) < 0.1, "+4: fade out, wake up at %s" % day.clock_text())
 	day.set_hour(8.0)
 
 

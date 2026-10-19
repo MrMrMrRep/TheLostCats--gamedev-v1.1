@@ -5,6 +5,8 @@ extends Node
 ## and the night lights (every NightGlow). The clock lives in Game.time_of_day
 ## so it carries over between scenes; it only moves on the map. Lengths of the
 ## parts of the day and the colours: resources/config/day_config.tres.
+## Skip ahead with sleep(hours): the screen fades to black and you wake up
+## later (the HUD's +1 / +4 / +8 buttons use it).
 ## Dev: start at an hour with  -- --time=21 ; N = one hour on (Shift+N back).
 
 signal hour_changed(hour: float)
@@ -12,6 +14,7 @@ signal hour_changed(hour: float)
 static var night_now := 0.0                 # 0 by day .. 1 at night (new glows read it)
 
 var paused := false                         # e.g. during a conversation
+var sleeping := false                       # fading through a sleep()
 var _tint: CanvasModulate
 var _sky: WorldSky
 var _shown_minute := -1
@@ -33,7 +36,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	var cfg := DayConfig.current()
-	if cfg.clock_runs and not paused:
+	if cfg.clock_runs and not paused and not sleeping:
 		Game.time_of_day = cfg.advance(Game.time_of_day, delta)
 	apply()
 
@@ -42,6 +45,40 @@ func _process(delta: float) -> void:
 func set_hour(hour: float) -> void:
 	Game.time_of_day = fposmod(hour, 24.0)
 	apply()
+
+
+## Sleep `hours`: fade to black, the clock jumps on, wake up.
+func sleep(hours: float) -> void:
+	if sleeping or hours <= 0.0:
+		return
+	sleeping = true
+	var fade := maxf(DayConfig.current().sleep_fade, 0.01)
+	var layer := CanvasLayer.new()
+	layer.layer = 35                        # over the world, under the HUD
+	add_child(layer)
+	var black := ColorRect.new()
+	black.color = Color(0.02, 0.02, 0.05, 0.0)
+	black.size = Vector2(640, 360)
+	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.add_child(black)
+	var text := Label.new()
+	text.text = "Zzz...   %d hour%s later" % [int(hours), "" if int(hours) == 1 else "s"]
+	text.size = Vector2(640, 20)
+	text.position = Vector2(0, 170)
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text.add_theme_font_size_override("font_size", 12)
+	text.modulate.a = 0.0
+	layer.add_child(text)
+	var tw := create_tween()
+	tw.tween_property(black, "color:a", 1.0, fade)
+	tw.parallel().tween_property(text, "modulate:a", 1.0, fade)
+	tw.tween_callback(func() -> void: set_hour(Game.time_of_day + hours))
+	tw.tween_interval(0.5)
+	tw.tween_property(black, "color:a", 0.0, fade)
+	tw.parallel().tween_property(text, "modulate:a", 0.0, fade)
+	await tw.finished
+	layer.queue_free()
+	sleeping = false
 
 
 func hour() -> float:
