@@ -29,7 +29,6 @@ const GANTRIES := [[4300.0, "Amsterdam|A10", "Den Haag|A4"], [2300.0, "Utrecht|A
 const CENTRE := 9600.0                      # old town ends, canal centre begins
 const OUTSKIRTS := 15400.0                  # canal centre ends: apartments, then industry
 const STUDIO_X := 11800.0
-const STUDIO_AREA := Vector2(11660, 11960)
 const BRIDGES := [10200.0, 10900.0, 12500.0, 13200.0, 13900.0, 14900.0]
 const BRIDGE_W := 150.0
 const LANDMARK_BRIDGE := 12500.0            # its canal view ends at the Pontsteiger
@@ -75,7 +74,6 @@ func build() -> int:
 	root.set_script(load("res://scripts/world/world_map.gd"))
 	root.set("map_width", W)
 	root.set("town", TOWN)
-	root.set("studio_area", STUDIO_AREA)
 	root.set("map_min", MAP_MIN)
 	root.set("city_limit", Vector2(OVERPASS_X, TOWN.y))
 

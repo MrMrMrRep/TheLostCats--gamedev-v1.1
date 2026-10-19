@@ -21,8 +21,19 @@ const DRIVE_LOOK_AHEAD := 160.0
 const INTERACT_COOLDOWN := 0.3
 const EDGE_MARGIN := 30.0                   # vehicles stop this far from a road block
 const WATER_LINE := GROUND_Y + 22.0         # top of the canal
-const ZOOM_STUDIO := 3.0
-const ZOOM_CITY := 2.0
+# On foot and on the bikes the zoom follows the band's tempo, not the place:
+# close when strolling or standing, further out the faster they go, and
+# always wide enough for the group (a straggler may drop out of frame).
+const ZOOM_WALK := 3.0                      # standing / strolling
+const ZOOM_WALK_MOVING := 2.4               # walking at full pace
+const ZOOM_BIKE_SLOW := 2.6                 # on the bikes, rolling slowly
+const ZOOM_BIKE := 2.0                      # on the bikes at speed
+const ZOOM_OUT_RATE := 1.1                  # zooming out keeps up with the band
+const ZOOM_IN_RATE := 0.28                  # zooming in is slow: it takes a while to settle
+const TEMPO_SETTLE := 2.5                   # seconds for the tempo to calm down after slowing
+const FOCUS_CAP := 170.0                    # members further back than this don't widen the shot
+const FIT_MARGIN := 80.0                    # px of room around the group
+const FOCUS_LEAD := 34.0                    # the shot leads in the walking direction
 const ZOOM_VAN_TOWN := 1.3                  # driving in town: a little closer
 const ZOOM_VAN_SLOW_TOWN := 1.7             # crawling / stopped in the van (after SLOW_DELAY)
 const ZOOM_VAN_SLOW_ROAD := 0.85
@@ -38,7 +49,6 @@ const ZOOM_EASE_DRIVE := 0.22               # driving: a slow, calm zoom out / i
 @export var map_width := 3840
 @export var start_spawn: NodePath
 @export var town := Vector2(1100, 3640)     ## world x range of the city
-@export var studio_area := Vector2(1760, 2060)  ## world x range zoomed in on the studio
 @export var map_min := 0.0                  ## west end of the map (the cow land goes below 0)
 @export var city_limit := Vector2.ZERO      ## world x range where the van keeps to CITY_SPEED
 
@@ -46,7 +56,7 @@ var leader: BandMember
 var followers: Array[BandMember] = []
 var vehicle: Vehicle                        # the one the band is using, or null on foot
 var talking := false
-var zoom := ZOOM_CITY
+var zoom := ZOOM_WALK
 var radio: VanRadio
 
 var _trail: Array[Vector2] = []
@@ -57,6 +67,9 @@ var _highlighted: Interactable
 var _min_x := 0.0
 var _max_x := 0.0
 var _slow_time := 0.0
+var _tempo := 0.0                           # 0 standing .. 1 full speed (eases down slowly)
+var _spread := 0.0                          # px from the front member to the back one framed
+var _focus: Node2D                          # what the camera follows on foot / on the bikes
 var _road_time := 0.0
 
 @onready var band: Band = $Band
@@ -72,6 +85,9 @@ static func of(node: Node) -> WorldMap:
 func _ready() -> void:
 	add_to_group(&"world_map")
 	band.locked = true                      # no switching or gather on the map
+	_focus = Node2D.new()
+	_focus.name = "CameraFocus"
+	add_child(_focus)
 	radio = VanRadio.new()
 	radio.name = "VanRadio"
 	add_child(radio)
@@ -123,6 +139,8 @@ func _physics_process(delta: float) -> void:
 			for m in followers:                 # stand and listen (and fidget)
 				_fstate[m].v = 0.0
 				m.animate_as_follower(0.0)
+		_update_focus(delta)
+		_update_zoom(delta)
 		return
 	if vehicle:
 		_drive(delta)
@@ -131,6 +149,7 @@ func _physics_process(delta: float) -> void:
 		_update_followers()                 # riding: a tight line on the leader's track
 	elif vehicle == null:
 		_walk_followers(delta)              # walking: each follows at their own pace
+	_update_focus(delta)
 	_update_zoom(delta)
 	_update_interact()
 
@@ -145,13 +164,40 @@ func in_town(x: float) -> bool:
 	return x >= town.x and x <= town.y
 
 
-## Zoom wanted at world x for how the band is moving right now.
+## Zoom the van wants at world x (on foot and on the bikes it's the tempo).
 func target_zoom_at(x: float) -> float:
 	if vehicle and vehicle.kind == Vehicle.Kind.VAN:
 		return ZOOM_VAN_TOWN if in_town(x) else ZOOM_ROAD
-	if x >= studio_area.x and x <= studio_area.y:
-		return ZOOM_STUDIO
-	return ZOOM_CITY
+	return _tempo_zoom()
+
+
+## On foot / bikes: between the slow and the moving zoom by tempo, never
+## closer than what fits the group.
+func _tempo_zoom() -> float:
+	var on_bikes := vehicle != null and vehicle.kind == Vehicle.Kind.BIKES
+	var near := ZOOM_BIKE_SLOW if on_bikes else ZOOM_WALK
+	var far := ZOOM_BIKE if on_bikes else ZOOM_WALK_MOVING
+	return minf(lerpf(near, far, _tempo), 640.0 / (_spread + FIT_MARGIN))
+
+
+## The camera aims at the middle of the group (members within FOCUS_CAP of the
+## front), leading a little in the direction the band goes.
+func _update_focus(delta: float, instant := false) -> void:
+	if vehicle and vehicle.kind == Vehicle.Kind.VAN:
+		return
+	var front := leader.global_position.x
+	var lo := front
+	var hi := front
+	for m in followers:
+		var mx := m.global_position.x
+		if absf(mx - front) <= FOCUS_CAP:
+			lo = minf(lo, mx)
+			hi = maxf(hi, mx)
+	var spread := hi - lo
+	var goal := (lo + hi) / 2.0 + leader.facing * FOCUS_LEAD * _tempo
+	var k := 1.0 if instant else 1.0 - exp(-delta * 3.0)
+	_spread = lerpf(_spread, spread, k)
+	_focus.global_position = Vector2(lerpf(_focus.global_position.x, goal, k), leader.global_position.y)
 
 
 func _update_zoom(delta: float) -> void:
@@ -170,6 +216,14 @@ func _update_zoom(delta: float) -> void:
 	else:
 		_slow_time = 0.0
 		_road_time = 0.0
+		var speed := absf(vehicle.velocity.x) if vehicle else absf(leader.velocity.x)
+		var ref := vehicle.top_speed() if vehicle else WALK_SPEED
+		var frac := clampf(speed / ref, 0.0, 1.0)
+		# The tempo picks up at once and calms down slowly, so a short stop
+		# doesn't make the view jump, and slowing down eases in over time.
+		_tempo = frac if frac > _tempo else move_toward(_tempo, frac, delta / TEMPO_SETTLE)
+		target = _tempo_zoom()
+		rate = ZOOM_OUT_RATE if target < zoom else ZOOM_IN_RATE
 	zoom = lerpf(zoom, target, 1.0 - exp(-delta * rate))
 	if absf(zoom - target) < 0.002:
 		zoom = target
@@ -221,7 +275,8 @@ func place_band(x: float, facing: float) -> void:
 			m.facing = facing
 			m.velocity = Vector2.ZERO
 			m.animate_as_follower(0.0)
-	band.camera.follow(leader, true)
+	_update_focus(0.0, true)
+	band.camera.follow(_focus, true)
 
 
 # --- Vehicles --------------------------------------------------------------
@@ -245,8 +300,11 @@ func board(v: Vehicle) -> void:
 	if riding:
 		place_band(v.global_position.x, leader.facing)
 		leader.set_physics_process(false)
-	band.camera.follow(v)
-	band.camera.look_ahead = DRIVE_LOOK_AHEAD
+	if riding:
+		band.camera.follow(_focus)
+	else:
+		band.camera.follow(v)
+		band.camera.look_ahead = DRIVE_LOOK_AHEAD
 	if not riding:
 		radio.power(true)
 	_cooldown = INTERACT_COOLDOWN

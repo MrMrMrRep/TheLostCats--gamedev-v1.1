@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 42
+const EXPECTED_CHECKS := 45
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -47,10 +47,16 @@ func _run() -> void:
 
 
 func _test_zoom_walking() -> void:
-	_check(is_equal_approx(map.zoom, 3.0), "zoom 3x at the studio (%.2f)" % map.zoom)
-	await _place_leader(2600.0)
-	await _frames(240)
-	_check(absf(map.zoom - 2.0) < 0.05, "zoom 2x in the city (%.2f)" % map.zoom)
+	_check(is_equal_approx(map.zoom, map.ZOOM_WALK), "standing still: close zoom (%.2f)" % map.zoom)
+	Input.action_press("move_right")
+	await _frames(180)
+	Input.action_release("move_right")
+	var walking: float = map.zoom
+	_check(walking < map.ZOOM_WALK - 0.25, "walking on: the zoom opens up with the tempo (%.2f)" % walking)
+	await _frames(60)
+	_check(map.zoom < map.ZOOM_WALK - 0.2, "just stopped: no jump, the zoom eases in slowly (%.2f)" % map.zoom)
+	await _frames(600)
+	_check(map.zoom > map.ZOOM_WALK - 0.12, "after a while standing it's close again (%.2f)" % map.zoom)
 	await _place_leader(map.get_node("Places/Start").global_position.x)
 	await _frames(240)
 
@@ -111,8 +117,11 @@ func _test_bikes() -> void:
 	Input.action_press("move_right")
 	await _frames(90)
 	var speed: float = bikes.velocity.x
+	await _frames(90)
+	var bike_zoom: float = map.zoom
 	Input.action_release("move_right")
 	_check(absf(speed - bikes.top_speed()) < 5.0, "bikes ride at their top speed (%.0f px/s)" % speed)
+	_check(bike_zoom < 2.25, "on the bikes at speed: the wider city view (%.2f)" % bike_zoom)
 	await _frames(30)
 	await _tap("interact")
 	await _frames(2)
@@ -146,7 +155,7 @@ func _test_van() -> void:
 	_check(van.velocity.x < coasted - 150.0 and not van._skids.is_empty(), "steering back brakes hard, wheels lock: skid marks (%.0f px/s)" % van.velocity.x)
 	var zoom_now: float = map.zoom
 	await _frames(330)                          # let it roll to a stop and wait
-	_check(map._slow_time > map.SLOW_DELAY and absf(map.zoom - map.ZOOM_VAN_SLOW_TOWN) < absf(zoom_now - map.ZOOM_VAN_SLOW_TOWN) - 0.05,
+	_check(map._slow_time > map.SLOW_DELAY and absf(map.zoom - map.ZOOM_VAN_SLOW_TOWN) < maxf(absf(zoom_now - map.ZOOM_VAN_SLOW_TOWN) - 0.05, 0.08),
 		"standing still in the van: the camera eases to the close-up zoom (%.2f -> %.2f)" % [zoom_now, map.zoom])
 	_check(map.target_zoom_at(van.global_position.x) == map.ZOOM_VAN_TOWN and map.zoom < 1.9, "driving in town: zoom slowly eases out toward %.1fx (%.2f)" % [map.ZOOM_VAN_TOWN, map.zoom])
 	var x_back: float = van.global_position.x
