@@ -122,9 +122,24 @@ func _draw_skyline(rng: RandomNumberGenerator) -> void:
 	var spires := int((end - _local(centre.x)) / 260.0) + 1
 	for i in spires:
 		var sx := _local(centre.x) + 60 + i * 260 + rng.randf_range(-30, 30)
-		draw_rect(Rect2(sx, base - 84, 12, 86), p.HAZE_DARK)
-		WorldPalette.triangle(self, sx - 2, base - 84, 16, 24, p.HAZE_DARK)
-		draw_rect(Rect2(sx + 5, base - 114, 2, 8), p.HAZE_DARK)
+		var th := rng.randf_range(70, 96)
+		match i % 3:
+			0:                                  # church tower with a needle spire
+				draw_rect(Rect2(sx, base - th, 12, th + 2), p.HAZE_DARK)
+				WorldPalette.triangle(self, sx - 2, base - th, 16, 26, p.HAZE_DARK)
+				draw_rect(Rect2(sx + 5, base - th - 34, 2, 8), p.HAZE_DARK)
+			1:                                  # stepped tower with an open lantern
+				draw_rect(Rect2(sx, base - th, 14, th + 2), p.HAZE_DARK)
+				draw_rect(Rect2(sx + 2, base - th - 12, 10, 12), p.HAZE_DARK)
+				draw_rect(Rect2(sx + 4, base - th - 22, 6, 10), p.HAZE_DARK)
+				draw_rect(Rect2(sx + 5, base - th - 19, 4, 5), p.HAZE)
+				WorldPalette.disc(self, sx + 7, base - th - 24, 3, p.HAZE_DARK)
+			_:                                  # a dome
+				draw_rect(Rect2(sx - 4, base - th * 0.7, 22, th * 0.7 + 2), p.HAZE_DARK)
+				WorldPalette.disc(self, sx + 7, base - th * 0.7, 11, p.HAZE_DARK)
+				draw_rect(Rect2(sx + 6, base - th * 0.7 - 18, 2, 7), p.HAZE_DARK)
+		for k in 3:                             # clock / windows, a touch lighter
+			draw_rect(Rect2(sx + 4, base - th + 10 + k * 14, 4, 6), p.HAZE.lerp(p.HAZE_DARK, 0.3))
 	var crane := _local((centre.x + centre.y) / 2.0) + 90
 	draw_rect(Rect2(crane, base - 80, 2, 80), p.HAZE_DARK)
 	draw_rect(Rect2(crane - 30, base - 80, 60, 2), p.HAZE_DARK)
@@ -139,14 +154,33 @@ func _draw_back_street(rng: RandomNumberGenerator) -> void:
 		if _in_town(x) and x >= _local(outskirts):
 			x += _outskirt_building(rng, x, base)
 		elif _in_town(x):
-			var w := rng.randf_range(22, 30)
-			var h := rng.randf_range(46, 72)
+			var w := float(rng.randi_range(22, 30))
+			var h := float(rng.randi_range(46, 72))
 			var c: Color = p.FACADES[rng.randi_range(0, p.FACADES.size() - 1)].lerp(p.HAZE, 0.5)
+			var dark := c.darkened(0.18)
 			draw_rect(Rect2(x, base - h, w, h + 14), c)
-			draw_rect(Rect2(x + w / 4, base - h - 5, w / 2, 5), c)
-			for r in int((h - 10) / 14):
-				for k in 2:
-					draw_rect(Rect2(x + 5 + k * (w - 14), base - h + 8 + r * 14, 4, 6), p.GLASS.lerp(p.HAZE, 0.45))
+			draw_rect(Rect2(x + w - 2, base - h, 2, h + 14), dark)          # shade on the right
+			match rng.randi_range(0, 3):                                     # gable silhouettes
+				0:
+					draw_rect(Rect2(x + w * 0.15, base - h - 5, w * 0.7, 5), c)
+					draw_rect(Rect2(x + w * 0.3, base - h - 10, w * 0.4, 5), c)
+				1:
+					WorldPalette.triangle(self, x + 2, base - h, w - 4, 9, c)
+				2:
+					WorldPalette.triangle(self, x - 1, base - h, w + 2, 8, p.ROOF.lerp(p.HAZE, 0.55))
+				_:
+					draw_rect(Rect2(x - 1, base - h - 2, w + 2, 2), p.TRIM.lerp(p.HAZE, 0.5))
+			if rng.randf() < 0.4:                                            # chimney
+				draw_rect(Rect2(x + w * 0.7, base - h - 9, 3, 7), dark)
+			var cols := 3 if w >= 27 else 2
+			var step := (w - 4) / cols
+			for r in int((h - 10) / 11):
+				for k in cols:
+					var wx := x + 3 + k * step + step / 2 - 1.5
+					var wy := base - h + 7 + r * 11
+					var lit := rng.randf() < 0.1
+					draw_rect(Rect2(wx, wy, 3, 5), (p.LIT if lit else p.GLASS).lerp(p.HAZE, 0.45))
+					draw_rect(Rect2(wx - 0.5, wy + 5, 4, 1), p.TRIM.lerp(p.HAZE, 0.55))
 			if rng.randf() < 0.35:
 				WorldPalette.tree(self, x + w, base, 12, 0.35)
 			x += w

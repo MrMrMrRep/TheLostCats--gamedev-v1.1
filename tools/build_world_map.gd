@@ -125,11 +125,9 @@ func build() -> int:
 		_fill(city, cursor, zone.x, seed)
 		seed += 10
 		cursor = zone.y
-	var shop := AnimatedSprite2D.new()
-	shop.sprite_frames = load("res://resources/sprites/shop_anim_frames.tres")
-	shop.autoplay = "default"; shop.offset = Vector2(0, -64)
-	shop.position = Vector2((STATION.x + STATION.y) / 2.0, GY)
-	_add(city, shop, "ServiceStation")
+	var station := Node2D.new(); station.set_script(load("res://scripts/world/outskirts.gd"))
+	station.position = Vector2(STATION.x, GY); station.set("kind", 13)
+	_add(city, station, "ServiceStation")
 	var Bd = load("res://scripts/world/outskirts.gd")
 	for b in OUTSKIRT_BUILDINGS:
 		var ob := Node2D.new(); ob.set_script(Bd); ob.position = Vector2(b[1], GY)

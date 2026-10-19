@@ -1,6 +1,8 @@
 class_name MemberCard
 extends Control
-## HUD card for one band member: portrait, key number, HP pips, stamina bar
+## HUD card for one band member: portrait (head and shoulders from the
+## member's own idle frame; the old placeholder if they have no sheet yet),
+## key number, HP pips, stamina bar
 ## (only while below max), 3 item slots (selected slot outlined on the active
 ## member's card) and name.
 ## The active member's card is highlighted, the others are dimmed.
@@ -26,13 +28,22 @@ func _init() -> void:
 
 func bind(m: BandMember, index: int) -> void:
 	member = m
-	var atlas := AtlasTexture.new()
-	atlas.atlas = SHEET
-	atlas.region = PORTRAIT_REGION
 	var portrait := TextureRect.new()
-	portrait.texture = atlas
-	portrait.position = Vector2(4, 3)
-	portrait.modulate = m.profile.tint
+	portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var own := portrait_texture(m.profile)
+	if own:
+		portrait.texture = own
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.position = Vector2(2, 2)
+		portrait.size = Vector2(26, 34)
+	else:
+		var atlas := AtlasTexture.new()
+		atlas.atlas = SHEET
+		atlas.region = PORTRAIT_REGION
+		portrait.texture = atlas
+		portrait.position = Vector2(4, 3)
+		portrait.modulate = m.profile.tint
 	add_child(portrait)
 	add_child(_label(str(index + 1), Vector2(50, 0), Vector2(8, 10)))
 	var name_label := _label(m.profile.display_name, Vector2(0, 37), Vector2(SIZE.x, 10))
@@ -46,6 +57,26 @@ func bind(m: BandMember, index: int) -> void:
 	m.health.health_changed.connect(func(_hp: int, _max: int) -> void: queue_redraw())
 	m.inventory.changed.connect(queue_redraw)
 	queue_redraw()
+
+
+## Head and shoulders cropped from the first idle frame of the profile's sheet.
+static func portrait_texture(profile: MovementProfile) -> Texture2D:
+	if profile == null or profile.sprite_frames == null:
+		return null
+	var frames := profile.sprite_frames
+	for anim in [&"idle_breathing", &"idle_fists", &"idle"]:
+		if frames.has_animation(anim) and frames.get_frame_count(anim) > 0:
+			var tex := frames.get_frame_texture(anim, 0)
+			var img := tex.get_image()
+			if img == null:
+				return null
+			var used := img.get_used_rect()
+			var h := int(used.size.y * 0.62)                # head to belt
+			var w := mini(used.size.x, int(h * 0.8))
+			var x := used.position.x + (used.size.x - w) / 2
+			var crop := img.get_region(Rect2i(x, used.position.y, w, h))
+			return ImageTexture.create_from_image(crop)
+	return null
 
 
 func set_active(value: bool) -> void:

@@ -15,11 +15,11 @@ extends Node2D
 ##   HOTEL          tall hotel with a vertical sign, flags and a canopy
 ##   APARTMENTS     new apartment block: glass, coloured panels, balconies
 
-enum Kind { MALL, GARAGE, SELF_STORAGE, OUR_STORAGE, CHURCH, MARKET, PARK, THEATER, HOTEL, APARTMENTS, TERMINAL, TOWER, ROUND_HOTEL }
+enum Kind { MALL, GARAGE, SELF_STORAGE, OUR_STORAGE, CHURCH, MARKET, PARK, THEATER, HOTEL, APARTMENTS, TERMINAL, TOWER, ROUND_HOTEL, PETROL }
 
 const WIDTHS := {Kind.MALL: 320.0, Kind.GARAGE: 200.0, Kind.SELF_STORAGE: 260.0, Kind.OUR_STORAGE: 340.0,
 	Kind.CHURCH: 150.0, Kind.MARKET: 260.0, Kind.PARK: 480.0, Kind.THEATER: 250.0, Kind.HOTEL: 170.0, Kind.APARTMENTS: 210.0,
-	Kind.TERMINAL: 560.0, Kind.TOWER: 70.0, Kind.ROUND_HOTEL: 66.0}
+	Kind.TERMINAL: 560.0, Kind.TOWER: 70.0, Kind.ROUND_HOTEL: 66.0, Kind.PETROL: 150.0}
 const CONCRETE := Color("a7a3a8")
 const CONCRETE_DARK := Color("7d7981")
 const STEEL := Color("c9ccd2")
@@ -38,6 +38,48 @@ const CAR_COLOURS := [Color("c94a3d"), Color("5b7fa6"), Color("fbf8f2"), Color("
 	set(value):
 		sign_text = value
 		queue_redraw()
+
+
+func _ready() -> void:
+	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+
+
+## A wall at the band sprites' density: texture (0 plaster, 1 brick, 2 smooth),
+## light from the left, shade on the right, a dark outline.
+func _box(r: Rect2, c: Color, tex: int) -> void:
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
+	var a := Rect2(r.position * 2.0, r.size * 2.0)
+	match tex:
+		0: draw_texture_rect(PixelArt.plaster(), a, true, c)
+		1: draw_texture_rect(PixelArt.brick(), a, true, c)
+		_: draw_rect(a, c)
+	draw_rect(Rect2(a.position, Vector2(2, a.size.y)), c.lightened(0.12))
+	draw_rect(Rect2(a.position + Vector2(a.size.x - 6, 0), Vector2(6, a.size.y)), c.darkened(0.22))
+	draw_rect(Rect2(a.position - Vector2(1, 1), Vector2(a.size.x + 2, 1)), PixelArt.OUTLINE)
+	draw_rect(Rect2(a.position.x - 1, a.position.y, 1, a.size.y), PixelArt.OUTLINE)
+	draw_rect(Rect2(a.end.x, a.position.y, 1, a.size.y), PixelArt.OUTLINE)
+	draw_set_transform(Vector2.ZERO)
+
+
+## A framed window at the sprites' density: outline, frame, glass with a sky
+## reflection (or a lit room), mullions, a sill with its shadow. `bars` = panes across.
+func _win(r: Rect2, lit := false, bars := 1) -> void:
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
+	var a := Rect2(r.position * 2.0, r.size * 2.0)
+	var frame := WorldPalette.TRIM
+	draw_rect(a.grow(1), PixelArt.OUTLINE)
+	draw_rect(a, frame)
+	var g := a.grow(-2)
+	draw_rect(g, Color("f2c66a") if lit else Color("26304a"))
+	if not lit:
+		draw_rect(Rect2(g.position, Vector2(g.size.x, 3)), Color("26304a").lightened(0.25))
+		draw_line(g.position + Vector2(2, g.size.y * 0.7), g.position + Vector2(g.size.x * 0.5, 3), Color(1, 1, 1, 0.15), 1.0)
+	for k in range(1, bars + 1):
+		var mx := a.position.x + a.size.x * k / (bars + 1.0)
+		draw_rect(Rect2(mx - 1, a.position.y, 2, a.size.y), frame)
+	draw_rect(Rect2(a.position.x - 3, a.end.y, a.size.x + 6, 3), Color("d9d0c0"))
+	draw_rect(Rect2(a.position.x - 2, a.end.y + 3, a.size.x + 4, 2), Color(0, 0, 0, 0.25))
+	draw_set_transform(Vector2.ZERO)
 
 
 func width() -> float:
@@ -61,6 +103,7 @@ func _draw() -> void:
 		Kind.TERMINAL: _terminal(rng)
 		Kind.TOWER: _tower(rng)
 		Kind.ROUND_HOTEL: _round_hotel(rng)
+		Kind.PETROL: _petrol(rng)
 
 
 func _text(x: float, y: float, w: float, text: String, size: int, c: Color) -> void:
@@ -71,7 +114,7 @@ func _mall(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var w := width()
 	var h := 104.0
-	draw_rect(Rect2(0, -h, w, h), Color("d8cbb8"))
+	_box(Rect2(0, -h, w, h), Color("d8cbb8"), 0)
 	draw_rect(Rect2(0, -h, w, 8), CONCRETE_DARK)                 # roof edge
 	draw_rect(Rect2(w - 3, -h, 3, h), Color("b5a893"))
 	# Tower with the centre's name.
@@ -79,7 +122,7 @@ func _mall(rng: RandomNumberGenerator) -> void:
 	_text(w / 2 - 34, -h - 7, 68, sign_text if sign_text != "" else "WINKELCENTRUM", 8, p.LIT)
 	# Upper band of offices.
 	for i in int(w / 18):
-		draw_rect(Rect2(6 + i * 18, -h + 14, 12, 10), p.GLASS)
+		_win(Rect2(6 + i * 18, -h + 14, 12, 10), rng.randf() < 0.15)
 	# Canopy and shop fronts.
 	draw_rect(Rect2(-4, -52, w + 8, 4), CONCRETE_DARK)
 	var shops := 5
@@ -104,7 +147,7 @@ func _mall(rng: RandomNumberGenerator) -> void:
 
 func _garage(rng: RandomNumberGenerator, x0: float, w: float, h: float, big_sign: bool) -> void:
 	var p := WorldPalette
-	draw_rect(Rect2(x0, -h, w, h), CONCRETE)
+	_box(Rect2(x0, -h, w, h), CONCRETE, 0)
 	var floors := 4
 	var fh := h / floors
 	for f in floors:
@@ -148,7 +191,7 @@ func _self_storage(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var w := width()
 	var h := 86.0
-	draw_rect(Rect2(0, -h, w, h), p.ORANGE)
+	_box(Rect2(0, -h, w, h), p.ORANGE, 2)
 	for x in range(0, int(w), 4):                                # corrugation
 		draw_rect(Rect2(x, -h, 1, h - 42), p.ORANGE.darkened(0.15))
 	draw_rect(Rect2(0, -44, w, 44), p.WHITE)
@@ -182,7 +225,7 @@ func _our_storage(rng: RandomNumberGenerator) -> void:
 	draw_rect(Rect2(x0 + 104, -34, 17, 34), p.NAVY)
 	draw_rect(Rect2(x0 + 117, -18, 2, 2), p.LIT)
 	for k in 5:
-		draw_rect(Rect2(x0 + 24 + k * 34, -h + 40, 14, 6), p.GLASS if k != 2 else p.LIT)
+		_win(Rect2(x0 + 24 + k * 34, -h + 40, 14, 8), k == 2)
 	# Camera and a lamp over the yard.
 	draw_rect(Rect2(x0 + 4, -60, 6, 3), p.IRON)
 	draw_rect(Rect2(x0 + 2, -62, 2, 6), p.IRON)
@@ -195,7 +238,7 @@ func _church(rng: RandomNumberGenerator) -> void:
 	var brick := Color("8c4a3a")
 	var w := width()
 	# Nave with a steep roof and tall arched windows.
-	draw_rect(Rect2(0, -96, 104, 96), brick)
+	_box(Rect2(0, -96, 104, 96), brick, 1)
 	WorldPalette.triangle(self, -4, -96, 112, 46, p.ROOF)
 	for k in 4:
 		var x := 10 + k * 24
@@ -204,7 +247,7 @@ func _church(rng: RandomNumberGenerator) -> void:
 		draw_rect(Rect2(x + 4, -82, 2, 44), Color("c9a36a"))
 	# Tower: square shaft, belfry, clock, spire with a weathercock.
 	var tx := 104.0
-	draw_rect(Rect2(tx, -150, 46, 150), brick.darkened(0.08))
+	_box(Rect2(tx, -150, 46, 150), brick.darkened(0.08), 1)
 	draw_rect(Rect2(tx, -150, 46, 3), p.TRIM)
 	draw_rect(Rect2(tx + 10, -140, 8, 18), p.GLASS)
 	draw_rect(Rect2(tx + 28, -140, 8, 18), p.GLASS)
@@ -289,7 +332,7 @@ func _theater(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var w := width()
 	var stone := Color("e6dcc8")
-	draw_rect(Rect2(0, -112, w, 112), stone)
+	_box(Rect2(0, -112, w, 112), stone, 0)
 	draw_rect(Rect2(w - 3, -112, 3, 112), stone.darkened(0.15))
 	WorldPalette.triangle(self, 10, -112, w - 20, 28, stone.darkened(0.06))  # pediment
 	draw_rect(Rect2(10, -113, w - 20, 2), p.TRIM)
@@ -314,14 +357,14 @@ func _hotel(rng: RandomNumberGenerator) -> void:
 	var w := width()
 	var h := rng.randf_range(150, 175)
 	var c: Color = [Color("d9c9b0"), Color("9fb3c8"), Color("c98f6f")][seed_value % 3]
-	draw_rect(Rect2(0, -h, w, h), c)
+	_box(Rect2(0, -h, w, h), c, 0)
 	draw_rect(Rect2(w - 3, -h, 3, h), c.darkened(0.2))
 	draw_rect(Rect2(0, -h, w, 5), p.TRIM)
 	var y := -h + 14
 	while y < -52:
 		var x := 12.0
 		while x < w - 30:
-			draw_rect(Rect2(x, y, 12, 14), p.LIT if rng.randf() < 0.25 else p.GLASS)
+			_win(Rect2(x, y, 12, 14), rng.randf() < 0.25)
 			draw_rect(Rect2(x - 1, y + 14, 14, 2), p.TRIM)
 			x += 22
 		y += 24
@@ -348,7 +391,7 @@ func _apartments(rng: RandomNumberGenerator) -> void:
 	var h := rng.randf_range(120, 150)
 	var panels := [Color("e07a2e"), Color("5b7fa6"), Color("e0b23a"), Color("6f8f5a"), Color("c94a3d")]
 	var base := Color("e9e4dc") if seed_value % 2 == 0 else Color("4b4f5a")
-	draw_rect(Rect2(0, -h, w, h), base)
+	_box(Rect2(0, -h, w, h), base, 0 if seed_value % 2 == 0 else 2)
 	draw_rect(Rect2(w - 3, -h, 3, h), base.darkened(0.15))
 	draw_rect(Rect2(0, -h - 4, w, 4), base.darkened(0.25))
 	var floors := int((h - 24) / 18)
@@ -357,7 +400,7 @@ func _apartments(rng: RandomNumberGenerator) -> void:
 		var y := -h + 8 + f * 18
 		for b in bays:
 			var x := 4 + b * 30
-			draw_rect(Rect2(x, y, 20, 12), p.GLASS if rng.randf() < 0.8 else p.LIT)
+			_win(Rect2(x, y, 20, 12), rng.randf() >= 0.8, 2)
 			if rng.randf() < 0.45:
 				draw_rect(Rect2(x + 21, y, 5, 12), panels[(b + f + seed_value) % panels.size()])
 			if b % 2 == 0:                                         # balcony
@@ -376,7 +419,7 @@ func _terminal(rng: RandomNumberGenerator) -> void:
 	var w := width()
 	var h := 96.0
 	# Long low terminal: concrete base, a band of glass, a roof that overhangs.
-	draw_rect(Rect2(0, -h, w, h), Color("c9ccd2"))
+	_box(Rect2(0, -h, w, h), Color("c9ccd2"), 2)
 	draw_rect(Rect2(0, -h + 16, w, 46), Color("3a4a62"))
 	for x in range(0, int(w), 14):
 		draw_rect(Rect2(x, -h + 16, 1, 46), Color("8a9ab2"))
@@ -453,3 +496,38 @@ func _round_hotel(rng: RandomNumberGenerator) -> void:
 	for x in range(8, int(w) - 6, 10):
 		draw_rect(Rect2(x, -22, 1, 22), Color("c9a36a"))
 	draw_rect(Rect2(w / 2 - 8, -20, 16, 20), Color("f2c66a"))
+
+
+## A petrol station: canopy on two columns, two pumps, a small shop with a
+## glass front, the price pole.
+func _petrol(rng: RandomNumberGenerator) -> void:
+	var p := WorldPalette
+	var brand := Color("2f8a4a")
+	# Shop at the back right.
+	_box(Rect2(90, -46, 56, 46), Color("e9e4dc"), 0)
+	draw_rect(Rect2(94, -38, 30, 30), Color("8ab0c8"))
+	draw_rect(Rect2(94, -38, 30, 2), p.TRIM)
+	draw_rect(Rect2(128, -34, 14, 34), Color("8ab0c8").darkened(0.2))
+	draw_rect(Rect2(90, -50, 56, 6), brand)
+	_text(90, -45, 56, "SHOP", 6, p.WHITE)
+	# Canopy.
+	for cx in [18.0, 72.0]:
+		draw_rect(Rect2(cx - 2, -54, 4, 54), Color("c9ccd2"))
+	draw_rect(Rect2(-4, -66, 98, 12), p.WHITE)
+	draw_rect(Rect2(-4, -58, 98, 4), brand)
+	draw_rect(Rect2(-4, -54, 98, 2), Color(0, 0, 0, 0.2))
+	for k in 6:                                                 # canopy lights
+		draw_rect(Rect2(4 + k * 15, -53, 6, 1), Color("fff3c4"))
+	# Pumps.
+	for px in [32.0, 54.0]:
+		draw_rect(Rect2(px, -24, 10, 24), Color("e9e4dc"))
+		draw_rect(Rect2(px, -24, 10, 4), brand)
+		draw_rect(Rect2(px + 2, -18, 6, 4), Color("1e1e24"))
+		draw_rect(Rect2(px + 1, -8, 8, 2), Color("c94a3d"))
+		draw_line(Vector2(px + 10, -14), Vector2(px + 13, -6), Color("2a2a2e"), 1.0)
+	# Price pole.
+	draw_rect(Rect2(-14, -70, 4, 70), Color("8a8f99"))
+	draw_rect(Rect2(-24, -86, 24, 30), brand)
+	for r in 3:
+		draw_rect(Rect2(-22, -82 + r * 8, 20, 6), Color("1e1e24"))
+		draw_rect(Rect2(-14, -81 + r * 8, 10, 4), Color("f2c14a"))
