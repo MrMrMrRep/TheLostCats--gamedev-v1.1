@@ -16,11 +16,12 @@ static func spawn(parent: Node, pos: Vector2, text: String, color := Color.WHITE
 
 func _show(text: String, color: Color) -> void:
 	z_index = 20
+	var s := 1.0 if get_tree().get_first_node_in_group(&"world_map") else 0.5   # map is zoomed out
 	var l := Label.new()
 	l.text = text
 	l.size = Vector2(200, 12)
-	l.scale = Vector2(0.5, 0.5)
-	l.position = Vector2(-50, -6)
+	l.scale = Vector2(s, s)
+	l.position = Vector2(-100 * s, -6)
 	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	l.add_theme_font_size_override("font_size", 8)
 	l.add_theme_color_override("font_color", color)

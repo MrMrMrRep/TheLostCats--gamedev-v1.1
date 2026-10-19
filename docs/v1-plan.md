@@ -132,13 +132,18 @@ Not in M6: quiet/stealth part of Joep's beer (nothing listens yet), whiskey/join
 - [x] **Done when:** keycard and beer can be handed over, and Geoff follows the papers through a room ✅
 
 ### M8 — World map
-- [ ] Wide scene with parallax (same bg for now), hand-placed segments: studio (center) → city → service station → venue (one side), city → road block (other side)
-- [ ] Band moves as a group (leader + followers in a line), no deaths
-- [ ] Bike: get on/off anywhere, ~1.6× walk speed. Van: get in/out only at parking spots, ~3× walk speed, smooth accel
-- [ ] Doors: studio (interior later), venue → level. Packages to pick up (+coins counter)
-- [ ] NPC Geordie: dialogue box (typewriter, next/close), quest flag start/complete, "!" marker
-- [ ] Camera: zoom 1×, slower follow, wider look-ahead (bigger while driving)
-- [ ] **Done when:** you can take the bike or van from the studio to the venue and enter it
+- [x] `scenes/world/world_map.tscn` (**main scene**, 3840 px, about 6 screens): road block → west city → **Studio** (Geordie, bikes) → van P → east city → service station + P → venue P → **Café De Kat** → road block. Canal houses, studio and venue fronts drawn in code (placeholder art)
+- [x] The band moves as a group: the active member leads, the others trail on the leader's exact path, 16 px apart (jumps included). No switching, no deaths
+- [x] **Bikes**: E at the bikes, the whole band rides at 1.6× walking speed; E anywhere to get off, the bikes stay parked there
+- [x] **Band van**: 3× walking speed with smooth acceleration; get in/out only at a **P** sign. Where you parked it is remembered across levels
+- [x] Doors: Café De Kat → the test level; studio and service station say "not open yet". Coming out of the level's last door brings you back to the venue
+- [x] Packages: +10 coins once (remembered); not collected from inside the van
+- [x] Geordie: "!" → dialogue box (typewriter, E advances) → quest "Get to Café De Kat" → after the gig "?" → "Tour day 1 complete!"
+- [x] Map HUD: objective + coins + vehicle hint. Camera: zoom 1×, slower follow, look-ahead 80 px walking / 160 px driving. World text full size on the map
+- [x] Headless test `tests/test_world.gd` (23 checks)
+- [x] **Done when:** you can take the bike or van from the studio to the venue and enter it ✅
+
+Not in M8: day/night and police, studio interior and upgrades, shops that sell, fans/merch, procedural map, music (M10).
 
 ### M9 — The slice level "Café De Kat"
 Blockout with grey tiles first, then dress with the amwoods tileset. One new idea per room, then combine (level-design skill: teach → test → twist).
@@ -223,4 +228,8 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 
 ```bash
 /Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_items.gd
+```
+
+```bash
+/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_world.gd
 ```

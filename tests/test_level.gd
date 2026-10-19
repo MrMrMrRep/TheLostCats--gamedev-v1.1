@@ -228,7 +228,7 @@ func _test_locked_and_exit() -> void:
 	_place(band.active, exit.global_position)
 	await _frames(3)
 	await _tap("interact")
-	_check(target[0] == "res://scenes/dev/movement_test.tscn", "level exit loads the next scene")
+	_check(target[0] == "res://scenes/world/world_map.tscn", "level exit goes back to the world map")
 
 
 # --- Helpers ---------------------------------------------------------------

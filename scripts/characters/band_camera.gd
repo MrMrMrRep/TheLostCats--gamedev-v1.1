@@ -76,8 +76,9 @@ func _physics_process(delta: float) -> void:
 		_focus.y = t.y - signf(d.y) * deadzone.y
 
 	var want := 0.0
-	if target is CharacterBody2D and absf(target.velocity.x) > look_ahead_min_speed:
-		want = signf(target.velocity.x) * look_ahead
+	var v: Variant = target.get("velocity")
+	if v is Vector2 and absf(v.x) > look_ahead_min_speed:
+		want = signf(v.x) * look_ahead
 	_look = move_toward(_look, want, look_ahead / look_ahead_time * delta)
 
 	var goal := _focus + Vector2(_look, 0)

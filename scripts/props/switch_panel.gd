@@ -30,7 +30,7 @@ func can_interact(_member: BandMember) -> bool:
 	return not used
 
 
-func interact(member: BandMember, _level: Level) -> void:
+func interact(member: BandMember, _level: Node) -> void:
 	if kind == Kind.HACK_PANEL and not (member.ability and member.ability.can_hack):
 		say("Needs a hacker... Joep?")
 		return

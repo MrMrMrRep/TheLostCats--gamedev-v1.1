@@ -138,7 +138,8 @@ key_id = &"keycard_red"
 [node name="LevelExit" type="Area2D" parent="Rooms/Room3" unique_id=592326653]
 position = Vector2(3036, 288)
 script = ExtResource("11_t72ms")
-target_scene = "res://scenes/dev/movement_test.tscn"
+target_scene = "res://scenes/world/world_map.tscn"
+target_spawn = &"VenueDoor"
 
 [node name="Keycard" type="Area2D" parent="Rooms/Room3" unique_id=681250305]
 position = Vector2(2568, 216)
@@ -166,7 +167,9 @@ script = ExtResource("12_0a6j2")
 [node name="LevelExit" type="Area2D" parent="Rooms/Room4" unique_id=1218673887]
 position = Vector2(3996, 288)
 script = ExtResource("11_t72ms")
-target_scene = "res://scenes/levels/abilities_test.tscn"
+target_scene = "res://scenes/world/world_map.tscn"
+target_spawn = &"VenueDoor"
+set_flag = &"cafe_finished"
 
 [node name="Labels" type="Node2D" parent="." unique_id=430421098]
 
@@ -298,7 +301,7 @@ offset_bottom = 230.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "level exit >"
+text = "back to the map >"
 
 [node name="@Label@45086" type="Label" parent="Labels" unique_id=1319641981]
 offset_left = 2484.0
@@ -348,7 +351,7 @@ offset_bottom = 236.0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "exit (bring Geoff) >"
+text = "gig done: back to the map (bring Geoff) >"
 
 [node name="Band" type="Node2D" parent="." unique_id=1097071013 instance=ExtResource("13_wxl5h")]
 script = ExtResource("14_nis08")

@@ -49,7 +49,7 @@ func can_interact(_member: BandMember) -> bool:
 	return not persuaded
 
 
-func interact(member: BandMember, _level: Level) -> void:
+func interact(member: BandMember, _level: Node) -> void:
 	if member.ability and member.ability.can_persuade:
 		persuade()
 	else:

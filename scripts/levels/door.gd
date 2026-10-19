@@ -14,7 +14,8 @@ extends Interactable
 	set(value):
 		locked = value
 		queue_redraw()
-@export var key_id: StringName              ## item that unlocks it (M7)
+@export var key_id: StringName              ## item that unlocks it
+@export var set_flag: StringName            ## Game flag set when going through (e.g. gig done)
 
 var _start_locked := false
 
@@ -26,13 +27,15 @@ func _ready() -> void:
 		add_to_group(&"resettable")
 
 
-func interact(member: BandMember, level: Level) -> void:
+func interact(member: BandMember, level: Node) -> void:
 	if locked:
 		var key := member.inventory.take(key_id) if key_id != &"" else null
 		if key == null:
 			say("Locked: needs the %s" % _key_name())
 			return
 		unlock_with(key)
+	if set_flag != &"":
+		Game.set_flag(set_flag)
 	level.go_through(self, member)
 
 

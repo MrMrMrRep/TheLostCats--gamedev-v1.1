@@ -31,6 +31,7 @@ const BEER := preload("res://resources/items/beer.tres")
 var facing := 1.0
 var is_active := false
 var ai_dir := 0.0                           # horizontal input while inactive (-1..1)
+var show_name_tag := true                   # the zoomed-out world map hides it
 var anim_override: StringName = &""         # ability animation (climb, hover, shield)
 var ability: MemberAbility
 var inventory: Inventory
@@ -130,7 +131,7 @@ func set_active(value: bool) -> void:
 ## Only the active member shows a name tag; gathered tags would overlap.
 func _update_name_tag() -> void:
 	if is_node_ready():
-		name_tag.visible = is_active
+		name_tag.visible = is_active and show_name_tag
 		name_tag.modulate = Color("ffd36b")
 
 

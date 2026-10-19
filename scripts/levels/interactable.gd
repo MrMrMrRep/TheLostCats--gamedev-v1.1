@@ -2,7 +2,7 @@
 class_name Interactable
 extends Area2D
 ## Something the active member can use with the interact key (E): doors, NPCs.
-## The Level shows the prompt on the nearest one and calls interact().
+## The Level (or WorldMap) shows the prompt on the nearest one and calls interact().
 ## say() shows a short speech line above it.
 
 @export var prompt := "E"
@@ -36,7 +36,7 @@ func can_interact(_member: BandMember) -> bool:
 	return true
 
 
-func interact(_member: BandMember, _level: Level) -> void:
+func interact(_member: BandMember, _level: Node) -> void:
 	pass
 
 
@@ -48,6 +48,14 @@ func set_highlighted(on: bool) -> void:
 
 func set_prompt_text(text: String) -> void:
 	_prompt_label.text = text
+
+
+## World text is drawn at half size for the 2x-zoomed rooms; the 1x world map
+## uses full size so it stays readable.
+func set_label_scale(s: float) -> void:
+	for l in [_prompt_label, _say_label]:
+		l.scale = Vector2(s, s)
+		l.position.x = -l.size.x * s / 2.0
 
 
 func say(text: String, seconds := 1.6) -> void:
