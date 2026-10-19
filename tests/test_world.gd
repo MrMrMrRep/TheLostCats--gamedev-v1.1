@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 38
+const EXPECTED_CHECKS := 39
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -109,7 +109,7 @@ func _test_bikes() -> void:
 	await _frames(90)
 	var speed: float = bikes.velocity.x
 	Input.action_release("move_right")
-	_check(absf(speed - WALK_SPEED * 1.6) < 5.0, "bikes go 1.6x walking speed (%.0f px/s)" % speed)
+	_check(absf(speed - bikes.top_speed()) < 5.0, "bikes ride at their top speed (%.0f px/s)" % speed)
 	await _frames(30)
 	await _tap("interact")
 	await _frames(2)
@@ -133,21 +133,27 @@ func _test_van() -> void:
 	await _frames(150)
 	var speed: float = van.velocity.x
 	Input.action_release("move_right")
-	_check(absf(speed - WALK_SPEED * 2.2) < 5.0, "the van goes 2.2x walking speed (%.0f px/s)" % speed)
+	_check(absf(speed - map.CITY_SPEED) < 5.0, "in town the van keeps to the city limit (%.0f px/s)" % speed)
 	await _frames(30)
 	var coasted: float = van.velocity.x
 	_check(coasted > speed * 0.6 and coasted < speed - 5.0, "letting go coasts (%.0f -> %.0f px/s)" % [speed, coasted])
 	Input.action_press("move_left")
 	await _frames(20)
 	Input.action_release("move_left")
-	_check(van.velocity.x < coasted - 200.0, "steering back brakes hard (%.0f px/s)" % van.velocity.x)
-	_check(map.target_zoom_at(van.global_position.x) == 1.0 and map.zoom < 1.8, "driving in town: zoom slowly eases out toward 1x (%.2f)" % map.zoom)
+	_check(van.velocity.x < coasted - 150.0 and not van._skids.is_empty(), "steering back brakes hard, wheels lock: skid marks (%.0f px/s)" % van.velocity.x)
+	var zoom_now: float = map.zoom
+	await _frames(330)                          # let it roll to a stop and wait
+	_check(map._slow_time > map.SLOW_DELAY and absf(map.zoom - map.ZOOM_VAN_SLOW_TOWN) < absf(zoom_now - map.ZOOM_VAN_SLOW_TOWN) - 0.05,
+		"standing still in the van: the camera eases to the close-up zoom (%.2f -> %.2f)" % [zoom_now, map.zoom])
+	_check(map.target_zoom_at(van.global_position.x) == map.ZOOM_VAN_TOWN and map.zoom < 1.9, "driving in town: zoom slowly eases out toward %.1fx (%.2f)" % [map.ZOOM_VAN_TOWN, map.zoom])
 	var x_back: float = van.global_position.x
 	var zoom_before: float = map.zoom
 	van.global_position.x = 700.0               # out of town, on the dike road
-	await _frames(240)
+	Input.action_press("move_right")            # keep driving: no slow-down zoom
+	await _frames(600)
+	Input.action_release("move_right")
 	_check(map.target_zoom_at(700.0) == 0.5 and map.zoom < zoom_before - 0.2 and map.birds.active,
-		"on the road outside town: zoom slowly out toward 0.5x (%.2f -> %.2f), birds" % [zoom_before, map.zoom])
+		"on the road outside town: after a pause, zoom slowly out toward 0.5x (%.2f -> %.2f), birds" % [zoom_before, map.zoom])
 	van.global_position.x = x_back
 	await _frames(240)
 	await _frames(70)

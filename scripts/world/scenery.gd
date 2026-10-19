@@ -6,12 +6,15 @@ extends Node2D
 ##   BACK_STREET muted canal houses and trees behind the street (centre), flats
 ##               and warehouses (outskirts), trees outside town
 ##   POLDER_FAR  horizon fields with ditches, wind turbines, a highway (outside town)
-##   POLDER_NEAR farms, old windmills, cows, trees (outside town)
+##   POLDER_NEAR farms, old windmills, cows, trees (outside town); west of
+##               `cows_until` only cows and the odd tree
+##   FOREGROUND  big trees right in front of the camera (country road, west),
+##               in a layer that moves faster than the street
 ## Zones are given in world x; a layer with parallax factor f shows world x as
 ## local x * f, so zone edges are scaled by the factor. Turbine rotors, mill
 ## sails and highway cars animate.
 
-enum Kind { SKYLINE, BACK_STREET, POLDER_FAR, POLDER_NEAR }
+enum Kind { SKYLINE, BACK_STREET, POLDER_FAR, POLDER_NEAR, FOREGROUND }
 
 const STREET_Y := 288.0
 
@@ -23,6 +26,9 @@ const STREET_Y := 288.0
 @export var outskirts := 7200.0             ## world x where the centre turns into outskirts
 @export var centre := Vector2(1100, 7200)   ## world x range with the church-tower skyline
 @export var map_width := 3840.0
+@export var map_min := 0.0                  ## world x of the map's west end
+@export var cows_until := -100000.0         ## world x: west of it only cows (no farms, mills)
+@export var foreground := Vector2.ZERO      ## world x range with foreground trees
 @export var seed_value := 5
 
 var _turbines: Array = []                   # local x of each turbine (rotors)
@@ -45,6 +51,10 @@ func _local(a: float) -> float:
 	return a * _factor()
 
 
+func _x0() -> float:
+	return _local(map_min) - 320.0
+
+
 func _in_town(local_x: float) -> bool:
 	return local_x >= _local(town.x) and local_x <= _local(town.y)
 
@@ -55,7 +65,7 @@ func _plan() -> void:
 	_turbines.clear()
 	_mills.clear()
 	_cars.clear()
-	var x0 := -320.0
+	var x0 := _x0()
 	var x1 := _local(map_width) + 320.0
 	if kind == Kind.POLDER_FAR:
 		var x := x0
@@ -69,7 +79,7 @@ func _plan() -> void:
 	elif kind == Kind.POLDER_NEAR:
 		var x := x0
 		while x < x1:
-			if not _in_town(x) and not _in_town(x + 80):
+			if not _in_town(x) and not _in_town(x + 80) and x > _local(cows_until):
 				_mills.append(x)
 			x += rng.randf_range(520, 820)  # a mill now and then, not a row of them
 
@@ -81,8 +91,8 @@ func _process(delta: float) -> void:
 		for c in _cars:
 			c[0] += c[1] * delta
 			if c[0] > _local(map_width) + 320.0:
-				c[0] = -320.0
-			elif c[0] < -320.0:
+				c[0] = _x0()
+			elif c[0] < _x0():
 				c[0] = _local(map_width) + 320.0
 		queue_redraw()                      # rotors / sails / cars move
 
@@ -95,6 +105,7 @@ func _draw() -> void:
 		Kind.BACK_STREET: _draw_back_street(rng)
 		Kind.POLDER_FAR: _draw_polder_far(rng)
 		Kind.POLDER_NEAR: _draw_polder_near(rng)
+		Kind.FOREGROUND: _draw_foreground(rng)
 
 
 func _draw_skyline(rng: RandomNumberGenerator) -> void:
@@ -122,7 +133,7 @@ func _draw_skyline(rng: RandomNumberGenerator) -> void:
 func _draw_back_street(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var base := STREET_Y - 14
-	var x := -320.0
+	var x := _x0()
 	var end := _local(map_width) + 320.0
 	while x < end:
 		if _in_town(x) and x >= _local(outskirts):
@@ -176,7 +187,7 @@ func _outskirt_building(rng: RandomNumberGenerator, x: float, base: float) -> fl
 func _draw_polder_far(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var horizon := STREET_Y - 40
-	var x0 := -320.0
+	var x0 := _x0()
 	var x1 := _local(map_width) + 320.0
 	# Fields and ditches (also under the town; the back street covers it there).
 	draw_rect(Rect2(x0, horizon, x1 - x0, STREET_Y - horizon + 40), p.FIELD_FAR)
@@ -202,10 +213,17 @@ func _draw_polder_near(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var base := STREET_Y - 6
 	var t := Time.get_ticks_msec() / 1000.0
-	var x := -320.0
+	var x := _x0()
 	var end := _local(map_width) + 320.0
 	while x < end:
-		if not _in_town(x):
+		if not _in_town(x) and x < _local(cows_until):          # open meadow: just cows
+			var roll := rng.randf()
+			if roll < 0.7:
+				for k in rng.randi_range(2, 6):
+					_cow(x + k * rng.randf_range(14, 22), base - 8 + rng.randi_range(-2, 2), rng.randf() < 0.5)
+			elif roll < 0.8:
+				WorldPalette.tree(self, x, base, rng.randi_range(9, 12))
+		elif not _in_town(x):
 			var roll := rng.randf()
 			if roll < 0.25:
 				_farm(x, base)
@@ -256,3 +274,31 @@ func _windmill(x: float, base: float, h: float, t: float) -> void:
 		draw_line(hub, hub + dir * 34, p.MILL.darkened(0.4), 1.0)
 		for s in range(8, 34, 3):
 			draw_line(hub + dir * s, hub + dir * s + side * 5, p.SAIL, 1.0)
+
+
+## Big trees in front of the camera along the country road: trunks rise from
+## below the screen, crowns overlap the top of the view now and then.
+func _draw_foreground(rng: RandomNumberGenerator) -> void:
+	if foreground.y <= foreground.x:
+		return
+	var x := _local(foreground.x)
+	var end := _local(foreground.y)
+	while x < end:
+		var size := rng.randf_range(80, 120)
+		var base := STREET_Y + 150.0
+		var lean := rng.randf_range(-8, 8)
+		var trunk := Color("2e2620")
+		draw_line(Vector2(x, base), Vector2(x + lean, base - size * 2.0), trunk, 10.0)
+		draw_line(Vector2(x + lean, base - size * 1.4), Vector2(x + lean - size * 0.4, base - size * 2.1), trunk, 5.0)
+		var cy := base - size * 2.3
+		var leaves := PixelArt.leaves()
+		for k in 8:
+			var a := TAU * k / 8.0
+			var c := Vector2(x + lean + cos(a) * size * 0.55, cy + sin(a) * size * 0.35)
+			draw_circle(c, size * 0.42, (leaves[0] as Color).darkened(0.45))
+		for k in 8:
+			var a := TAU * k / 8.0 + 0.3
+			var c := Vector2(x + lean + cos(a) * size * 0.45, cy + sin(a) * size * 0.3)
+			draw_circle(c + Vector2(-size * 0.08, -size * 0.1), size * 0.3, (leaves[0] as Color).darkened(0.25))
+		draw_circle(Vector2(x + lean - size * 0.2, cy - size * 0.25), size * 0.28, (leaves[1] as Color).darkened(0.2))
+		x += rng.randf_range(700, 1300)

@@ -1,0 +1,133 @@
+@tool
+class_name WorldWaterLife
+extends Node2D
+## Small things on the water in front of us, for life and depth: ducks and
+## swans paddling, a rowing boat, reed clumps along the bank, mooring posts,
+## a buoy, and a lock (sluis) where the canal meets the polder ditch: two
+## wooden gates with white-and-black balance beams, the chamber walls, a
+## traffic light for boats. Each thing draws its own soft reflection (this is
+## in front of the water). Origin = street line; `length` world px wide.
+
+const WATER_Y := 22.0
+
+@export var length := 2000.0:
+	set(value):
+		length = value
+		queue_redraw()
+@export var lock_x := -1.0                  ## local x of the lock, < 0: none
+@export var seed_value := 5
+
+
+func _process(_delta: float) -> void:
+	if not Engine.is_editor_hint():
+		queue_redraw()
+
+
+func _draw() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var t := Time.get_ticks_msec() / 1000.0
+	if lock_x >= 0.0:
+		_lock(lock_x)
+	var x := rng.randf_range(30, 120)
+	while x < length:
+		if lock_x < 0.0 or absf(x - lock_x) > 90.0:
+			var r := rng.randf()
+			if r < 0.25:
+				_reeds(x, rng)
+			elif r < 0.45:
+				_ducks(x + sin(t * 0.2 + x) * 20.0, rng, t)
+			elif r < 0.55:
+				_swan(x + sin(t * 0.1 + x) * 30.0, t)
+			elif r < 0.7:
+				_posts(x, rng)
+			elif r < 0.78:
+				_rowboat(x + fmod(t * 6.0 + x, 200.0) - 100.0, t)
+			elif r < 0.85:
+				_buoy(x, t)
+		x += rng.randf_range(90, 200)
+
+
+func _bob(t: float, x: float) -> float:
+	return sin(t * 2.0 + x * 0.1) * 0.6
+
+
+func _reflect(r: Rect2, c: Color) -> void:
+	draw_rect(Rect2(r.position.x, WATER_Y + (WATER_Y - r.end.y) + 2, r.size.x, r.size.y * 0.6), Color(c, 0.25))
+
+
+func _reeds(x: float, rng: RandomNumberGenerator) -> void:
+	for k in rng.randi_range(6, 12):
+		var rx := x + k * 2.5
+		var h := rng.randf_range(8, 16)
+		var c := Color("6f8f3a") if k % 3 else Color("a89a5a")
+		draw_line(Vector2(rx, WATER_Y + 1), Vector2(rx + rng.randf_range(-2, 2), WATER_Y + 1 - h), c, 1.0)
+		if k % 4 == 0:                                        # bulrush heads
+			draw_rect(Rect2(rx - 1, WATER_Y - h - 1, 2, 4), Color("5a3a22"))
+	draw_rect(Rect2(x - 2, WATER_Y + 2, 34, 3), Color(0.3, 0.4, 0.2, 0.25))
+
+
+func _ducks(x: float, rng: RandomNumberGenerator, t: float) -> void:
+	for k in rng.randi_range(1, 4):
+		var dx := x + k * 9
+		var y := WATER_Y + 3 + _bob(t, dx)
+		var drake := k % 2 == 0
+		draw_rect(Rect2(dx, y - 3, 6, 3), Color("8a6a4a") if not drake else Color("9a9a90"))
+		draw_rect(Rect2(dx + 5, y - 6, 3, 3), Color("2f6f3a") if drake else Color("7a5a3a"))
+		draw_rect(Rect2(dx + 8, y - 5, 1, 1), Color("e0b23a"))
+		_reflect(Rect2(dx, y - 6, 8, 6), Color("8a6a4a"))
+
+
+func _swan(x: float, t: float) -> void:
+	var y := WATER_Y + 3 + _bob(t, x)
+	draw_rect(Rect2(x, y - 5, 12, 5), Color("f6f4ee"))
+	draw_rect(Rect2(x + 9, y - 13, 2, 9), Color("f6f4ee"))
+	draw_rect(Rect2(x + 9, y - 14, 4, 2), Color("f6f4ee"))
+	draw_rect(Rect2(x + 13, y - 13, 2, 1), Color("e07a2e"))
+	_reflect(Rect2(x, y - 14, 14, 14), Color("f6f4ee"))
+
+
+func _posts(x: float, rng: RandomNumberGenerator) -> void:
+	for k in rng.randi_range(1, 3):                           # mooring posts (dukdalven)
+		var px := x + k * 7
+		var h := rng.randf_range(10, 16)
+		draw_rect(Rect2(px, WATER_Y + 2 - h, 3, h + 2), Color("4a3426"))
+		draw_rect(Rect2(px, WATER_Y + 2 - h, 3, 2), Color("6a5440"))
+		_reflect(Rect2(px, WATER_Y + 2 - h, 3, h), Color("4a3426"))
+
+
+func _rowboat(x: float, t: float) -> void:
+	var y := WATER_Y + 4 + _bob(t, x)
+	draw_rect(Rect2(x, y - 4, 22, 4), Color("2f6f4a"))
+	draw_rect(Rect2(x + 2, y - 1, 18, 2), Color("1f4a32"))
+	draw_rect(Rect2(x + 9, y - 13, 4, 9), Color("c94a3d"))   # rower
+	draw_rect(Rect2(x + 9, y - 17, 4, 4), Color("e8b896"))
+	var oar := sin(t * 2.5 + x) * 4.0
+	draw_line(Vector2(x + 11, y - 9), Vector2(x + 11 + 12, y + 1 + oar * 0.3), Color("8a6a4a"), 1.0)
+	_reflect(Rect2(x, y - 17, 22, 17), Color("2f6f4a"))
+
+
+func _buoy(x: float, t: float) -> void:
+	var y := WATER_Y + 3 + _bob(t, x) * 2.0
+	draw_rect(Rect2(x, y - 8, 6, 8), Color("c94a3d"))
+	draw_rect(Rect2(x, y - 5, 6, 2), Color("f2f2f2"))
+	draw_rect(Rect2(x + 2, y - 11, 2, 3), Color("2a2a2e"))
+	_reflect(Rect2(x, y - 11, 6, 11), Color("c94a3d"))
+
+
+## The lock: chamber walls, two gates with balance beams, a boat light.
+func _lock(x: float) -> void:
+	var stone := Color("6f6a72")
+	draw_rect(Rect2(x - 70, WATER_Y - 2, 140, 4), stone)                 # chamber edge
+	for gx in [x - 60.0, x + 60.0]:
+		draw_rect(Rect2(gx - 4, WATER_Y - 14, 8, 22), Color("4a3426"))    # gate
+		draw_rect(Rect2(gx - 4, WATER_Y - 14, 8, 2), Color("6a5440"))
+		for k in 4:                                                     # balance beam, striped
+			draw_rect(Rect2(gx - 30 + k * 7, WATER_Y - 18, 7, 3), Color("f2f2f2") if k % 2 == 0 else Color("1d1a22"))
+		draw_rect(Rect2(gx - 1, WATER_Y - 18, 3, 4), Color("1d1a22"))
+		_reflect(Rect2(gx - 30, WATER_Y - 18, 34, 26), Color("4a3426"))
+	draw_rect(Rect2(x - 1, WATER_Y - 30, 2, 28), Color("3a3a40"))       # boat light
+	draw_rect(Rect2(x - 3, WATER_Y - 38, 6, 9), Color("1d1a22"))
+	draw_rect(Rect2(x - 2, WATER_Y - 37, 4, 3), Color("e04a3a"))
+	draw_rect(Rect2(x - 2, WATER_Y - 33, 4, 3), Color("2a3a2a"))
+	draw_rect(Rect2(x - 60, WATER_Y + 3, 120, 1), Color(1, 1, 1, 0.2))   # a slight step in level

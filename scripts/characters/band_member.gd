@@ -56,6 +56,7 @@ var ai_dir := 0.0                           # horizontal input while inactive (-
 var show_name_tag := true                   # the zoomed-out world map hides it
 var anim_override: StringName = &""         # ability animation (climb, hover, shield)
 var anim: StringName = &"idle"              # logical animation playing (see ANIM_ALIASES)
+var speed_scale := 1.0                      # world map: a calm walk instead of the level run
 var sprite_data: JTCSpriteData              # boxes and spawn events of a band sheet, else null
 var ability: MemberAbility
 var inventory: Inventory
@@ -219,7 +220,7 @@ func _physics_process(delta: float) -> void:
 		_jump_held = false
 
 	# Horizontal: reach top speed in accel_time, stop in decel_time.
-	var top := profile.run_speed() * (ability.speed_mult() if ability else 1.0)
+	var top := profile.run_speed() * speed_scale * (ability.speed_mult() if ability else 1.0)
 	var control := 1.0 if on_floor else profile.air_control
 	if _hurt_lock > 0.0 or (ability and ability.locks_horizontal()):
 		pass                                # keep knockback / wall-jump speed

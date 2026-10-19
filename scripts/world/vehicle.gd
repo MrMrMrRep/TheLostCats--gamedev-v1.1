@@ -7,8 +7,10 @@ extends Interactable
 ## The WorldMap drives it; position persists in Game.
 ## Driving model: the engine (or pedalling) pulls hard from standstill and
 ## fades toward top speed, letting go coasts with rolling resistance + drag,
-## steering the other way brakes. The van's body pitches with acceleration on
-## a spring, bounces a little when it stops, and puffs exhaust smoke.
+## steering the other way brakes. The van brakes clumsily: the wheels lock,
+## the tyres smoke and leave skid marks, the nose dives. Above the speed
+## limit it eases down by itself (the city limit). The body pitches on a
+## spring, bounces a little when it stops, and puffs exhaust smoke.
 
 enum Kind { BIKES, VAN }
 
@@ -25,7 +27,11 @@ const VAN_FRAMES := 4
 const VAN_SCALE := 0.75                     # the sheet is drawn bigger than the world's car scale (docs/city-layout.md)
 
 # Feel per kind: [pull px/s^2, brake px/s^2, rolling px/s^2, drag 1/s]
-const FEEL := {Kind.BIKES: [820.0, 700.0, 70.0, 0.35], Kind.VAN: [560.0, 800.0, 36.0, 0.16]}
+const FEEL := {Kind.BIKES: [420.0, 520.0, 60.0, 0.3], Kind.VAN: [240.0, 520.0, 34.0, 0.12]}
+const TOP_SPEED := {Kind.BIKES: 150.0, Kind.VAN: 320.0}    # px/s; the band walks 85
+const LIMIT_EASE := 220.0                   # px/s^2 the van slows down to a speed limit
+const SKID_FROM := 60.0                     # braking above this locks the wheels
+const SKID_LIFE := 6.0
 const PITCH_PER_ACCEL := 0.000045           # rad of body pitch per px/s^2
 const PITCH_MAX := 0.045
 const PITCH_SPRING := 90.0
@@ -41,6 +47,8 @@ var _pitch := 0.0
 var _pitch_vel := 0.0
 var _smoke: Array = []                      # [global pos, age, size, drift]
 var _smoke_timer := 0.0
+var skidding := false
+var _skids: Array = []                      # [world x from, world x to, age]
 var facing := 1.0
 var occupied := false:
 	set(value):
@@ -58,8 +66,8 @@ func interact(_member: BandMember, map: Node) -> void:
 		map.board(self)
 
 
-func speed_mult() -> float:
-	return 2.2 if kind == Kind.VAN else 1.6
+func top_speed() -> float:
+	return TOP_SPEED[kind]
 
 
 func display_name() -> String:
@@ -71,8 +79,13 @@ func drive(dir: float, top: float, delta: float, min_x: float, max_x: float) -> 
 	var f: Array = FEEL[kind]
 	var v := velocity.x
 	var before_v := v
+	var was_skidding := skidding
+	skidding = false
 	if dir != 0.0 and v != 0.0 and signf(dir) != signf(v):
 		v = move_toward(v, 0.0, f[1] * delta)          # braking
+		skidding = kind == Kind.VAN and absf(v) > SKID_FROM * (0.4 if was_skidding else 1.0)
+	elif absf(v) > top + 2.0:
+		v = move_toward(v, signf(v) * top, LIMIT_EASE * delta)   # speed limit: ease off
 	elif dir != 0.0:
 		facing = signf(dir)
 		var frac := clampf(absf(v) / top, 0.0, 1.0)
@@ -89,7 +102,16 @@ func drive(dir: float, top: float, delta: float, min_x: float, max_x: float) -> 
 	accel = (v - before_v) / delta if delta > 0.0 else 0.0
 	var before := position.x
 	position.x = clampf(position.x + velocity.x * delta, min_x, max_x)
-	_odometer += absf(position.x - before)
+	if skidding:                            # locked wheels: they slide, marks on the road
+		for wx: float in [-26.0, 26.0]:
+			var a := before + wx * facing
+			var b := position.x + wx * facing
+			if was_skidding and not _skids.is_empty():
+				_skids[-1 if wx > 0 else -2][1] = b
+			else:
+				_skids.append([a, b, 0.0])
+	else:
+		_odometer += absf(position.x - before)
 	if position.x <= min_x or position.x >= max_x:
 		velocity.x = 0.0
 	queue_redraw()
@@ -101,6 +123,8 @@ func _process(delta: float) -> void:
 		return
 	# Body pitch: accelerating squats the rear (nose up), braking dips the nose.
 	var target := clampf(accel * facing * PITCH_PER_ACCEL, -PITCH_MAX, PITCH_MAX)   # forward accel lifts the nose
+	if skidding:                            # stamping on the brake: a deep nose dive with a shudder
+		target = -PITCH_MAX * 1.5 * signf(velocity.x * facing) + randf_range(-0.006, 0.006)
 	if not occupied:
 		target = 0.0
 	_pitch_vel += ((target - _pitch) * PITCH_SPRING - _pitch_vel * PITCH_DAMP) * delta
@@ -113,11 +137,18 @@ func _process(delta: float) -> void:
 			_smoke_timer = lerpf(0.45, 0.08, clampf(strain, 0.0, 1.0))
 			var pipe := global_position + Vector2(EXHAUST.x * facing, EXHAUST.y)
 			_smoke.append([pipe, 0.0, randf_range(1.5, 2.5) + strain * 1.5, Vector2(-facing * randf_range(4, 10), randf_range(-14, -8))])
+	for sk in _skids:
+		sk[2] += delta
+	_skids = _skids.filter(func(sk: Array) -> bool: return sk[2] < SKID_LIFE)
+	if skidding and randf() < 0.6:          # tyre smoke at both wheels
+		for wx: float in [-26.0, 26.0]:
+			_smoke.append([global_position + Vector2(wx * facing, -2), 0.0, randf_range(2.0, 3.5),
+				Vector2(-velocity.x * 0.05 + randf_range(-6, 6), randf_range(-10, -4))])
 	for puff in _smoke:
 		puff[1] += delta
 		puff[0] += puff[3] * delta - Vector2(velocity.x * 0.15 * delta, 0)
 	_smoke = _smoke.filter(func(puff: Array) -> bool: return puff[1] < SMOKE_LIFE)
-	if occupied or not _smoke.is_empty() or absf(_pitch) > 0.0005:
+	if occupied or not _smoke.is_empty() or not _skids.is_empty() or absf(_pitch) > 0.0005:
 		queue_redraw()
 
 
@@ -140,6 +171,10 @@ func _draw() -> void:
 
 
 func _draw_van() -> void:
+	for sk in _skids:                       # skid marks first, under the wheels
+		var a := to_local(Vector2(sk[0], global_position.y)).x
+		var b := to_local(Vector2(sk[1], global_position.y)).x
+		draw_rect(Rect2(minf(a, b), -1.5, absf(b - a), 1.5), Color(0.08, 0.08, 0.09, 0.55 * (1.0 - sk[2] / SKID_LIFE)))
 	var frame := int(_odometer / 3.0) % VAN_FRAMES
 	var src := Rect2(Vector2(frame * VAN_FRAME.x, 0), VAN_FRAME)
 	# Pitch around the axle under load: rear axle when the nose lifts, front when it dips.

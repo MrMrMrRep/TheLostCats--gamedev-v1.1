@@ -15,11 +15,11 @@ extends Node2D
 ##   HOTEL          tall hotel with a vertical sign, flags and a canopy
 ##   APARTMENTS     new apartment block: glass, coloured panels, balconies
 
-enum Kind { MALL, GARAGE, SELF_STORAGE, OUR_STORAGE, CHURCH, MARKET, PARK, THEATER, HOTEL, APARTMENTS, TERMINAL, TOWER }
+enum Kind { MALL, GARAGE, SELF_STORAGE, OUR_STORAGE, CHURCH, MARKET, PARK, THEATER, HOTEL, APARTMENTS, TERMINAL, TOWER, ROUND_HOTEL }
 
 const WIDTHS := {Kind.MALL: 320.0, Kind.GARAGE: 200.0, Kind.SELF_STORAGE: 260.0, Kind.OUR_STORAGE: 340.0,
 	Kind.CHURCH: 150.0, Kind.MARKET: 260.0, Kind.PARK: 480.0, Kind.THEATER: 250.0, Kind.HOTEL: 170.0, Kind.APARTMENTS: 210.0,
-	Kind.TERMINAL: 560.0, Kind.TOWER: 70.0}
+	Kind.TERMINAL: 560.0, Kind.TOWER: 70.0, Kind.ROUND_HOTEL: 66.0}
 const CONCRETE := Color("a7a3a8")
 const CONCRETE_DARK := Color("7d7981")
 const STEEL := Color("c9ccd2")
@@ -60,6 +60,7 @@ func _draw() -> void:
 		Kind.APARTMENTS: _apartments(rng)
 		Kind.TERMINAL: _terminal(rng)
 		Kind.TOWER: _tower(rng)
+		Kind.ROUND_HOTEL: _round_hotel(rng)
 
 
 func _text(x: float, y: float, w: float, text: String, size: int, c: Color) -> void:
@@ -418,3 +419,37 @@ func _tower(rng: RandomNumberGenerator) -> void:
 	draw_rect(Rect2(w / 2 - 2, -324, 4, 4), Color("e04a3a"))
 	draw_rect(Rect2(w / 2 - 20, -36, 40, 36), Color("c9ccd2"))
 	draw_rect(Rect2(w / 2 - 8, -34, 16, 34), p.NAVY)
+
+
+## The round glass hotel tower by the motorway: a cylinder clad in glass with
+## big and small blue circles, a dark glass crown with the name ring on top,
+## a recessed glass lobby. Shaded as a cylinder (light from the left).
+func _round_hotel(rng: RandomNumberGenerator) -> void:
+	var w := width()
+	var h := 236.0
+	var top := -h
+	# Cylinder body: vertical bands, lightest a third from the left.
+	for x in int(w):
+		var u := (x + 0.5) / w
+		var shade := 1.0 - pow(absf(u - 0.35) * 1.6, 2.0) * 0.55
+		draw_rect(Rect2(x, top + 26, 1, h - 26 - 24), Color("8ec4ea").darkened(1.0 - shade))
+	# The circles: bigger ones, smaller ones, squashed toward the edges.
+	for i in 70:
+		var u := rng.randf()
+		var cx := w * u
+		var cy := rng.randf_range(top + 34, -32)
+		var r := rng.randf_range(3, 9) * (1.0 - pow(absf(u - 0.5) * 2.0, 3.0) * 0.7)
+		var c: Color = [Color("2a5bd7"), Color("1f3f9a"), Color("6aa8e0"), Color("d8c87a")][rng.randi_range(0, 3)]
+		draw_circle(Vector2(cx, cy), r, c.darkened(pow(absf(u - 0.35), 2.0)))
+	# Crown: dark glass band and the sign ring.
+	draw_rect(Rect2(-1, top + 8, w + 2, 18), Color("2a3448"))
+	for x in range(2, int(w), 5):
+		draw_rect(Rect2(x, top + 10, 1, 14), Color("4a5a74"))
+	draw_rect(Rect2(-2, top, w + 4, 8), Color("e9eef2"))
+	draw_string(ThemeDB.fallback_font, Vector2(0, top + 7), sign_text if sign_text != "" else "HOTEL", HORIZONTAL_ALIGNMENT_CENTER, w, 7, Color("2a4ea0"))
+	# Lobby: recessed glass on slim columns.
+	draw_rect(Rect2(6, -24, w - 12, 24), Color("3a4a62"))
+	draw_rect(Rect2(6, -24, w - 12, 2), Color("c9ccd2"))
+	for x in range(8, int(w) - 6, 10):
+		draw_rect(Rect2(x, -22, 1, 22), Color("c9a36a"))
+	draw_rect(Rect2(w / 2 - 8, -20, 16, 20), Color("f2c66a"))

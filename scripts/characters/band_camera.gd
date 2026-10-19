@@ -12,6 +12,7 @@ const TARGET_OFFSET := Vector2(0, -16)      # aim at the body, not the feet
 @export var look_ahead := 40.0              ## px the view leads while running
 @export var look_ahead_time := 0.35         ## seconds to swing fully to one side
 @export var look_ahead_min_speed := 20.0    ## px/s before look-ahead kicks in
+@export var sticky_look := false            ## keep leading after a stop (no swing back); turn around to swing
 
 var target: Node2D
 var fixed_y := NAN                          # world map: keep the view at this height
@@ -81,11 +82,14 @@ func _physics_process(delta: float) -> void:
 	if absf(d.y) > deadzone.y:
 		_focus.y = t.y - signf(d.y) * deadzone.y
 
-	var want := 0.0
+	var want := _look if sticky_look else 0.0
 	var v: Variant = target.get("velocity")
 	if v is Vector2 and absf(v.x) > look_ahead_min_speed:
 		want = signf(v.x) * look_ahead
-	_look = move_toward(_look, want, look_ahead / look_ahead_time * delta)
+	elif sticky_look and absf(_look) > 0.5:
+		want = signf(_look) * look_ahead    # stopped: hold the lead
+	# Eased swing (exponential), so the view never starts or stops abruptly.
+	_look = lerpf(_look, want, 1.0 - exp(-delta * 3.0 / look_ahead_time))
 
 	var goal := _focus + Vector2(_look, 0)
 	global_position = _from.lerp(goal, _blend) if _blend < 1.0 else goal

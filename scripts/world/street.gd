@@ -7,6 +7,7 @@ extends Node2D
 ## Origin at x 0, y = the street line (the band's feet).
 
 @export var map_width := 3840.0
+@export var map_min := 0.0
 @export var town := Vector2(1100, 3640)
 
 const STREET_H := 14.0
@@ -43,7 +44,7 @@ func _draw() -> void:
 	# Outside town: a two-lane dike road (we drive on the far lane, traffic
 	# passes on the near one), a strip of the opposite carriageway behind us,
 	# and a grassy bank down to the ditch.
-	for seg in [Vector2(-400, a), Vector2(b, map_width + 400)]:
+	for seg in [Vector2(map_min - 400, a), Vector2(b, map_width + 400)]:
 		var w: float = seg.y - seg.x
 		draw_rect(Rect2(seg.x, -6, w, 6), p.ROAD.lerp(p.HAZE, 0.25))
 		draw_rect(Rect2(seg.x, -1, w, 1), p.CURB.lerp(p.HAZE, 0.3))

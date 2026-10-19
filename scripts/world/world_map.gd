@@ -20,7 +20,14 @@ const EDGE_MARGIN := 30.0                   # vehicles stop this far from a road
 const WATER_LINE := GROUND_Y + 22.0         # top of the canal
 const ZOOM_STUDIO := 3.0
 const ZOOM_CITY := 2.0
-const ZOOM_VAN_TOWN := 1.0
+const ZOOM_VAN_TOWN := 1.3                  # driving in town: a little closer
+const ZOOM_VAN_SLOW_TOWN := 1.7             # crawling / stopped in the van (after SLOW_DELAY)
+const ZOOM_VAN_SLOW_ROAD := 0.85
+const SLOW_SPEED := 50.0
+const SLOW_DELAY := 1.2
+const ROAD_ZOOM_DELAY := 3.5                # out of town: wait this long before zooming out
+const WALK_SPEED := 85.0                    # a calm walk on the map (levels keep their run)
+const CITY_SPEED := 190.0                   # the van's speed limit in town
 const ZOOM_ROAD := 0.5
 const ZOOM_EASE := 0.9                      # higher = faster zoom changes (on foot)
 const ZOOM_EASE_DRIVE := 0.22               # driving: a slow, calm zoom out / in
@@ -29,6 +36,8 @@ const ZOOM_EASE_DRIVE := 0.22               # driving: a slow, calm zoom out / i
 @export var start_spawn: NodePath
 @export var town := Vector2(1100, 3640)     ## world x range of the city
 @export var studio_area := Vector2(1760, 2060)  ## world x range zoomed in on the studio
+@export var map_min := 0.0                  ## west end of the map (the cow land goes below 0)
+@export var city_limit := Vector2.ZERO      ## world x range where the van keeps to CITY_SPEED
 
 var leader: BandMember
 var followers: Array[BandMember] = []
@@ -43,6 +52,8 @@ var _cooldown := 0.0
 var _highlighted: Interactable
 var _min_x := 0.0
 var _max_x := 0.0
+var _slow_time := 0.0
+var _road_time := 0.0
 
 @onready var band: Band = $Band
 @onready var hud: MapHud = $MapHud
@@ -65,9 +76,11 @@ func _ready() -> void:
 	cam.position_smoothing_speed = 4.0
 	cam.deadzone = Vector2(24, 40)
 	cam.look_ahead = WALK_LOOK_AHEAD
-	cam.set_bounds(Rect2i(0, -10000, map_width, 20000))
+	cam.sticky_look = true                  # stopping doesn't swing the view back
+	cam.set_bounds(Rect2i(int(map_min), -10000, int(map_width - map_min), 20000))
 	leader = band.active
 	for m in band.members:
+		m.speed_scale = WALK_SPEED / m.profile.run_speed()
 		m.show_name_tag = false
 		m.name_tag.visible = false
 		var bike := BikeSprite.new()
@@ -78,10 +91,10 @@ func _ready() -> void:
 		if m != leader:
 			followers.append(m)
 			m.set_physics_process(false)
-	_min_x = EDGE_MARGIN
+	_min_x = map_min + EDGE_MARGIN
 	_max_x = map_width - EDGE_MARGIN
 	for b in find_children("*", "RoadBarrier", true, false):
-		if b.global_position.x < map_width / 2.0:
+		if b.global_position.x < (map_min + map_width) / 2.0:
 			_min_x = maxf(_min_x, b.global_position.x + EDGE_MARGIN)
 		else:
 			_max_x = minf(_max_x, b.global_position.x - EDGE_MARGIN)
@@ -110,6 +123,10 @@ func _physics_process(delta: float) -> void:
 
 # --- Zoom ------------------------------------------------------------------
 
+func x_in(r: Vector2, x: float) -> bool:
+	return x >= r.x and x <= r.y
+
+
 func in_town(x: float) -> bool:
 	return x >= town.x and x <= town.y
 
@@ -126,7 +143,19 @@ func target_zoom_at(x: float) -> float:
 func _update_zoom(delta: float) -> void:
 	var x := vehicle.global_position.x if vehicle else leader.global_position.x
 	var target := target_zoom_at(x)
-	var rate := ZOOM_EASE_DRIVE if vehicle and vehicle.kind == Vehicle.Kind.VAN else ZOOM_EASE
+	var rate := ZOOM_EASE
+	if vehicle and vehicle.kind == Vehicle.Kind.VAN:
+		rate = ZOOM_EASE_DRIVE
+		_slow_time = _slow_time + delta if absf(vehicle.velocity.x) < SLOW_SPEED else 0.0
+		_road_time = 0.0 if in_town(x) else _road_time + delta
+		if not in_town(x) and _road_time < ROAD_ZOOM_DELAY:
+			target = ZOOM_VAN_TOWN              # just onto the road: hold, then open up
+		if _slow_time > SLOW_DELAY:             # crawling or parked: ease in for a closer look
+			target = ZOOM_VAN_SLOW_TOWN if in_town(x) else ZOOM_VAN_SLOW_ROAD
+			rate = ZOOM_EASE_DRIVE * 1.6
+	else:
+		_slow_time = 0.0
+		_road_time = 0.0
 	zoom = lerpf(zoom, target, 1.0 - exp(-delta * rate))
 	if absf(zoom - target) < 0.002:
 		zoom = target
@@ -225,7 +254,9 @@ func leave_vehicle() -> bool:
 
 func _drive(delta: float) -> void:
 	var dir := Input.get_axis("move_left", "move_right")
-	var top := leader.profile.run_speed() * vehicle.speed_mult()
+	var top := vehicle.top_speed()
+	if vehicle.kind == Vehicle.Kind.VAN and x_in(city_limit, vehicle.global_position.x):
+		top = minf(top, CITY_SPEED)
 	vehicle.drive(dir, top, delta, _min_x, _max_x)
 	# The leader rides along (visible on the bikes, hidden in the van).
 	leader.global_position = vehicle.global_position

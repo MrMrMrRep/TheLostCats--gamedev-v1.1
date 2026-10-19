@@ -17,7 +17,15 @@ const W := 21600
 const GY := 288.0
 const TOWN := Vector2(6400, 18240)          # canal + city
 const HIGHWAY_MERGE := 5700.0               # the highway joins our road here
-const FARM_P := 6100.0                      # the van, just out of town
+const FARM_P := 5300.0                      # the van, at a farm just out of town
+const MAP_MIN := -4000.0                    # west end: open meadow with cows only (x < 0)
+const CANAL_FROM := 5450.0                  # the canal runs from here (a lock) into town
+const OVERPASS_X := 6330.0                  # the ring road crosses over; the city limit starts here
+const CONSTRUCTION := Vector2(5790, 6200)   # building site behind the road
+const ROUND_HOTEL_X := 5120.0               # the round glass hotel, in front of the road
+const GANTRIES := [[4300.0, "Amsterdam|A10", "Den Haag|A4"], [2300.0, "Utrecht|A2", "Schiphol|A4"],
+	[200.0, "Haarlem|A9", "Amsterdam|A10"], [-1800.0, "Den Haag|A4", "Leiden|A44"], [-3400.0, "Rotterdam|A4", "Utrecht|A12"],
+	[20550.0, "Schiphol|A4", "Amsterdam|A10"]]
 const CENTRE := 9600.0                      # old town ends, canal centre begins
 const OUTSKIRTS := 15400.0                  # canal centre ends: apartments, then industry
 const STUDIO_X := 11800.0
@@ -68,6 +76,8 @@ func build() -> int:
 	root.set("map_width", W)
 	root.set("town", TOWN)
 	root.set("studio_area", STUDIO_AREA)
+	root.set("map_min", MAP_MIN)
+	root.set("city_limit", Vector2(OVERPASS_X, TOWN.y))
 
 	var sky := CanvasLayer.new(); sky.set_script(load("res://scripts/world/sky.gd"))
 	_add(root, sky, "Sky")
@@ -80,6 +90,7 @@ func build() -> int:
 		s.set("kind", l[2]); s.set("town", TOWN); s.set("outskirts", OUTSKIRTS)
 		s.set("centre", Vector2(TOWN.x, OUTSKIRTS))
 		s.set("map_width", float(W)); s.set("seed_value", l[3])
+		s.set("map_min", MAP_MIN); s.set("cows_until", 0.0)
 		_add(layer, s, "Scenery")
 
 	# Bridges (behind the houses' layer so the gaps show their canal views).
@@ -127,6 +138,9 @@ func build() -> int:
 	var hw := Node2D.new(); hw.set_script(load("res://scripts/world/highway.gd"))
 	hw.position = Vector2(HIGHWAY_MERGE, GY)
 	_add(root, hw, "Highway")
+	var site := Node2D.new(); site.set_script(load("res://scripts/world/construction.gd"))
+	site.position = Vector2(CONSTRUCTION.x, GY); site.set("length", CONSTRUCTION.y - CONSTRUCTION.x)
+	_add(city, site, "Construction")
 	var storage := Node2D.new(); storage.set_script(Bd); storage.position = Vector2(STORAGE_X, GY)
 	storage.set("kind", 3); storage.set("sign_text", "THE LOST CATS - STORAGE")
 	_add(city, storage, "Storage")
@@ -143,25 +157,36 @@ func build() -> int:
 	tm.tile_set = load("res://resources/tiles/amwoods_tileset.tres")
 	tm.visible = false
 	_add(root, tm, "StreetCollision")
-	for x in range(-2, W / 24 + 2):
+	for x in range(int(MAP_MIN) / 24 - 2, W / 24 + 2):
 		tm.set_cell(Vector2i(x, 12), 0, Vector2i(12, 0))
 	var street := Node2D.new(); street.set_script(load("res://scripts/world/street.gd"))
 	street.position = Vector2(0, GY); street.set("map_width", float(W)); street.set("town", TOWN)
+	street.set("map_min", MAP_MIN)
 	_add(root, street, "Street")
 	var Tr = load("res://scripts/world/traffic.gd")
 	var traffic_back := Node2D.new(); traffic_back.set_script(Tr); traffic_back.position = Vector2(0, GY)
 	traffic_back.set("lane", 0); traffic_back.set("town", TOWN); traffic_back.set("map_width", float(W))
+	traffic_back.set("map_min", MAP_MIN)
 	traffic_back.set("car_free", _ranges([Vector2(OLD_TOWN.x, OUTSKIRTS)]))
 	traffic_back.set("parked", _ranges([Vector2(TOWN.x, OLD_TOWN.x), Vector2(OUTSKIRTS, TOWN.y), Vector2(18600, 19900)]))
 	var ped_back := Node2D.new(); ped_back.set_script(load("res://scripts/world/pedestrians.gd")); ped_back.position = Vector2(0, GY)
 	ped_back.set("side", 0); ped_back.set("busy", _people())
 	_add(root, ped_back, "PeopleBack")
 	_add(root, traffic_back, "TrafficBack")
+	# Things we drive under: their far halves here, the rest after the band.
+	var Ov = load("res://scripts/world/overpass.gd")
+	var Gt = load("res://scripts/world/gantry.gd")
+	var ov_back := Node2D.new(); ov_back.set_script(Ov); ov_back.position = Vector2(OVERPASS_X, GY)
+	ov_back.set("part", 0)
+	_add(root, ov_back, "OverpassBack")
+	for i in GANTRIES.size():
+		var g := Node2D.new(); g.set_script(Gt); g.position = Vector2(GANTRIES[i][0], GY); g.set("part", 0)
+		_add(root, g, "GantryBack%d" % i)
 
 	var Bar = load("res://scripts/world/barrier.gd")
-	for x in [40.0, W - 40.0]:
+	for x in [MAP_MIN + 40.0, W - 40.0]:
 		var b := StaticBody2D.new(); b.set_script(Bar); b.position = Vector2(x, GY)
-		_add(root, b, "RoadBlockWest" if x < 100 else "RoadBlockEast")
+		_add(root, b, "RoadBlockWest" if x < W / 2.0 else "RoadBlockEast")
 
 	# Places.
 	var places := _add(root, Node2D.new(), "Places")
@@ -235,14 +260,25 @@ func build() -> int:
 	_add(root, load("res://scenes/characters/band.tscn").instantiate())
 	var traffic_front := Node2D.new(); traffic_front.set_script(Tr); traffic_front.position = Vector2(0, GY)
 	traffic_front.set("lane", 1); traffic_front.set("town", TOWN); traffic_front.set("map_width", float(W))
+	traffic_front.set("map_min", MAP_MIN)
 	traffic_front.set("car_free", _ranges([Vector2(OLD_TOWN.x, OUTSKIRTS)]))
 	var ped_front := Node2D.new(); ped_front.set_script(load("res://scripts/world/pedestrians.gd")); ped_front.position = Vector2(0, GY)
 	ped_front.set("side", 1); ped_front.set("busy", _people())
 	_add(root, ped_front, "PeopleFront")
 	_add(root, traffic_front, "TrafficFront")
+	var ov_front := Node2D.new(); ov_front.set_script(Ov); ov_front.position = Vector2(OVERPASS_X, GY)
+	ov_front.set("part", 1)
+	_add(root, ov_front, "OverpassFront")
+	for i in GANTRIES.size():
+		var g := Node2D.new(); g.set_script(Gt); g.position = Vector2(GANTRIES[i][0], GY); g.set("part", 1)
+		g.set("signs", PackedStringArray([GANTRIES[i][1], GANTRIES[i][2]]))
+		_add(root, g, "GantryFront%d" % i)
+	var rh := Node2D.new(); rh.set_script(load("res://scripts/world/outskirts.gd")); rh.position = Vector2(ROUND_HOTEL_X, GY + 18)
+	rh.set("kind", 12); rh.set("sign_text", "HOTEL")
+	_add(root, rh, "RoundHotel")
 	var water := _add(root, Node2D.new(), "Water")
 	var Wt = load("res://scripts/world/water.gd")
-	for w in [["DitchWest", -400.0, TOWN.x, true], ["Canal", TOWN.x, TOWN.y, false], ["DitchEast", TOWN.y, W + 400.0, true]]:
+	for w in [["DitchWest", MAP_MIN - 400.0, CANAL_FROM, true], ["Canal", CANAL_FROM, TOWN.y, false], ["DitchEast", TOWN.y, W + 400.0, true]]:
 		var r := ColorRect.new(); r.set_script(Wt)
 		r.position = Vector2(w[1], GY + 22.0); r.size = Vector2(w[2] - w[1], 520)
 		if w[3]:
@@ -255,6 +291,19 @@ func build() -> int:
 	_add(root, boats, "Houseboats")
 	var birds := Node2D.new(); birds.set_script(load("res://scripts/world/birds.gd"))
 	_add(root, birds, "Birds")
+	# Life on the water by the old town and the lock, and in the polder ditch.
+	var WL = load("res://scripts/world/water_life.gd")
+	for wl in [[CANAL_FROM - 600.0, 8200.0 - CANAL_FROM + 600.0, 600.0, 5], [MAP_MIN, CANAL_FROM - 700.0 - MAP_MIN, -1.0, 9]]:
+		var life_w := Node2D.new(); life_w.set_script(WL); life_w.position = Vector2(wl[0], GY)
+		life_w.set("length", wl[1]); life_w.set("lock_x", wl[2]); life_w.set("seed_value", wl[3])
+		_add(root, life_w, "WaterLife%d" % wl[3])
+	# Foreground trees along the country road, in a layer that moves faster.
+	var fg := Node2D.new(); fg.set_script(Px); fg.set("factor", 1.35)
+	_add(root, fg, "Foreground")
+	var fgs := Node2D.new(); fgs.set_script(Sc)
+	fgs.set("kind", 4); fgs.set("town", TOWN); fgs.set("map_width", float(W)); fgs.set("map_min", MAP_MIN)
+	fgs.set("foreground", Vector2(MAP_MIN, CONSTRUCTION.x - 300.0)); fgs.set("seed_value", 23)
+	_add(fg, fgs, "Scenery")
 
 	var hud := CanvasLayer.new(); hud.set_script(load("res://scripts/ui/map_hud.gd"))
 	_add(root, hud, "MapHud")

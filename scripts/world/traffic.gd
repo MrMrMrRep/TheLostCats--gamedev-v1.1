@@ -24,6 +24,7 @@ const FADE := 40.0                          # front-lane cars fade out where the
 @export var lane := Lane.BACK
 @export var town := Vector2(1100, 3640)
 @export var map_width := 3840.0
+@export var map_min := 0.0
 @export var car_free: Array[Vector2] = []   ## world x ranges: bikes only
 @export var parked: Array[Vector2] = []     ## world x ranges with cars parked along the street
 @export var per_screen_road := 4            ## vehicles per screen width outside town
@@ -102,7 +103,7 @@ func _spawn(view: Vector2) -> void:
 		x = _rng.randf_range(view.x, view.y)
 		if absf(x - (view.x + view.y) / 2.0) < (view.y - view.x) * 0.45:
 			return
-	x = clampf(x, 0.0, map_width)
+	x = clampf(x, map_min, map_width)
 	var kind := Kind.CAR
 	if _in(car_free, x):
 		if lane == Lane.FRONT:
