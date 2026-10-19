@@ -16,7 +16,7 @@ extends Node2D
 enum Lane { BACK, FRONT }
 enum Kind { CAR, VAN, TRUCK, BIKE, BUS }
 
-const LANE_Y := {Lane.BACK: 0.0, Lane.FRONT: 19.0}   # tyres on the road surface
+const LANE_Y := {Lane.BACK: 0.0, Lane.FRONT: 20.0}   # tyres on the road surface
 const LIVERIES := ["BAKKER BAS", "POST", "BLOEMEN", "KOERIER", "LOODGIETER", "VERHUIZER", "", "", ""]
 const TRUCK_LIVERIES := ["TRANSPORT", "VERSE MELK", "DE VRIES", "KAAS", "BIER", ""]
 const BACK_SCALE := 0.9
@@ -95,6 +95,13 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
+## Back lane: on the street in town, on the opposite carriageway outside.
+func _lane_y(x: float) -> float:
+	if lane == Lane.BACK and not _in_town(x):
+		return -4.0
+	return LANE_Y[lane]
+
+
 func _town_depth(x: float) -> float:
 	return minf(x - town.x, town.y - x)
 
@@ -129,18 +136,17 @@ func _spawn(view: Vector2) -> void:
 
 
 func _draw() -> void:
-	var y: float = LANE_Y[lane]
 	var back := lane == Lane.BACK
 	var s := (BACK_SCALE if back else 1.0) * 0.5   # art px -> world, with depth
 	var view := _view()
 	for pc in _parked:
 		if pc[0] > view.x - 100 and pc[0] < view.y + 100:
-			_vehicle(Vector2(pc[0], y), 1.0 if pc[3] % 2 == 0 else -1.0, s, pc[1], pc[2], 1.0, 0.0, back, pc[3])
+			_vehicle(Vector2(pc[0], _lane_y(pc[0])), 1.0 if pc[3] % 2 == 0 else -1.0, s, pc[1], pc[2], 1.0, 0.0, back, pc[3])
 	for c in _cars:
 		var alpha := 1.0
 		if lane == Lane.FRONT and _in_town(c[0]):
 			alpha = clampf(1.0 - _town_depth(c[0]) / FADE, 0.0, 1.0)
-		_vehicle(Vector2(c[0], y), c[1], s, c[3], c[4], alpha, c[5], back, c[6])
+		_vehicle(Vector2(c[0], _lane_y(c[0])), c[1], s, c[3], c[4], alpha, c[5], back, c[6])
 	draw_set_transform(Vector2.ZERO)
 
 

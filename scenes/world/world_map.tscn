@@ -1,57 +1,59 @@
 [gd_scene format=4]
 
-[ext_resource type="Script" path="res://scripts/world/world_map.gd" id="1_r1pos"]
-[ext_resource type="Script" path="res://scripts/world/sky.gd" id="2_eki2p"]
-[ext_resource type="Script" path="res://scripts/world/parallax_layer.gd" id="3_p0gre"]
-[ext_resource type="Script" path="res://scripts/world/scenery.gd" id="4_078hn"]
-[ext_resource type="Script" path="res://scripts/world/bridge.gd" id="5_3ywfa"]
-[ext_resource type="Script" path="res://scripts/world/city_block.gd" id="6_ao3qg"]
-[ext_resource type="Script" path="res://scripts/world/outskirts.gd" id="7_x5aeg"]
-[ext_resource type="Script" path="res://scripts/world/construction.gd" id="8_ink1j"]
-[ext_resource type="Script" path="res://scripts/world/airport.gd" id="9_nmepv"]
-[ext_resource type="Script" path="res://scripts/world/highway.gd" id="10_1co5k"]
-[ext_resource type="TileSet" path="res://resources/tiles/amwoods_tileset.tres" id="11_q6byn"]
-[ext_resource type="Script" path="res://scripts/world/street.gd" id="12_soo5g"]
-[ext_resource type="Script" path="res://scripts/world/street_life.gd" id="13_bl11g"]
-[ext_resource type="Script" path="res://scripts/world/pedestrians.gd" id="14_das13"]
-[ext_resource type="Script" path="res://scripts/world/traffic.gd" id="15_ka37c"]
-[ext_resource type="Script" path="res://scripts/world/overpass.gd" id="16_sloqf"]
-[ext_resource type="Script" path="res://scripts/world/gantry.gd" id="17_t1rse"]
-[ext_resource type="Script" path="res://scripts/world/barrier.gd" id="18_1pnen"]
-[ext_resource type="Script" path="res://scripts/world/world_door.gd" id="19_7kcv0"]
-[ext_resource type="Script" path="res://scripts/world/storage_gate.gd" id="20_h2iuf"]
-[ext_resource type="Script" path="res://scripts/world/npc.gd" id="21_8fuv1"]
-[ext_resource type="Script" path="res://scripts/world/vehicle.gd" id="22_2xpb7"]
-[ext_resource type="Script" path="res://scripts/world/parking_spot.gd" id="23_u1jm8"]
-[ext_resource type="Script" path="res://scripts/world/package.gd" id="24_j1unl"]
-[ext_resource type="PackedScene" path="res://scenes/characters/band.tscn" id="25_2aoi7"]
-[ext_resource type="Script" path="res://scripts/characters/band.gd" id="26_2eufk"]
-[ext_resource type="Script" path="res://scripts/world/water.gd" id="27_86d8r"]
-[ext_resource type="Script" path="res://scripts/world/houseboats.gd" id="28_2lmj1"]
-[ext_resource type="Script" path="res://scripts/world/birds.gd" id="29_3xhoj"]
-[ext_resource type="Script" path="res://scripts/world/water_life.gd" id="30_st8kn"]
-[ext_resource type="Script" path="res://scripts/ui/map_hud.gd" id="31_u7fs4"]
-[ext_resource type="Script" path="res://scripts/ui/dialogue_box.gd" id="32_12evo"]
-[ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="33_jpwvu"]
-[ext_resource type="Script" path="res://scripts/ui/debug_overlay.gd" id="34_5u2n8"]
+[ext_resource type="Script" path="res://scripts/world/world_map.gd" id="1_p0gre"]
+[ext_resource type="Script" path="res://scripts/world/sky.gd" id="2_078hn"]
+[ext_resource type="Script" path="res://scripts/world/parallax_layer.gd" id="3_3ywfa"]
+[ext_resource type="Script" path="res://scripts/world/scenery.gd" id="4_ao3qg"]
+[ext_resource type="Script" path="res://scripts/world/bridge.gd" id="5_x5aeg"]
+[ext_resource type="Script" path="res://scripts/world/city_block.gd" id="6_ink1j"]
+[ext_resource type="Script" path="res://scripts/world/outskirts.gd" id="7_nmepv"]
+[ext_resource type="Script" path="res://scripts/world/construction.gd" id="8_1co5k"]
+[ext_resource type="Script" path="res://scripts/world/airport.gd" id="9_q6byn"]
+[ext_resource type="Script" path="res://scripts/world/highway.gd" id="10_soo5g"]
+[ext_resource type="TileSet" path="res://resources/tiles/amwoods_tileset.tres" id="11_bl11g"]
+[ext_resource type="Script" path="res://scripts/world/street.gd" id="12_das13"]
+[ext_resource type="Script" path="res://scripts/world/street_life.gd" id="13_ka37c"]
+[ext_resource type="Script" path="res://scripts/world/pedestrians.gd" id="14_sloqf"]
+[ext_resource type="Script" path="res://scripts/world/traffic.gd" id="15_t1rse"]
+[ext_resource type="Script" path="res://scripts/world/overpass.gd" id="16_1pnen"]
+[ext_resource type="Script" path="res://scripts/world/gantry.gd" id="17_7kcv0"]
+[ext_resource type="Script" path="res://scripts/world/barrier.gd" id="18_h2iuf"]
+[ext_resource type="Script" path="res://scripts/world/world_door.gd" id="19_8fuv1"]
+[ext_resource type="Script" path="res://scripts/world/storage_gate.gd" id="20_2xpb7"]
+[ext_resource type="Script" path="res://scripts/world/npc.gd" id="21_u1jm8"]
+[ext_resource type="Script" path="res://scripts/world/vehicle.gd" id="22_j1unl"]
+[ext_resource type="Script" path="res://scripts/world/parking_spot.gd" id="23_2aoi7"]
+[ext_resource type="Script" path="res://scripts/world/package.gd" id="24_2eufk"]
+[ext_resource type="PackedScene" path="res://scenes/characters/band.tscn" id="25_86d8r"]
+[ext_resource type="Script" path="res://scripts/characters/band.gd" id="26_2lmj1"]
+[ext_resource type="Script" path="res://scripts/world/water.gd" id="27_3xhoj"]
+[ext_resource type="Script" path="res://scripts/world/houseboats.gd" id="28_st8kn"]
+[ext_resource type="Script" path="res://scripts/world/birds.gd" id="29_u7fs4"]
+[ext_resource type="Script" path="res://scripts/world/water_life.gd" id="30_12evo"]
+[ext_resource type="Script" path="res://scripts/world/front_ground.gd" id="31_jpwvu"]
+[ext_resource type="Script" path="res://scripts/world/canopy.gd" id="32_5u2n8"]
+[ext_resource type="Script" path="res://scripts/ui/map_hud.gd" id="33_wfxop"]
+[ext_resource type="Script" path="res://scripts/ui/dialogue_box.gd" id="34_75cur"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="35_c4aei"]
+[ext_resource type="Script" path="res://scripts/ui/debug_overlay.gd" id="36_r1w5a"]
 
-[node name="WorldMap" type="Node2D" unique_id=199771540]
-script = ExtResource("1_r1pos")
+[node name="WorldMap" type="Node2D" unique_id=981313835]
+script = ExtResource("1_p0gre")
 map_width = 21600
 start_spawn = NodePath("Places/Start")
 town = Vector2(6400, 18240)
 map_min = -4000.0
 city_limit = Vector2(6330, 18240)
 
-[node name="Sky" type="CanvasLayer" parent="." unique_id=1564863220]
-script = ExtResource("2_eki2p")
+[node name="Sky" type="CanvasLayer" parent="." unique_id=975709312]
+script = ExtResource("2_078hn")
 
-[node name="Skyline" type="Node2D" parent="." unique_id=755609776]
-script = ExtResource("3_p0gre")
+[node name="Skyline" type="Node2D" parent="." unique_id=851922128]
+script = ExtResource("3_3ywfa")
 factor = 0.2
 
-[node name="Scenery" type="Node2D" parent="Skyline" unique_id=1997523447]
-script = ExtResource("4_078hn")
+[node name="Scenery" type="Node2D" parent="Skyline" unique_id=725583518]
+script = ExtResource("4_ao3qg")
 town = Vector2(6400, 18240)
 outskirts = 15400.0
 centre = Vector2(6400, 15400)
@@ -59,12 +61,12 @@ map_width = 21600.0
 map_min = -4000.0
 cows_until = 0.0
 
-[node name="PolderFar" type="Node2D" parent="." unique_id=1984740608]
-script = ExtResource("3_p0gre")
+[node name="PolderFar" type="Node2D" parent="." unique_id=1696347835]
+script = ExtResource("3_3ywfa")
 factor = 0.3
 
-[node name="Scenery" type="Node2D" parent="PolderFar" unique_id=2145104436]
-script = ExtResource("4_078hn")
+[node name="Scenery" type="Node2D" parent="PolderFar" unique_id=2036315609]
+script = ExtResource("4_ao3qg")
 kind = 2
 town = Vector2(6400, 18240)
 outskirts = 15400.0
@@ -74,11 +76,11 @@ map_min = -4000.0
 cows_until = 0.0
 seed_value = 9
 
-[node name="BackStreet" type="Node2D" parent="." unique_id=557205585]
-script = ExtResource("3_p0gre")
+[node name="BackStreet" type="Node2D" parent="." unique_id=1877676695]
+script = ExtResource("3_3ywfa")
 
-[node name="Scenery" type="Node2D" parent="BackStreet" unique_id=1068354895]
-script = ExtResource("4_078hn")
+[node name="Scenery" type="Node2D" parent="BackStreet" unique_id=12002666]
+script = ExtResource("4_ao3qg")
 kind = 1
 town = Vector2(6400, 18240)
 outskirts = 15400.0
@@ -88,12 +90,12 @@ map_min = -4000.0
 cows_until = 0.0
 seed_value = 13
 
-[node name="PolderNear" type="Node2D" parent="." unique_id=1907261907]
-script = ExtResource("3_p0gre")
+[node name="PolderNear" type="Node2D" parent="." unique_id=1349049918]
+script = ExtResource("3_3ywfa")
 factor = 0.75
 
-[node name="Scenery" type="Node2D" parent="PolderNear" unique_id=1341855622]
-script = ExtResource("4_078hn")
+[node name="Scenery" type="Node2D" parent="PolderNear" unique_id=766038646]
+script = ExtResource("4_ao3qg")
 kind = 3
 town = Vector2(6400, 18240)
 outskirts = 15400.0
@@ -103,723 +105,752 @@ map_min = -4000.0
 cows_until = 0.0
 seed_value = 17
 
-[node name="Bridges" type="Node2D" parent="." unique_id=1119301511]
+[node name="Bridges" type="Node2D" parent="." unique_id=1081699829]
 
-[node name="Bridge1" type="Node2D" parent="Bridges" unique_id=432164589]
+[node name="Bridge1" type="Node2D" parent="Bridges" unique_id=189860129]
 position = Vector2(10200, 288)
-script = ExtResource("5_3ywfa")
+script = ExtResource("5_x5aeg")
 
-[node name="Bridge2" type="Node2D" parent="Bridges" unique_id=2073103275]
+[node name="Bridge2" type="Node2D" parent="Bridges" unique_id=233655923]
 position = Vector2(10900, 288)
-script = ExtResource("5_3ywfa")
+script = ExtResource("5_x5aeg")
 seed_value = 4
 
-[node name="Bridge3" type="Node2D" parent="Bridges" unique_id=1773499580]
+[node name="Bridge3" type="Node2D" parent="Bridges" unique_id=1018766462]
 position = Vector2(12500, 288)
-script = ExtResource("5_3ywfa")
+script = ExtResource("5_x5aeg")
 seed_value = 5
 landmark = true
 
-[node name="Bridge4" type="Node2D" parent="Bridges" unique_id=1409436380]
+[node name="Bridge4" type="Node2D" parent="Bridges" unique_id=810634543]
 position = Vector2(13200, 288)
-script = ExtResource("5_3ywfa")
+script = ExtResource("5_x5aeg")
 seed_value = 6
 
-[node name="Bridge5" type="Node2D" parent="Bridges" unique_id=1300789308]
+[node name="Bridge5" type="Node2D" parent="Bridges" unique_id=760322941]
 position = Vector2(13900, 288)
-script = ExtResource("5_3ywfa")
+script = ExtResource("5_x5aeg")
 seed_value = 7
 
-[node name="Bridge6" type="Node2D" parent="Bridges" unique_id=1576567649]
+[node name="Bridge6" type="Node2D" parent="Bridges" unique_id=1255861913]
 position = Vector2(14900, 288)
-script = ExtResource("5_3ywfa")
+script = ExtResource("5_x5aeg")
 seed_value = 8
 
-[node name="SideStreet1" type="Node2D" parent="Bridges" unique_id=2013758186]
+[node name="SideStreet1" type="Node2D" parent="Bridges" unique_id=1103020794]
 position = Vector2(11250, 288)
-script = ExtResource("5_3ywfa")
+script = ExtResource("5_x5aeg")
 width = 110.0
 kind = 1
 seed_value = 20
 
-[node name="SideStreet2" type="Node2D" parent="Bridges" unique_id=865380194]
+[node name="SideStreet2" type="Node2D" parent="Bridges" unique_id=879730226]
 position = Vector2(13550, 288)
-script = ExtResource("5_3ywfa")
+script = ExtResource("5_x5aeg")
 width = 110.0
 kind = 1
 seed_value = 21
 
-[node name="City" type="Node2D" parent="." unique_id=2112721296]
+[node name="City" type="Node2D" parent="." unique_id=305801655]
 
-[node name="Studio" type="Node2D" parent="City" unique_id=2124253082]
+[node name="Studio" type="Node2D" parent="City" unique_id=38362955]
 position = Vector2(11710, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 3
 seed_value = 7
 sign_text = "STUDIO"
 shop_signs = PackedStringArray()
 
-[node name="Venue" type="Node2D" parent="City" unique_id=581020526]
+[node name="Venue" type="Node2D" parent="City" unique_id=995357457]
 position = Vector2(14302, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 3
 seed_value = 19
 sign_text = "CAFE DE KAT"
 shop_signs = PackedStringArray()
 
-[node name="West0_Hotel" type="Node2D" parent="City" unique_id=1476511690]
+[node name="West0_Hotel" type="Node2D" parent="City" unique_id=1079351405]
 position = Vector2(6410, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 8
 sign_text = "HOTEL AMSTEL"
 
-[node name="West1_Houses" type="Node2D" parent="City" unique_id=992305007]
+[node name="West1_Houses" type="Node2D" parent="City" unique_id=1132540744]
 position = Vector2(6580, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 2
 seed_value = 71
 shop_rate = 0.2
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 2
 
-[node name="West2_Hotel" type="Node2D" parent="City" unique_id=387434746]
+[node name="West2_Hotel" type="Node2D" parent="City" unique_id=2059778219]
 position = Vector2(6752, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 8
 seed_value = 2
 sign_text = "GRAND HOTEL"
 
-[node name="West4_Hotel" type="Node2D" parent="City" unique_id=247732137]
+[node name="West4_Hotel" type="Node2D" parent="City" unique_id=1524114149]
 position = Vector2(6946, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 8
 seed_value = 3
 sign_text = "HOSTEL"
 
-[node name="West6_Park" type="Node2D" parent="City" unique_id=586484700]
+[node name="West6_Park" type="Node2D" parent="City" unique_id=2059023235]
 position = Vector2(7136, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 6
 seed_value = 4
 sign_text = "VONDELPARK"
 
-[node name="West7_Theater" type="Node2D" parent="City" unique_id=1416520042]
+[node name="West7_Theater" type="Node2D" parent="City" unique_id=1230341045]
 position = Vector2(7616, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 7
 seed_value = 5
 
-[node name="West8_Houses" type="Node2D" parent="City" unique_id=72049756]
+[node name="West8_Houses" type="Node2D" parent="City" unique_id=1115152051]
 position = Vector2(7866, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 3
 seed_value = 73
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 2
 
-[node name="West9_Church" type="Node2D" parent="City" unique_id=992503069]
+[node name="West9_Church" type="Node2D" parent="City" unique_id=881351795]
 position = Vector2(8116, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 4
 seed_value = 6
 
-[node name="West10_Houses" type="Node2D" parent="City" unique_id=1696428435]
+[node name="West10_Houses" type="Node2D" parent="City" unique_id=1607921085]
 position = Vector2(8266, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 4
 seed_value = 75
 shop_rate = 0.8
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 1
 
-[node name="West11_Market" type="Node2D" parent="City" unique_id=483189004]
+[node name="West11_Market" type="Node2D" parent="City" unique_id=220339530]
 position = Vector2(8498, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 5
 seed_value = 7
 sign_text = "MARKT"
 
-[node name="West12_Houses" type="Node2D" parent="City" unique_id=175467104]
+[node name="West12_Houses" type="Node2D" parent="City" unique_id=193531872]
 position = Vector2(8758, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 5
 seed_value = 77
 shop_rate = 0.9
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 1
 
-[node name="West13_Houses" type="Node2D" parent="City" unique_id=373333590]
+[node name="West13_Houses" type="Node2D" parent="City" unique_id=460892721]
 position = Vector2(9056, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 4
 seed_value = 79
 shop_rate = 0.8
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 1
 
-[node name="West14_Church" type="Node2D" parent="City" unique_id=1168565091]
+[node name="West14_Church" type="Node2D" parent="City" unique_id=1387672107]
 position = Vector2(9306, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 4
 seed_value = 8
 
-[node name="West15_Houses" type="Node2D" parent="City" unique_id=889558621]
+[node name="West15_Houses" type="Node2D" parent="City" unique_id=479559895]
 position = Vector2(9456, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 2
 seed_value = 81
 shop_rate = 0.6
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 1
 
-[node name="Flats0_Flats" type="Node2D" parent="City" unique_id=1466841599]
+[node name="Flats0_Flats" type="Node2D" parent="City" unique_id=1917737414]
 position = Vector2(15400, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 9
 seed_value = 0
 
-[node name="Flats2_Flats" type="Node2D" parent="City" unique_id=1714396251]
+[node name="Flats2_Flats" type="Node2D" parent="City" unique_id=289082897]
 position = Vector2(15644, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 9
 
-[node name="Flats4_Flats" type="Node2D" parent="City" unique_id=2014274269]
+[node name="Flats4_Flats" type="Node2D" parent="City" unique_id=315124351]
 position = Vector2(15882, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 9
 seed_value = 2
 
-[node name="Flats6_Flats" type="Node2D" parent="City" unique_id=1757238921]
+[node name="Flats6_Flats" type="Node2D" parent="City" unique_id=539947039]
 position = Vector2(16132, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 9
 seed_value = 3
 
-[node name="Block40_0" type="Node2D" parent="City" unique_id=95963371]
+[node name="Block40_0" type="Node2D" parent="City" unique_id=2072300655]
 position = Vector2(9574, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 seed_value = 40
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block40_1" type="Node2D" parent="City" unique_id=573249029]
+[node name="Block40_1" type="Node2D" parent="City" unique_id=965377540]
 position = Vector2(9938, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 2
 seed_value = 41
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block50_0" type="Node2D" parent="City" unique_id=1267502579]
+[node name="Block50_0" type="Node2D" parent="City" unique_id=726755754]
 position = Vector2(10275, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 seed_value = 50
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block50_1" type="Node2D" parent="City" unique_id=558991296]
+[node name="Block50_1" type="Node2D" parent="City" unique_id=696371452]
 position = Vector2(10671, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 2
 seed_value = 51
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block60_0" type="Node2D" parent="City" unique_id=833118629]
+[node name="Block60_0" type="Node2D" parent="City" unique_id=187135449]
 position = Vector2(10975, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 3
 seed_value = 60
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block70_0" type="Node2D" parent="City" unique_id=1194292586]
+[node name="Block70_0" type="Node2D" parent="City" unique_id=1776642690]
 position = Vector2(11305, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 seed_value = 70
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block80_0" type="Node2D" parent="City" unique_id=1562696591]
+[node name="Block80_0" type="Node2D" parent="City" unique_id=2044292115]
 position = Vector2(11898, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 seed_value = 80
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block80_1" type="Node2D" parent="City" unique_id=106490530]
+[node name="Block80_1" type="Node2D" parent="City" unique_id=1565771393]
 position = Vector2(12294, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 1
 seed_value = 81
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block90_0" type="Node2D" parent="City" unique_id=548614280]
+[node name="Block90_0" type="Node2D" parent="City" unique_id=369900003]
 position = Vector2(12575, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 seed_value = 90
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block90_1" type="Node2D" parent="City" unique_id=1733275956]
+[node name="Block90_1" type="Node2D" parent="City" unique_id=1982196600]
 position = Vector2(12939, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 3
 seed_value = 91
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block100_0" type="Node2D" parent="City" unique_id=1144895136]
+[node name="Block100_0" type="Node2D" parent="City" unique_id=1745096344]
 position = Vector2(13275, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 3
 seed_value = 100
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block110_0" type="Node2D" parent="City" unique_id=1617481230]
+[node name="Block110_0" type="Node2D" parent="City" unique_id=515768213]
 position = Vector2(13605, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 3
 seed_value = 110
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block120_0" type="Node2D" parent="City" unique_id=612839419]
+[node name="Block120_0" type="Node2D" parent="City" unique_id=299130016]
 position = Vector2(13975, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 5
 seed_value = 120
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block130_0" type="Node2D" parent="City" unique_id=110541973]
+[node name="Block130_0" type="Node2D" parent="City" unique_id=988735460]
 position = Vector2(14482, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 houses = 5
 seed_value = 130
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="Block140_0" type="Node2D" parent="City" unique_id=1758212352]
+[node name="Block140_0" type="Node2D" parent="City" unique_id=1600221518]
 position = Vector2(14975, 288)
-script = ExtResource("6_ao3qg")
+script = ExtResource("6_ink1j")
 seed_value = 140
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
-[node name="ServiceStation" type="Node2D" parent="City" unique_id=2002786874]
+[node name="ServiceStation" type="Node2D" parent="City" unique_id=1126583011]
 position = Vector2(16400, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 13
 
-[node name="Mall" type="Node2D" parent="City" unique_id=1192096682]
+[node name="Mall" type="Node2D" parent="City" unique_id=385930051]
 position = Vector2(16620, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 seed_value = 3
 sign_text = "WINKELCENTRUM"
 
-[node name="CarPark" type="Node2D" parent="City" unique_id=355446326]
+[node name="CarPark" type="Node2D" parent="City" unique_id=1477825142]
 position = Vector2(17020, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 1
 seed_value = 5
 
-[node name="SelfStorage" type="Node2D" parent="City" unique_id=2004846368]
+[node name="SelfStorage" type="Node2D" parent="City" unique_id=1743727984]
 position = Vector2(17260, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 2
 seed_value = 7
 sign_text = "SELF STORAGE"
 
-[node name="Construction" type="Node2D" parent="City" unique_id=580203938]
+[node name="Construction" type="Node2D" parent="City" unique_id=146847152]
 position = Vector2(5790, 288)
-script = ExtResource("8_ink1j")
+script = ExtResource("8_1co5k")
 length = 410.0
 
-[node name="Storage" type="Node2D" parent="City" unique_id=8617880]
+[node name="Storage" type="Node2D" parent="City" unique_id=1209371930]
 position = Vector2(17680, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 3
 sign_text = "THE LOST CATS - STORAGE"
 
-[node name="AirportHotel4" type="Node2D" parent="City" unique_id=1250176631]
+[node name="AirportHotel4" type="Node2D" parent="City" unique_id=1247123582]
 position = Vector2(18700, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 8
 seed_value = 4
 sign_text = "AIRPORT HOTEL"
 
-[node name="AirportHotel5" type="Node2D" parent="City" unique_id=260964035]
+[node name="AirportHotel5" type="Node2D" parent="City" unique_id=1743586054]
 position = Vector2(18900, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 8
 seed_value = 5
 sign_text = "SKY INN"
 
-[node name="Terminal0" type="Node2D" parent="City" unique_id=718622164]
+[node name="Terminal0" type="Node2D" parent="City" unique_id=512360287]
 position = Vector2(19200, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 10
 seed_value = 0
 sign_text = "AIRPORT"
 
-[node name="Tower0" type="Node2D" parent="City" unique_id=1846199657]
+[node name="Tower0" type="Node2D" parent="City" unique_id=855353027]
 position = Vector2(19820, 288)
-script = ExtResource("7_x5aeg")
+script = ExtResource("7_nmepv")
 kind = 11
 seed_value = 0
 
-[node name="Airfield" type="Node2D" parent="City" unique_id=1627959648]
+[node name="Airfield" type="Node2D" parent="City" unique_id=1439354569]
 position = Vector2(19950, 288)
-script = ExtResource("9_nmepv")
+script = ExtResource("9_q6byn")
 length = 1450.0
 
-[node name="Highway" type="Node2D" parent="." unique_id=630909456]
+[node name="Highway" type="Node2D" parent="." unique_id=1350515798]
 position = Vector2(5700, 288)
-script = ExtResource("10_1co5k")
+script = ExtResource("10_soo5g")
 
-[node name="StreetCollision" type="TileMapLayer" parent="." unique_id=1753611365]
+[node name="StreetCollision" type="TileMapLayer" parent="." unique_id=857200965]
 visible = false
 tile_map_data = PackedByteArray("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")
-tile_set = ExtResource("11_q6byn")
+tile_set = ExtResource("11_bl11g")
 
-[node name="Street" type="Node2D" parent="." unique_id=292597743]
+[node name="Street" type="Node2D" parent="." unique_id=75985771]
 position = Vector2(0, 288)
-script = ExtResource("12_soo5g")
+script = ExtResource("12_das13")
 map_width = 21600.0
 map_min = -4000.0
 town = Vector2(6400, 18240)
 
-[node name="StreetLife" type="Node2D" parent="." unique_id=1587666804]
+[node name="StreetLife" type="Node2D" parent="." unique_id=318672431]
 
-[node name="Stretch0" type="Node2D" parent="StreetLife" unique_id=1881300320]
+[node name="Stretch0" type="Node2D" parent="StreetLife" unique_id=208894412]
 position = Vector2(6400, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 kind = 2
 seed_value = 100
 
-[node name="Stretch1" type="Node2D" parent="StreetLife" unique_id=569877061]
+[node name="Stretch1" type="Node2D" parent="StreetLife" unique_id=1053335069]
 position = Vector2(7600, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 kind = 2
 length = 200.0
 seed_value = 101
 
-[node name="Stretch2" type="Node2D" parent="StreetLife" unique_id=1148190569]
+[node name="Stretch2" type="Node2D" parent="StreetLife" unique_id=1788899829]
 position = Vector2(7800, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 kind = 1
 seed_value = 102
 
-[node name="Stretch3" type="Node2D" parent="StreetLife" unique_id=2140919331]
+[node name="Stretch3" type="Node2D" parent="StreetLife" unique_id=1357050274]
 position = Vector2(9000, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 kind = 1
 length = 600.0
 seed_value = 103
 
-[node name="Stretch4" type="Node2D" parent="StreetLife" unique_id=662053337]
+[node name="Stretch4" type="Node2D" parent="StreetLife" unique_id=944193784]
 position = Vector2(9600, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 seed_value = 104
 keep_clear = Array[Vector2]([Vector2(1005, 1095), Vector2(520, 680)])
 
-[node name="Stretch5" type="Node2D" parent="StreetLife" unique_id=254509129]
+[node name="Stretch5" type="Node2D" parent="StreetLife" unique_id=457221944]
 position = Vector2(10800, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 seed_value = 105
 keep_clear = Array[Vector2]([Vector2(955, 1045), Vector2(885, 975), Vector2(20, 180), Vector2(370, 530)])
 
-[node name="Stretch6" type="Node2D" parent="StreetLife" unique_id=665236135]
+[node name="Stretch6" type="Node2D" parent="StreetLife" unique_id=204130833]
 position = Vector2(12000, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 seed_value = 106
 keep_clear = Array[Vector2]([Vector2(155, 245), Vector2(420, 580), Vector2(1120, 1280)])
 
-[node name="Stretch7" type="Node2D" parent="StreetLife" unique_id=1412502027]
+[node name="Stretch7" type="Node2D" parent="StreetLife" unique_id=101125170]
 position = Vector2(13200, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 seed_value = 107
 keep_clear = Array[Vector2]([Vector2(1155, 1245), Vector2(995, 1085), Vector2(305, 395), Vector2(-80, 80), Vector2(620, 780), Vector2(270, 430)])
 
-[node name="Stretch8" type="Node2D" parent="StreetLife" unique_id=1144495651]
+[node name="Stretch8" type="Node2D" parent="StreetLife" unique_id=580658187]
 position = Vector2(14400, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 length = 1000.0
 seed_value = 108
 keep_clear = Array[Vector2]([Vector2(-45, 45), Vector2(420, 580)])
 
-[node name="Stretch9" type="Node2D" parent="StreetLife" unique_id=283092338]
+[node name="Stretch9" type="Node2D" parent="StreetLife" unique_id=484118315]
 position = Vector2(15400, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 kind = 2
 length = 1000.0
 seed_value = 109
 
-[node name="Stretch10" type="Node2D" parent="StreetLife" unique_id=374432333]
+[node name="Stretch10" type="Node2D" parent="StreetLife" unique_id=1604979764]
 position = Vector2(16400, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 kind = 3
 seed_value = 110
 keep_clear = Array[Vector2]([Vector2(55, 145), Vector2(1185, 1275), Vector2(345, 435), Vector2(1105, 1195)])
 
-[node name="Stretch11" type="Node2D" parent="StreetLife" unique_id=2124544380]
+[node name="Stretch11" type="Node2D" parent="StreetLife" unique_id=658949707]
 position = Vector2(17600, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 kind = 3
 length = 640.0
 seed_value = 111
 keep_clear = Array[Vector2]([Vector2(100, 190), Vector2(-15, 75), Vector2(-95, -5)])
 
-[node name="Stretch12" type="Node2D" parent="StreetLife" unique_id=893980687]
+[node name="Stretch12" type="Node2D" parent="StreetLife" unique_id=1383208135]
 position = Vector2(18600, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 kind = 4
 seed_value = 112
 
-[node name="Stretch13" type="Node2D" parent="StreetLife" unique_id=1686763222]
+[node name="Stretch13" type="Node2D" parent="StreetLife" unique_id=1133828590]
 position = Vector2(19800, 288)
-script = ExtResource("13_bl11g")
+script = ExtResource("13_ka37c")
 kind = 4
 length = 100.0
 seed_value = 113
 
-[node name="PeopleBack" type="Node2D" parent="." unique_id=1585086192]
+[node name="PeopleBack" type="Node2D" parent="." unique_id=1402529585]
 position = Vector2(0, 288)
-script = ExtResource("14_das13")
+script = ExtResource("14_sloqf")
 busy = Array[Vector3]([Vector3(6400, 7800, 3), Vector3(7800, 9600, 6), Vector3(9600, 15400, 4), Vector3(15400, 16400, 2), Vector3(16400, 18240, 1), Vector3(18600, 19900, 3)])
 
-[node name="TrafficBack" type="Node2D" parent="." unique_id=342245096]
+[node name="TrafficBack" type="Node2D" parent="." unique_id=1368828390]
 position = Vector2(0, 288)
-script = ExtResource("15_ka37c")
+script = ExtResource("15_t1rse")
 town = Vector2(6400, 18240)
 map_width = 21600.0
 map_min = -4000.0
 car_free = Array[Vector2]([Vector2(7800, 15400)])
 parked = Array[Vector2]([Vector2(6400, 7800), Vector2(15400, 18240), Vector2(18600, 19900)])
 
-[node name="OverpassBack" type="Node2D" parent="." unique_id=2100499691]
+[node name="OverpassBack" type="Node2D" parent="." unique_id=1594880224]
 position = Vector2(6330, 288)
-script = ExtResource("16_sloqf")
+script = ExtResource("16_1pnen")
+structure = false
 
-[node name="GantryBack0" type="Node2D" parent="." unique_id=982817761]
+[node name="GantryBack0" type="Node2D" parent="." unique_id=358389114]
 position = Vector2(4300, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 signs = PackedStringArray("Amsterdam|A10", "Den Haag|A4")
 
-[node name="GantryBack1" type="Node2D" parent="." unique_id=1782757099]
+[node name="GantryBack1" type="Node2D" parent="." unique_id=671975421]
 position = Vector2(2300, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 signs = PackedStringArray("Amsterdam|A10", "Den Haag|A4")
 
-[node name="GantryBack2" type="Node2D" parent="." unique_id=363867307]
+[node name="GantryBack2" type="Node2D" parent="." unique_id=1970297706]
 position = Vector2(200, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 signs = PackedStringArray("Amsterdam|A10", "Den Haag|A4")
 
-[node name="GantryBack3" type="Node2D" parent="." unique_id=531935125]
+[node name="GantryBack3" type="Node2D" parent="." unique_id=142265780]
 position = Vector2(-1800, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 signs = PackedStringArray("Amsterdam|A10", "Den Haag|A4")
 
-[node name="GantryBack4" type="Node2D" parent="." unique_id=286047845]
+[node name="GantryBack4" type="Node2D" parent="." unique_id=960667265]
 position = Vector2(-3400, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 signs = PackedStringArray("Amsterdam|A10", "Den Haag|A4")
 
-[node name="GantryBack5" type="Node2D" parent="." unique_id=1056646496]
+[node name="GantryBack5" type="Node2D" parent="." unique_id=450098224]
 position = Vector2(20550, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 signs = PackedStringArray("Amsterdam|A10", "Den Haag|A4")
 
-[node name="RoadBlockWest" type="StaticBody2D" parent="." unique_id=791286544]
+[node name="RoadBlockWest" type="StaticBody2D" parent="." unique_id=781465086]
 position = Vector2(-3960, 288)
-script = ExtResource("18_1pnen")
+script = ExtResource("18_h2iuf")
 
-[node name="RoadBlockEast" type="StaticBody2D" parent="." unique_id=1763433411]
+[node name="RoadBlockEast" type="StaticBody2D" parent="." unique_id=191144362]
 position = Vector2(21560, 288)
-script = ExtResource("18_1pnen")
+script = ExtResource("18_h2iuf")
 
-[node name="Places" type="Node2D" parent="." unique_id=1550097527]
+[node name="Places" type="Node2D" parent="." unique_id=88527026]
 
-[node name="StudioDoor" type="Area2D" parent="Places" unique_id=1236036502]
+[node name="StudioDoor" type="Area2D" parent="Places" unique_id=573985466]
 position = Vector2(11800, 288)
-script = ExtResource("19_7kcv0")
+script = ExtResource("19_8fuv1")
 target_scene = "res://scenes/levels/abilities_test.tscn"
 
-[node name="VenueDoor" type="Area2D" parent="Places" unique_id=1399397253]
+[node name="VenueDoor" type="Area2D" parent="Places" unique_id=1068468900]
 position = Vector2(14400, 288)
-script = ExtResource("19_7kcv0")
+script = ExtResource("19_8fuv1")
 target_scene = "res://scenes/levels/level_test.tscn"
 
-[node name="StorageGate" type="Area2D" parent="Places" unique_id=2006552676]
+[node name="StorageGate" type="Area2D" parent="Places" unique_id=1711331231]
 position = Vector2(17745, 288)
-script = ExtResource("20_h2iuf")
+script = ExtResource("20_2xpb7")
 target_scene = "res://scenes/levels/abilities_test.tscn"
 
-[node name="StationDoor" type="Area2D" parent="Places" unique_id=1676001851]
+[node name="StationDoor" type="Area2D" parent="Places" unique_id=2072654439]
 position = Vector2(16500, 288)
-script = ExtResource("19_7kcv0")
+script = ExtResource("19_8fuv1")
 closed_text = "Service station: coffee machine broken. Again."
 
-[node name="Geordie" type="Area2D" parent="Places" unique_id=661041643]
+[node name="Geordie" type="Area2D" parent="Places" unique_id=1319426903]
 position = Vector2(17630, 288)
-script = ExtResource("21_8fuv1")
+script = ExtResource("21_u1jm8")
 
-[node name="Start" type="Marker2D" parent="Places" unique_id=1571326064]
+[node name="Start" type="Marker2D" parent="Places" unique_id=919314345]
 position = Vector2(11950, 288)
 
-[node name="Bikes" type="Area2D" parent="Places" unique_id=749122010]
+[node name="Bikes" type="Area2D" parent="Places" unique_id=1474660311]
 position = Vector2(11730, 288)
-script = ExtResource("22_2xpb7")
+script = ExtResource("22_j1unl")
 save_id = &"bikes_x"
 
-[node name="ParkingFarm" type="Node2D" parent="Places" unique_id=379352412]
+[node name="ParkingFarm" type="Node2D" parent="Places" unique_id=564406288]
 position = Vector2(5300, 288)
-script = ExtResource("23_u1jm8")
+script = ExtResource("23_2aoi7")
 width = 120.0
 
-[node name="ParkingStudio" type="Node2D" parent="Places" unique_id=1759224350]
+[node name="ParkingStudio" type="Node2D" parent="Places" unique_id=2020238192]
 position = Vector2(12200, 288)
-script = ExtResource("23_u1jm8")
+script = ExtResource("23_2aoi7")
 width = 120.0
 
-[node name="ParkingVenue" type="Node2D" parent="Places" unique_id=1227744140]
+[node name="ParkingVenue" type="Node2D" parent="Places" unique_id=903061053]
 position = Vector2(14240, 288)
-script = ExtResource("23_u1jm8")
+script = ExtResource("23_2aoi7")
 width = 100.0
 
-[node name="ParkingMall" type="Node2D" parent="Places" unique_id=2129796930]
+[node name="ParkingMall" type="Node2D" parent="Places" unique_id=1824355731]
 position = Vector2(16790, 288)
-script = ExtResource("23_u1jm8")
+script = ExtResource("23_2aoi7")
 width = 120.0
 
-[node name="ParkingStorage" type="Node2D" parent="Places" unique_id=437404105]
+[node name="ParkingStorage" type="Node2D" parent="Places" unique_id=1008509071]
 position = Vector2(17550, 288)
-script = ExtResource("23_u1jm8")
+script = ExtResource("23_2aoi7")
 width = 110.0
 
-[node name="Van" type="Area2D" parent="Places" unique_id=818853688]
+[node name="Van" type="Area2D" parent="Places" unique_id=89310739]
 position = Vector2(5300, 288)
-script = ExtResource("22_2xpb7")
+script = ExtResource("22_j1unl")
 kind = 1
 save_id = &"van_x"
 
-[node name="PackageWest" type="Area2D" parent="Places" unique_id=1395937300]
+[node name="PackageWest" type="Area2D" parent="Places" unique_id=1489103012]
 position = Vector2(10650, 288)
-script = ExtResource("24_j1unl")
+script = ExtResource("24_2eufk")
 
-[node name="PackageEast" type="Area2D" parent="Places" unique_id=1010179740]
+[node name="PackageEast" type="Area2D" parent="Places" unique_id=534646759]
 position = Vector2(13550, 288)
-script = ExtResource("24_j1unl")
+script = ExtResource("24_2eufk")
 
-[node name="Band" type="Node2D" parent="." unique_id=1097071013 instance=ExtResource("25_2aoi7")]
-script = ExtResource("26_2eufk")
+[node name="Band" type="Node2D" parent="." unique_id=1097071013 instance=ExtResource("25_86d8r")]
+script = ExtResource("26_2lmj1")
 
-[node name="PeopleFront" type="Node2D" parent="." unique_id=977093701]
+[node name="PeopleFront" type="Node2D" parent="." unique_id=1688479633]
 position = Vector2(0, 288)
-script = ExtResource("14_das13")
+script = ExtResource("14_sloqf")
 side = 1
 busy = Array[Vector3]([Vector3(6400, 7800, 3), Vector3(7800, 9600, 6), Vector3(9600, 15400, 4), Vector3(15400, 16400, 2), Vector3(16400, 18240, 1), Vector3(18600, 19900, 3)])
 
-[node name="TrafficFront" type="Node2D" parent="." unique_id=1350026119]
+[node name="TrafficFront" type="Node2D" parent="." unique_id=1534344870]
 position = Vector2(0, 288)
-script = ExtResource("15_ka37c")
+script = ExtResource("15_t1rse")
 lane = 1
 town = Vector2(6400, 18240)
 map_width = 21600.0
 map_min = -4000.0
 car_free = Array[Vector2]([Vector2(7800, 15400)])
 
-[node name="OverpassFront" type="Node2D" parent="." unique_id=1535746653]
-position = Vector2(6330, 288)
-script = ExtResource("16_sloqf")
-part = 1
-
-[node name="GantryFront0" type="Node2D" parent="." unique_id=1762075087]
+[node name="GantryFront0" type="Node2D" parent="." unique_id=2077059812]
 position = Vector2(4300, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 part = 1
 signs = PackedStringArray("Amsterdam|A10", "Den Haag|A4")
 
-[node name="GantryFront1" type="Node2D" parent="." unique_id=94324103]
+[node name="GantryFront1" type="Node2D" parent="." unique_id=1974513337]
 position = Vector2(2300, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 part = 1
 signs = PackedStringArray("Utrecht|A2", "Schiphol|A4")
 
-[node name="GantryFront2" type="Node2D" parent="." unique_id=1711587898]
+[node name="GantryFront2" type="Node2D" parent="." unique_id=1465634490]
 position = Vector2(200, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 part = 1
 signs = PackedStringArray("Haarlem|A9", "Amsterdam|A10")
 
-[node name="GantryFront3" type="Node2D" parent="." unique_id=290340909]
+[node name="GantryFront3" type="Node2D" parent="." unique_id=1246608680]
 position = Vector2(-1800, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 part = 1
 signs = PackedStringArray("Den Haag|A4", "Leiden|A44")
 
-[node name="GantryFront4" type="Node2D" parent="." unique_id=1907027634]
+[node name="GantryFront4" type="Node2D" parent="." unique_id=717001946]
 position = Vector2(-3400, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 part = 1
 signs = PackedStringArray("Rotterdam|A4", "Utrecht|A12")
 
-[node name="GantryFront5" type="Node2D" parent="." unique_id=1850010696]
+[node name="GantryFront5" type="Node2D" parent="." unique_id=23889445]
 position = Vector2(20550, 288)
-script = ExtResource("17_t1rse")
+script = ExtResource("17_7kcv0")
 part = 1
 signs = PackedStringArray("Schiphol|A4", "Amsterdam|A10")
 
-[node name="RoundHotel" type="Node2D" parent="." unique_id=1055634054]
-position = Vector2(5120, 306)
-script = ExtResource("7_x5aeg")
+[node name="RoundHotel" type="Node2D" parent="." unique_id=1959001961]
+position = Vector2(5120, 334)
+script = ExtResource("7_nmepv")
 kind = 12
 sign_text = "HOTEL"
 
-[node name="Water" type="Node2D" parent="." unique_id=1687137281]
+[node name="Water" type="Node2D" parent="." unique_id=800286264]
 
-[node name="DitchWest" type="ColorRect" parent="Water" unique_id=441156599]
+[node name="DitchWest" type="ColorRect" parent="Water" unique_id=314295213]
 offset_left = -4400.0
-offset_top = 310.0
-offset_right = 5450.0
-offset_bottom = 830.0
+offset_top = 326.0
+offset_right = 4700.0
+offset_bottom = 846.0
 color = Color(0.24705882, 0.4509804, 0.5882353, 1)
-script = ExtResource("27_86d8r")
+script = ExtResource("27_3xhoj")
 water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
 deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
 
-[node name="Canal" type="ColorRect" parent="Water" unique_id=748170661]
-offset_left = 5450.0
+[node name="Canal" type="ColorRect" parent="Water" unique_id=282344399]
+offset_left = 7083.0
 offset_top = 310.0
 offset_right = 18240.0
 offset_bottom = 830.0
-script = ExtResource("27_86d8r")
+script = ExtResource("27_3xhoj")
 
-[node name="DitchEast" type="ColorRect" parent="Water" unique_id=394806642]
+[node name="DitchEast" type="ColorRect" parent="Water" unique_id=703241771]
 offset_left = 18240.0
-offset_top = 310.0
+offset_top = 326.0
 offset_right = 22000.0
-offset_bottom = 830.0
+offset_bottom = 846.0
 color = Color(0.24705882, 0.4509804, 0.5882353, 1)
-script = ExtResource("27_86d8r")
+script = ExtResource("27_3xhoj")
 water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
 deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
 
-[node name="Houseboats" type="Node2D" parent="." unique_id=601770166]
+[node name="Houseboats" type="Node2D" parent="." unique_id=1584198013]
 position = Vector2(0, 288)
-script = ExtResource("28_2lmj1")
+script = ExtResource("28_st8kn")
 spots = Array[float]([9900.0, 10560.0, 11320.0, 12120.0, 12860.0, 13560.0, 14260.0, 15080.0])
 
-[node name="Birds" type="Node2D" parent="." unique_id=1014504650]
-script = ExtResource("29_3xhoj")
+[node name="Birds" type="Node2D" parent="." unique_id=995951226]
+script = ExtResource("29_u7fs4")
 
-[node name="WaterLife5" type="Node2D" parent="." unique_id=1414497246]
-position = Vector2(4850, 288)
-script = ExtResource("30_st8kn")
-length = 3350.0
-lock_x = 600.0
+[node name="WaterLife5" type="Node2D" parent="." unique_id=188064095]
+position = Vector2(7223, 288)
+script = ExtResource("30_12evo")
+length = 977.0
 
-[node name="WaterLife9" type="Node2D" parent="." unique_id=1365939269]
+[node name="WaterLife9" type="Node2D" parent="." unique_id=348909506]
 position = Vector2(-4000, 288)
-script = ExtResource("30_st8kn")
-length = 8750.0
+script = ExtResource("30_12evo")
+length = 8600.0
 seed_value = 9
 
-[node name="Foreground" type="Node2D" parent="." unique_id=570232382]
-script = ExtResource("3_p0gre")
+[node name="ViaductRoad" type="Node2D" parent="." unique_id=2135501369]
+position = Vector2(5650, 288)
+script = ExtResource("31_jpwvu")
+length = 750.0
+top = 27.0
+
+[node name="ViaductTown" type="Node2D" parent="." unique_id=2106156095]
+position = Vector2(6400, 288)
+script = ExtResource("31_jpwvu")
+length = 683.0
+top = 16.0
+
+[node name="GrassBank" type="Node2D" parent="." unique_id=852616685]
+position = Vector2(4700, 288)
+script = ExtResource("31_jpwvu")
+kind = 1
+length = 950.0
+top = 38.0
+
+[node name="Canopy0" type="Node2D" parent="." unique_id=1129292313]
+position = Vector2(7083, 288)
+script = ExtResource("32_5u2n8")
+seed_value = 11
+
+[node name="Canopy1" type="Node2D" parent="." unique_id=1522475401]
+position = Vector2(5650, 288)
+script = ExtResource("32_5u2n8")
+seed_value = 12
+
+[node name="Canopy2" type="Node2D" parent="." unique_id=698200021]
+position = Vector2(18240, 288)
+script = ExtResource("32_5u2n8")
+seed_value = 13
+
+[node name="Foreground" type="Node2D" parent="." unique_id=1644149832]
+script = ExtResource("3_3ywfa")
 factor = 1.35
 
-[node name="Scenery" type="Node2D" parent="Foreground" unique_id=1980545006]
-script = ExtResource("4_078hn")
+[node name="Scenery" type="Node2D" parent="Foreground" unique_id=1407301211]
+script = ExtResource("4_ao3qg")
 kind = 4
 town = Vector2(6400, 18240)
 map_width = 21600.0
@@ -827,18 +858,18 @@ map_min = -4000.0
 foreground = Vector2(-4000, 5490)
 seed_value = 23
 
-[node name="MapHud" type="CanvasLayer" parent="." unique_id=1142744021]
-script = ExtResource("31_u7fs4")
+[node name="MapHud" type="CanvasLayer" parent="." unique_id=1952068542]
+script = ExtResource("33_wfxop")
 
-[node name="DialogueBox" type="CanvasLayer" parent="." unique_id=917051707]
-script = ExtResource("32_12evo")
+[node name="DialogueBox" type="CanvasLayer" parent="." unique_id=2071503771]
+script = ExtResource("34_75cur")
 
-[node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=34814218 instance=ExtResource("33_jpwvu")]
-script = ExtResource("34_5u2n8")
+[node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=34814218 instance=ExtResource("35_c4aei")]
+script = ExtResource("36_r1w5a")
 
-[node name="DevHint" type="CanvasLayer" parent="." unique_id=311245294]
+[node name="DevHint" type="CanvasLayer" parent="." unique_id=5476993]
 
-[node name="Hint" type="Label" parent="DevHint" unique_id=1069734079]
+[node name="Hint" type="Label" parent="DevHint" unique_id=1896676600]
 offset_left = 8.0
 offset_top = 344.0
 offset_right = 8.0

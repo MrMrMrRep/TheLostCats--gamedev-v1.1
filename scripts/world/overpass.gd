@@ -22,6 +22,7 @@ const DECK_H := 20.0
 		queue_redraw()
 @export var width := 120.0                  ## deck width along our road
 @export var city_side := 1.0                ## +1: the city is east of the overpass
+@export var structure := true               ## false: only the speed signs (the city limit)
 
 
 func _draw() -> void:
@@ -40,6 +41,10 @@ func _pillar(x: float, top: float, bottom: float, c: Color) -> void:
 
 
 func _back(half: float) -> void:
+	if not structure:
+		_speed_sign(city_side * 30.0, "50")
+		_speed_sign(-city_side * 30.0, "100")
+		return
 	var far := CONCRETE.lerp(WorldPalette.HAZE, 0.3)
 	_pillar(-half + 14, DECK_BOTTOM, -2, far)
 	_pillar(half - 14, DECK_BOTTOM, -2, far)
@@ -57,6 +62,8 @@ func _speed_sign(x: float, text: String) -> void:
 
 
 func _front(half: float) -> void:
+	if not structure:
+		return
 	var p := WorldPalette
 	# Near pillars down into the water.
 	_pillar(-half + 18, DECK_BOTTOM, 40, CONCRETE.darkened(0.05))
