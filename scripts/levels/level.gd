@@ -243,5 +243,8 @@ func _update_interactables() -> void:
 		best.set_prompt_text("E  use keycard")
 	elif best is Door and not best.locked and best.target_scene == "":
 		best.set_prompt_text("E  " + _group_text(door_group(active), active))
-	if best and Input.is_action_just_pressed("interact"):
-		best.interact(active, self)
+	if Input.is_action_just_pressed("interact"):
+		if best:
+			best.interact(active, self)
+		else:                               # nothing to interact with: use the selected item
+			active.use_current_item()

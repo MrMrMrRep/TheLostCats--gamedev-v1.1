@@ -102,6 +102,8 @@ Zoom changes ease (~1.6 s) when you enter or leave a zone. It's pixel-perfect at
 - **Water fades with the zones**: the canal strip shrinks into a ditch and then disappears; the ground rises to fill the screen (no hard cut)
 - **Length**: a target of **60–90 s** per leg, tunable in one number. Playtest it: long enough to breathe, short enough not to bore. You can stop on the way (services, a detour)
 - Light gameplay while driving: steer/speed, maybe overtake, the police at night (§11), fuel later
+- **Idea (2026-10-19): the leg as a semi-cutscene.** You drive out of the city yourself, the landscape changes and the camera zooms out, the radio keeps playing; at some point fade out → load → fade in on the German side (radio switches to German stations). Not decided yet
+- **Idea: junctions.** A stop on the road where you choose where to go, e.g. Düsseldorf, or down to Calais for the ferry to the UK
 
 ## 11. Day/night cycle (proposal)
 - **Time only runs on the world map / road**, never in levels (gigs are their own scenes)

@@ -5,15 +5,25 @@ extends RefCounted
 ##   load("res://tools/build_world_map.gd").new().build()
 ## Re-run after changing the layout numbers below.
 
-const W := 3840
+# West to east: road block, polder with a farm (the van waits there), the
+# canal-house centre with 6 bridges, the studio and Café De Kat, then the
+# outskirts (service station, shopping centre, car parks, self storage) and
+# all the way east the band's storage with its gated car park.
+const W := 9600
 const GY := 288.0
-const TOWN := Vector2(1000, 3700)
-const STUDIO_X := 1892.0
-const STUDIO_AREA := Vector2(1760, 2060)
-const BRIDGES := [1560.0, 2440.0, 3060.0]
+const TOWN := Vector2(1400, 9100)           # canal + city (centre and outskirts)
+const OUTSKIRTS := 7200.0                   # centre ends, outskirts begin
+const STUDIO_X := 3600.0
+const STUDIO_AREA := Vector2(3460, 3760)
+const BRIDGES := [2000.0, 2700.0, 4300.0, 5000.0, 5700.0, 6700.0]
 const BRIDGE_W := 96.0
-const STATION := Vector2(3140, 3280)        # service station, no houses here
-const VENUE_X := 3540.0
+const VENUE_X := 6200.0
+const STATION := Vector2(7260, 7400)        # service station, no building here
+const FARM_P := 760.0                       # the van, out of town
+# Outskirts buildings: [kind, x, seed, sign]; kinds as in WorldBuilding.Kind.
+const OUTSKIRT_BUILDINGS := [[0, 7480.0, 3, "WINKELCENTRUM"], [1, 7880.0, 5, ""], [2, 8120.0, 7, "SELF STORAGE"]]
+const STORAGE_X := 8540.0                   # left end of the band's storage
+const STORAGE_GATE_X := 8605.0              # gate in front of its car park
 
 var root: Node2D
 
@@ -34,7 +44,8 @@ func build() -> int:
 		var layer := Node2D.new(); layer.set_script(Px); layer.set("factor", l[1])
 		_add(root, layer, l[0])
 		var s := Node2D.new(); s.set_script(Sc)
-		s.set("kind", l[2]); s.set("town", TOWN); s.set("map_width", float(W)); s.set("seed_value", l[3])
+		s.set("kind", l[2]); s.set("town", TOWN); s.set("outskirts", OUTSKIRTS)
+		s.set("map_width", float(W)); s.set("seed_value", l[3])
 		_add(layer, s, "Scenery")
 
 	# Bridges (behind the houses' layer so the gaps show their canal views).
@@ -50,13 +61,13 @@ func build() -> int:
 	var studio := _block(city, "Studio", 3, 7, "STUDIO", STUDIO_X)
 	var venue := _block(city, "Venue", 3, 19, "CAFE DE KAT", VENUE_X)
 	var keep_out := [Vector2(studio.position.x, studio.position.x + studio.width()),
-		Vector2(venue.position.x, venue.position.x + venue.width()), STATION]
+		Vector2(venue.position.x, venue.position.x + venue.width())]
 	for bx in BRIDGES:
 		keep_out.append(Vector2(bx - BRIDGE_W / 2.0, bx + BRIDGE_W / 2.0))
 	keep_out.sort_custom(func(a, b): return a.x < b.x)
 	var cursor := TOWN.x + 10.0
 	var seed := 40
-	for zone in keep_out + [Vector2(TOWN.y - 10.0, TOWN.y)]:
+	for zone in keep_out + [Vector2(OUTSKIRTS, OUTSKIRTS)]:
 		_fill(city, cursor, zone.x, seed)
 		seed += 10
 		cursor = zone.y
@@ -65,6 +76,14 @@ func build() -> int:
 	shop.autoplay = "default"; shop.offset = Vector2(0, -64)
 	shop.position = Vector2((STATION.x + STATION.y) / 2.0, GY)
 	_add(city, shop, "ServiceStation")
+	var Bd = load("res://scripts/world/outskirts.gd")
+	for b in OUTSKIRT_BUILDINGS:
+		var ob := Node2D.new(); ob.set_script(Bd); ob.position = Vector2(b[1], GY)
+		ob.set("kind", b[0]); ob.set("seed_value", b[2]); ob.set("sign_text", b[3])
+		_add(city, ob, ["Mall", "CarPark", "SelfStorage"][b[0]])
+	var storage := Node2D.new(); storage.set_script(Bd); storage.position = Vector2(STORAGE_X, GY)
+	storage.set("kind", 3); storage.set("sign_text", "THE LOST CATS - STORAGE")
+	_add(city, storage, "Storage")
 
 	# Street: invisible collision + drawn street/quay/dike.
 	var tm := TileMapLayer.new()
@@ -93,11 +112,16 @@ func build() -> int:
 	venue_door.set("target_scene", "res://scenes/levels/level_test.tscn")
 	venue_door.set("target_spawn", &"Start")
 	_add(places, venue_door, "VenueDoor")
+	var gate := Area2D.new(); gate.set_script(load("res://scripts/world/storage_gate.gd"))
+	gate.position = Vector2(STORAGE_GATE_X, GY)
+	gate.set("target_scene", "res://scenes/levels/abilities_test.tscn")
+	gate.set("target_spawn", &"Start")
+	_add(places, gate, "StorageGate")
 	var station_door := Area2D.new(); station_door.set_script(WD)
 	station_door.position = Vector2((STATION.x + STATION.y) / 2.0 + 30.0, GY)
 	station_door.set("closed_text", "Service station: coffee machine broken. Again.")
 	_add(places, station_door, "StationDoor")
-	var npc := Area2D.new(); npc.set_script(load("res://scripts/world/npc.gd")); npc.position = Vector2(STUDIO_X + 44, GY)
+	var npc := Area2D.new(); npc.set_script(load("res://scripts/world/npc.gd")); npc.position = Vector2(STORAGE_X - 50, GY)
 	_add(places, npc, "Geordie")
 	var start := Marker2D.new(); start.position = Vector2(STUDIO_X + 150, GY)
 	_add(places, start, "Start")
@@ -106,14 +130,15 @@ func build() -> int:
 	var bikes := Area2D.new(); bikes.set_script(V); bikes.set("kind", 0); bikes.set("save_id", &"bikes_x")
 	bikes.position = Vector2(STUDIO_X - 70, GY)
 	_add(places, bikes, "Bikes")
-	for p in [["ParkingStudio", 2290.0, 120.0], ["ParkingStation", 3330.0, 100.0], ["ParkingVenue", VENUE_X - 120.0, 100.0]]:
+	for p in [["ParkingFarm", FARM_P, 120.0], ["ParkingStudio", STUDIO_X + 400.0, 120.0], ["ParkingVenue", VENUE_X - 160.0, 100.0],
+			["ParkingMall", 7650.0, 120.0], ["ParkingStorage", STORAGE_X - 130.0, 110.0]]:
 		var spot := Node2D.new(); spot.set_script(PS); spot.position = Vector2(p[1], GY); spot.set("width", p[2])
 		_add(places, spot, p[0])
 	var van := Area2D.new(); van.set_script(V); van.set("kind", 1); van.set("save_id", &"van_x")
-	van.position = Vector2(2290, GY)
+	van.position = Vector2(FARM_P, GY)
 	_add(places, van, "Van")
 	var Pk = load("res://scripts/world/package.gd")
-	for p in [["PackageWest", 600.0], ["PackageEast", 2760.0]]:
+	for p in [["PackageWest", 2350.0], ["PackageEast", 5350.0]]:
 		var pk := Area2D.new(); pk.set_script(Pk); pk.position = Vector2(p[1], GY)
 		_add(places, pk, p[0])
 

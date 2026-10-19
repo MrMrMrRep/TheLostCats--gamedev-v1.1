@@ -242,4 +242,4 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "Move/Jump: arrows+Space  1-5/Tab: switch  A: ability  B: drink/shield  E: use/talk/hack  R: use item  F: give  T: next slot  V: drop"
+text = "Move: arrows/WASD  Jump: Space  J: ability  K: 2nd/drink  E: door/talk/use item  T/F/V: next/give/drop item  1-5/Tab: switch  G: gather  Esc: pause"

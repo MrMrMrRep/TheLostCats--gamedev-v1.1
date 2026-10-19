@@ -376,7 +376,7 @@ func respawn(pos: Vector2, hp: int, grace := 0.0) -> void:
 	_play(&"idle")
 
 
-## R: use the current item. Beer is drunk, a keycard opens a locked door next
+## E (with nothing to interact with) or R: use the current item. Beer is drunk, a keycard opens a locked door next
 ## to you, other items explain themselves.
 func use_current_item() -> void:
 	var i := inventory.current_index()

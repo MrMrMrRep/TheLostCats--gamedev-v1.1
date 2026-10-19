@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 28
+const EXPECTED_CHECKS := 38
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -36,6 +36,7 @@ func _run() -> void:
 	await _test_package()
 	await _test_return_from_gig()
 	await _test_studio_door()
+	await _test_storage_gate()
 	await _test_venue_door()
 
 	if checks != EXPECTED_CHECKS:
@@ -105,7 +106,7 @@ func _test_bikes() -> void:
 	await _frames(2)
 	_check(map.vehicle == bikes and map._bikes[map.leader].visible, "E at the bikes: the whole band rides")
 	Input.action_press("move_right")
-	await _frames(60)
+	await _frames(90)
 	var speed: float = bikes.velocity.x
 	Input.action_release("move_right")
 	_check(absf(speed - WALK_SPEED * 1.6) < 5.0, "bikes go 1.6x walking speed (%.0f px/s)" % speed)
@@ -118,15 +119,28 @@ func _test_bikes() -> void:
 
 func _test_van() -> void:
 	var van = map.get_node("Places/Van")
+	_check(not map.in_town(van.global_position.x), "the van waits out of town (x %.0f)" % van.global_position.x)
+	van.global_position.x = map.get_node("Places/ParkingStudio").global_position.x
 	await _place_leader(van.global_position.x)
 	await _tap("interact")
 	await _frames(2)
 	_check(map.vehicle == van and not map.leader.visible, "E at the van: the band drives off")
+	_check(map.radio.is_on and map.hud._radio.text.begins_with("Radio: "), "the radio comes on in the van (%s)" % map.hud._radio.text)
+	var station: int = map.radio.channel
+	await _tap("use_item")
+	_check(map.radio.channel != station and map.radio.CHANNELS[map.radio.channel].region == "NL", "R: next Dutch station (%s)" % map.radio.now_playing())
 	Input.action_press("move_right")
-	await _frames(100)
+	await _frames(150)
 	var speed: float = van.velocity.x
 	Input.action_release("move_right")
 	_check(absf(speed - WALK_SPEED * 3.0) < 5.0, "the van goes 3x walking speed (%.0f px/s)" % speed)
+	await _frames(30)
+	var coasted: float = van.velocity.x
+	_check(coasted > speed * 0.6 and coasted < speed - 5.0, "letting go coasts (%.0f -> %.0f px/s)" % [speed, coasted])
+	Input.action_press("move_left")
+	await _frames(20)
+	Input.action_release("move_left")
+	_check(van.velocity.x < coasted - 200.0, "steering back brakes hard (%.0f px/s)" % van.velocity.x)
 	_check(absf(map.zoom - 1.0) < 0.1, "driving in town: zoom eases out to 1x (%.2f)" % map.zoom)
 	var x_back: float = van.global_position.x
 	van.global_position.x = 700.0               # out of town, on the dike road
@@ -197,6 +211,36 @@ func _test_studio_door() -> void:
 			n.queue_free()
 	router.is_transitioning = false
 	await _frames(5)
+
+
+func _test_storage_gate() -> void:
+	var gate = map.get_node("Places/StorageGate")
+	_check(absf(map.get_node("Places/Geordie").global_position.x - gate.global_position.x) < 160.0, "Geordie waits in front of the storage")
+	var target := [""]
+	router.transition_started.connect(func(p): target[0] = p, CONNECT_ONE_SHOT)
+	await _place_leader(gate.global_position.x)
+	await _tap("interact")
+	_check(not gate.is_open() and map.talking and target[0] == "", "locked gate: Joep hacks the keypad instead of entering")
+	var n := 0
+	while map.talking and n < 400:
+		await physics_frame
+		n += 1
+	_check(gate.is_open() and not map.talking, "hack complete: the gate is open (%d frames)" % n)
+	await _frames(25)
+	await _tap("interact")
+	_check(target[0] == "res://scenes/levels/abilities_test.tscn", "the open gate leads into the level")
+	await _frames(60)
+	for node in root.get_children():
+		if node.name != "Game" and node.name != "SceneRouter" and node.name != "Audio" and node != map:
+			node.queue_free()
+	router.is_transitioning = false
+	# The level's exit names the studio door; the band comes out where it went in.
+	map.queue_free()
+	await _frames(2)
+	router.pending_spawn = &"StudioDoor"
+	map = await _load_map()
+	gate = map.get_node("Places/StorageGate")
+	_check(absf(map.leader.global_position.x - gate.global_position.x) < 1.0, "back out of the level: at the storage gate, not the studio")
 
 
 func _test_venue_door() -> void:

@@ -3,8 +3,8 @@ class_name WorldScenery
 extends Node2D
 ## Background scenery drawn into a WorldParallax layer. `kind` picks what:
 ##   SKYLINE     hazy rooftops, church towers, a crane (town only)
-##   BACK_STREET muted canal houses and trees behind the street (town), trees
-##               and the odd farmhouse outside town
+##   BACK_STREET muted canal houses and trees behind the street (centre), flats
+##               and warehouses (outskirts), trees outside town
 ##   POLDER_FAR  horizon fields with ditches, wind turbines, a highway (outside town)
 ##   POLDER_NEAR farms, old windmills, cows, trees (outside town)
 ## Zones are given in world x; a layer with parallax factor f shows world x as
@@ -20,6 +20,7 @@ const STREET_Y := 288.0
 		kind = value
 		queue_redraw()
 @export var town := Vector2(1100, 3640)     ## world x range of the city
+@export var outskirts := 7200.0             ## world x where the centre turns into outskirts
 @export var map_width := 3840.0
 @export var seed_value := 5
 
@@ -99,7 +100,7 @@ func _draw_skyline(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var base := STREET_Y - 40
 	var x := _local(town.x) - 120
-	var end := _local(town.y) + 120
+	var end := _local(outskirts) + 60
 	while x < end:
 		var w := rng.randf_range(14, 30)
 		var h := rng.randf_range(18, 44)
@@ -123,7 +124,9 @@ func _draw_back_street(rng: RandomNumberGenerator) -> void:
 	var x := -320.0
 	var end := _local(map_width) + 320.0
 	while x < end:
-		if _in_town(x):
+		if _in_town(x) and x >= _local(outskirts):
+			x += _outskirt_building(rng, x, base)
+		elif _in_town(x):
 			var w := rng.randf_range(22, 30)
 			var h := rng.randf_range(46, 72)
 			var c: Color = p.FACADES[rng.randi_range(0, p.FACADES.size() - 1)].lerp(p.HAZE, 0.5)
@@ -139,6 +142,34 @@ func _draw_back_street(rng: RandomNumberGenerator) -> void:
 			if rng.randf() < 0.55:
 				WorldPalette.tree(self, x, base, rng.randi_range(9, 14), 0.3)
 			x += rng.randf_range(30, 70)
+
+
+## A flat or a warehouse behind the outskirts street; returns its width.
+func _outskirt_building(rng: RandomNumberGenerator, x: float, base: float) -> float:
+	var p := WorldPalette
+	if rng.randf() < 0.45:                  # gallery flat
+		var w := rng.randf_range(70, 110)
+		var h := rng.randf_range(50, 70)
+		var c := Color("c9b9a6").lerp(p.HAZE, 0.45)
+		draw_rect(Rect2(x, base - h, w, h + 14), c)
+		var y := base - h + 6
+		while y < base - 4:
+			draw_rect(Rect2(x + 2, y, w - 4, 2), p.TRIM.lerp(p.HAZE, 0.5))
+			var wx := x + 5
+			while wx < x + w - 6:
+				draw_rect(Rect2(wx, y + 3, 4, 4), p.GLASS.lerp(p.HAZE, 0.45))
+				wx += 9
+			y += 10
+		WorldPalette.tree(self, x + w + 6, base, 10, 0.35)
+		return w + 18
+	var w := rng.randf_range(60, 100)       # warehouse with a shed roof
+	var h := rng.randf_range(24, 36)
+	var c: Color = [Color("8a8f99"), Color("6f8f9a"), Color("a08a6a")][rng.randi_range(0, 2)].lerp(p.HAZE, 0.45)
+	draw_rect(Rect2(x, base - h, w, h + 14), c)
+	for k in int(w / 6):
+		draw_rect(Rect2(x + k * 6, base - h, 1, h), c.darkened(0.1))
+	WorldPalette.triangle(self, x, base - h, w, 6, c.darkened(0.15))
+	return w + rng.randf_range(8, 30)
 
 
 func _draw_polder_far(rng: RandomNumberGenerator) -> void:

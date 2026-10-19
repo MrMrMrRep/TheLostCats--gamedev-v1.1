@@ -140,10 +140,15 @@ Not in M6: quiet/stealth part of Joep's beer (nothing listens yet), whiskey/join
 - [x] Packages: +10 coins once (remembered); not collected from inside the van
 - [x] Geordie: "!" → dialogue box (typewriter, E advances) → quest "Get to Café De Kat" → after the gig "?" → "Tour day 1 complete!"
 - [x] Map HUD: objective + coins + vehicle hint. Camera: zoom 1×, slower follow, look-ahead 80 px walking / 160 px driving. World text full size on the map
-- [x] Headless test `tests/test_world.gd` (28 checks)
+- [x] Headless test `tests/test_world.gd` (38 checks)
 - [x] **Done when:** you can take the bike or van from the studio to the venue and enter it ✅
 - [x] **Art pass** (`docs/art-style.md`): sky + drifting clouds, parallax skyline / back street / polder (turbines, mills, cows, highway), new canal houses, 3 bridges, live canal reflection (`shaders/water_reflection.gdshader`), birds outside town, the black band van sprite. Zoom zones 3× studio, 2× city, 1× van in town, 0.5× outside town. The map is built by `tools/build_world_map.gd`
 - [x] **Studio door** → the abilities test level; its exit brings you back to the studio
+- [x] **Bigger map (9600 px)**: polder west with a farm (the van waits there), the canal centre twice as long (6 bridges, studio, Café De Kat), outskirts (service station, shopping centre, car parks, self storage) and **the band's storage** at the east end. Houses ~1.3× bigger
+- [x] **Storage gate**: locked keypad, Joep hacks it with his phone (gate opens on his hack-complete frame), then it's the door into the abilities level. Coming out of a level puts you back at the door you used. Geordie waits in front of the storage
+- [x] **Vehicles**: engine/pedal pull that fades near top speed, coasting with drag, braking by steering back; the van pitches on a spring and puffs exhaust smoke
+- [x] **Van radio** (R): dummy synth songs on 3 Dutch stations (German ones are ready for Germany), static between channels, station in the HUD
+- [x] **Controls review**: E uses the selected item when nothing is near, Esc/P pause with a controls screen, hint bars fixed (abilities are J/K, not A/B). `tests/test_controls.gd` (27 checks) presses the real keys
 
 Not in M8: day/night and police, studio interior and upgrades, shops that sell, fans/merch, procedural map, music (M10).
 
@@ -191,15 +196,15 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 | Jump | Space / C | A |
 | Ability A (punch, wave, throw, grab/climb, bubble) | J / X | X |
 | Ability B (drink beer; The Germ: shield, + up = platform) | K / Z | Y |
-| Interact / talk / hack | E | B |
+| Interact / talk / hack; **with nothing to interact with: use the selected item** | E | B |
 | Give item | F | Left trigger |
-| Use item | R | Right trigger |
+| Use item (in the van: radio channel) | R | Right trigger |
 | Next item slot | T | Right stick click |
 | Drop item | V | Left stick click |
 | Gather band (hold) | G (hold) | Back (hold) |
 | Previous / next member | Q / Tab (wraps around) | LB / RB |
 | Select member | 1–5 | — |
-| Pause | Esc / P | Start |
+| Pause (shows the controls) | Esc / P | Start |
 | Debug overlay | F3 | — |
 
 ## Running the tests
@@ -234,4 +239,5 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 
 ```bash
 /Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_world.gd
+/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_controls.gd
 ```

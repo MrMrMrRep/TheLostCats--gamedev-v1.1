@@ -34,6 +34,7 @@ var followers: Array[BandMember] = []
 var vehicle: Vehicle                        # the one the band is using, or null on foot
 var talking := false
 var zoom := ZOOM_CITY
+var radio: VanRadio
 
 var _trail: Array[Vector2] = []
 var _bikes := {}                            # BandMember -> BikeSprite
@@ -55,6 +56,10 @@ static func of(node: Node) -> WorldMap:
 func _ready() -> void:
 	add_to_group(&"world_map")
 	band.locked = true                      # no switching or gather on the map
+	radio = VanRadio.new()
+	radio.name = "VanRadio"
+	add_child(radio)
+	radio.tuned.connect(hud.set_radio)
 	var cam := band.camera
 	cam.position_smoothing_speed = 4.0
 	cam.deadzone = Vector2(24, 40)
@@ -187,6 +192,8 @@ func board(v: Vehicle) -> void:
 		leader.set_physics_process(false)
 	band.camera.follow(v)
 	band.camera.look_ahead = DRIVE_LOOK_AHEAD
+	if not riding:
+		radio.power(true)
 	_cooldown = INTERACT_COOLDOWN
 	_update_vehicle_hint()
 
@@ -200,6 +207,7 @@ func leave_vehicle() -> bool:
 		return false
 	vehicle = null
 	v.occupied = false
+	radio.power(false)
 	v.velocity = Vector2.ZERO
 	v.save_position()
 	for m in band.members:
@@ -224,6 +232,8 @@ func _drive(delta: float) -> void:
 	leader.sprite.flip_h = vehicle.facing < 0.0
 	_set_anim(leader, &"idle")
 	_bikes[leader].facing = vehicle.facing
+	if vehicle.kind == Vehicle.Kind.VAN and Input.is_action_just_pressed("use_item"):
+		radio.next_channel()
 	if Input.is_action_just_pressed("interact"):
 		leave_vehicle()
 
@@ -301,8 +311,13 @@ func _update_interact() -> void:
 		best.set_prompt_text("E  ride the bikes" if best.kind == Vehicle.Kind.BIKES else "E  drive the van")
 	elif best is Npc:
 		best.set_prompt_text("E  talk")
-	if best and _cooldown <= 0.0 and Input.is_action_just_pressed("interact"):
-		best.interact(leader, self)
+	elif best is StorageGate:
+		best.set_prompt_text(best.prompt_text())
+	if vehicle == null and _cooldown <= 0.0 and Input.is_action_just_pressed("interact"):
+		if best:
+			best.interact(leader, self)
+		else:                               # nothing here: use the selected item
+			leader.use_current_item()
 		_cooldown = maxf(_cooldown, INTERACT_COOLDOWN)
 
 
@@ -325,7 +340,49 @@ func talk_to(npc: Npc) -> void:
 func enter_door(door: WorldDoor) -> void:
 	for v in vehicles():
 		v.save_position()
+	Game.set_flag(&"map_return", String(door.name))
 	SceneRouter.go_to(door.target_scene, door.target_spawn)
+
+
+## The storage gate's keypad: no code yet, so Joep hacks it with his phone.
+## The gate opens on the frame his hack completes (hack_complete spawn event).
+func hack_gate(gate: StorageGate) -> void:
+	if talking:
+		return
+	talking = true
+	if _highlighted:
+		_highlighted.set_highlighted(false)
+		_highlighted = null
+	leader.velocity = Vector2.ZERO
+	leader.set_active(false)
+	var hacker := leader
+	for m in band.members:
+		if m.profile and m.profile.id == &"joep":
+			hacker = m
+	gate.say("Keypad: ENTER CODE", 1.0)
+	await get_tree().create_timer(1.1).timeout
+	hacker.facing = 1.0 if gate.global_position.x >= hacker.global_position.x else -1.0
+	hacker.sprite.flip_h = hacker.facing < 0.0
+	hacker.show_text("Code? Who needs a code")
+	var spawn: Dictionary = hacker.sprite_data.get_spawn("attack_special_a") if hacker.sprite_data else {}
+	if spawn.is_empty():
+		await get_tree().create_timer(1.0).timeout
+	else:
+		hacker.play_action(&"attack_special_a")
+		var waited := 0.0
+		while hacker.sprite.animation == &"attack_special_a" and hacker.sprite.frame < spawn.frame and waited < 4.0:
+			waited += await _frame_time()
+	gate.open()
+	gate.say("ACCESS GRANTED")
+	await get_tree().create_timer(1.0).timeout
+	leader.set_active(true)
+	talking = false
+	_cooldown = INTERACT_COOLDOWN
+
+
+func _frame_time() -> float:
+	await get_tree().process_frame
+	return get_process_delta_time()
 
 
 func _update_vehicle_hint() -> void:
@@ -334,7 +391,7 @@ func _update_vehicle_hint() -> void:
 	elif vehicle.kind == Vehicle.Kind.BIKES:
 		hud.set_vehicle_hint("On the bikes: E to get off anywhere")
 	else:
-		hud.set_vehicle_hint("Driving the van: park at a P sign and press E")
+		hud.set_vehicle_hint("Driving the van: park at a P sign and press E.  R: radio")
 
 
 func _say_at(node: Node2D, text: String) -> void:
@@ -343,7 +400,16 @@ func _say_at(node: Node2D, text: String) -> void:
 
 func _spawn_from_router() -> Node2D:
 	if SceneRouter.pending_spawn == &"":
+		for arg in OS.get_cmdline_user_args():     # dev: start at a node, -- --spawn=StorageGate
+			if arg.begins_with("--spawn="):
+				return find_child(arg.trim_prefix("--spawn="), true, false) as Node2D
 		return null
 	var node := find_child(String(SceneRouter.pending_spawn), true, false) as Node2D
 	SceneRouter.pending_spawn = &""
+	# Several doors can lead into one level: come back out of the one you used.
+	var back_name := String(Game.get_flag(&"map_return", ""))
+	var back := find_child(back_name, true, false) as WorldDoor if back_name != "" else null
+	Game.set_flag(&"map_return", "")
+	if node is WorldDoor and back and back.target_scene == node.target_scene:
+		return back
 	return node

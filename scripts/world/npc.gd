@@ -4,7 +4,7 @@ extends Interactable
 ## A person on the world map you can talk to (E). Shows "!" when they have a
 ## quest for you and "?" when you've done it. The lines to say depend on the
 ## quest state; `talked()` moves the quest along. Geordie gives the tour-day-1
-## quest: get to Café De Kat, play, come back.
+## quest: get to Café De Kat, play, come back. He waits at the storage.
 
 const MARKER_COLOR := Color("ffd36b")
 
@@ -35,8 +35,8 @@ func lines() -> Array[String]:
 		"":
 			return [
 				"Morning! Van's loaded, coffee's... somewhere.",
-				"First gig of the tour: Café De Kat, east side of town. Soundcheck's soon!",
-				"Take the van, but it only stops at the P signs. The bikes by the door are handy for short hops.",
+				"First gig of the tour: Café De Kat, back in the centre. Soundcheck's soon!",
+				"Take the van, but it only stops at the P signs. The bikes by the studio are handy for short hops.",
 			]
 		"active":
 			if Game.get_flag(&"cafe_finished"):
@@ -44,7 +44,7 @@ func lines() -> Array[String]:
 					"You played Café De Kat?! The whole street is talking about it.",
 					"Tour day 1: done. Get some sleep, legends. Tomorrow we do it all again.",
 				]
-			return ["Café De Kat is east, past the service station. Go on, go!"]
+			return ["Café De Kat is west of here, in the centre past the studio. Go on, go!"]
 	return ["Rest up. Big day tomorrow."]
 
 
