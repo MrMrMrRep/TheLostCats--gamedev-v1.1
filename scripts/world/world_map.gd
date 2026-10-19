@@ -34,6 +34,11 @@ const TEMPO_SETTLE := 2.5                   # seconds for the tempo to calm down
 const FOCUS_CAP := 170.0                    # members further back than this don't widen the shot
 const FIT_MARGIN := 80.0                    # px of room around the group
 const FOCUS_LEAD := 34.0                    # the shot leads in the walking direction
+const IDLE_ZOOM_AFTER := 15.0               # band idle this long: the camera starts to wander
+const ZOOM_IDLE := 1.5                      # ...very slowly out to here
+const IDLE_ZOOM_RATE := 0.05
+const DRIFT_PERIOD := 48.0                  # seconds for one slow sway left and right
+const DRIFT_MAX := 160.0                    # px, and never so far that the band leaves the frame
 const ZOOM_VAN_TOWN := 1.3                  # driving in town: a little closer
 const ZOOM_VAN_SLOW_TOWN := 1.7             # crawling / stopped in the van (after SLOW_DELAY)
 const ZOOM_VAN_SLOW_ROAD := 0.85
@@ -70,6 +75,8 @@ var _slow_time := 0.0
 var _tempo := 0.0                           # 0 standing .. 1 full speed (eases down slowly)
 var _spread := 0.0                          # px from the front member to the back one framed
 var _focus: Node2D                          # what the camera follows on foot / on the bikes
+var _idle_cam := 0.0                        # seconds the band has stood still (camera wander)
+var _drift := 0.0                           # current sideways drift of the shot
 var _road_time := 0.0
 
 @onready var band: Band = $Band
@@ -195,6 +202,14 @@ func _update_focus(delta: float, instant := false) -> void:
 			hi = maxf(hi, mx)
 	var spread := hi - lo
 	var goal := (lo + hi) / 2.0 + leader.facing * FOCUS_LEAD * _tempo
+	# Idle for long: drift slowly sideways, keeping the band (partly) in frame.
+	var want_drift := 0.0
+	if _idle_cam > IDLE_ZOOM_AFTER:
+		var t := _idle_cam - IDLE_ZOOM_AFTER
+		var room := maxf(0.0, 640.0 / zoom / 2.0 - 40.0)
+		want_drift = sin(t * TAU / DRIFT_PERIOD) * minf(room, DRIFT_MAX) * clampf(t / 20.0, 0.0, 1.0)
+	_drift = 0.0 if instant else lerpf(_drift, want_drift, 1.0 - exp(-delta * 0.8))
+	goal += _drift
 	var k := 1.0 if instant else 1.0 - exp(-delta * 3.0)
 	_spread = lerpf(_spread, spread, k)
 	_focus.global_position = Vector2(lerpf(_focus.global_position.x, goal, k), leader.global_position.y)
@@ -224,6 +239,10 @@ func _update_zoom(delta: float) -> void:
 		_tempo = frac if frac > _tempo else move_toward(_tempo, frac, delta / TEMPO_SETTLE)
 		target = _tempo_zoom()
 		rate = ZOOM_OUT_RATE if target < zoom else ZOOM_IN_RATE
+		_idle_cam = _idle_cam + delta if speed < 2.0 and not talking else 0.0
+		if _idle_cam > IDLE_ZOOM_AFTER:         # long idle: wander out, very very slowly
+			target = ZOOM_IDLE
+			rate = IDLE_ZOOM_RATE
 	zoom = lerpf(zoom, target, 1.0 - exp(-delta * rate))
 	if absf(zoom - target) < 0.002:
 		zoom = target
@@ -275,6 +294,7 @@ func place_band(x: float, facing: float) -> void:
 			m.facing = facing
 			m.velocity = Vector2.ZERO
 			m.animate_as_follower(0.0)
+	_idle_cam = 0.0
 	_update_focus(0.0, true)
 	band.camera.follow(_focus, true)
 

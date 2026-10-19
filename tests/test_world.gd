@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 45
+const EXPECTED_CHECKS := 46
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -57,6 +57,11 @@ func _test_zoom_walking() -> void:
 	_check(map.zoom < map.ZOOM_WALK - 0.2, "just stopped: no jump, the zoom eases in slowly (%.2f)" % map.zoom)
 	await _frames(600)
 	_check(map.zoom > map.ZOOM_WALK - 0.12, "after a while standing it's close again (%.2f)" % map.zoom)
+	map._idle_cam = map.IDLE_ZOOM_AFTER + 0.1   # as if the band had stood here for 15 s
+	var close: float = map.zoom
+	await _frames(180)
+	_check(map.zoom < close - 0.05 and absf(map._drift) > 0.5,
+		"idle for long: the camera slowly zooms out and drifts (%.2f -> %.2f, drift %.1f)" % [close, map.zoom, map._drift])
 	await _place_leader(map.get_node("Places/Start").global_position.x)
 	await _frames(240)
 
