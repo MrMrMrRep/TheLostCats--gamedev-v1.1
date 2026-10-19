@@ -56,6 +56,7 @@ const ZOOM_EASE_DRIVE := 0.22               # driving: a slow, calm zoom out / i
 @export var town := Vector2(1100, 3640)     ## world x range of the city
 @export var map_min := 0.0                  ## west end of the map (the cow land goes below 0)
 @export var city_limit := Vector2.ZERO      ## world x range where the van keeps to CITY_SPEED
+@export var foot_limit := -100000.0         ## world x: west of it is motorway; no walking or cycling
 
 var leader: BandMember
 var followers: Array[BandMember] = []
@@ -76,6 +77,7 @@ var _tempo := 0.0                           # 0 standing .. 1 full speed (eases 
 var _spread := 0.0                          # px from the front member to the back one framed
 var _focus: Node2D                          # what the camera follows on foot / on the bikes
 var _idle_cam := 0.0                        # seconds the band has stood still (camera wander)
+var _foot_note := 0.0                       # cooldown for the "no walking/cycling" line
 var _drift := 0.0                           # current sideways drift of the shot
 var _road_time := 0.0
 
@@ -151,6 +153,11 @@ func _physics_process(delta: float) -> void:
 		return
 	if vehicle:
 		_drive(delta)
+	_foot_note = maxf(_foot_note - delta, 0.0)
+	if vehicle == null and leader.global_position.x < foot_limit:
+		leader.global_position.x = foot_limit # on foot: the motorway starts here
+		leader.velocity.x = maxf(leader.velocity.x, 0.0)
+		_foot_warning(leader)
 	_record_trail()
 	if vehicle and vehicle.kind == Vehicle.Kind.BIKES:
 		_update_followers()                 # riding: a tight line on the leader's track
@@ -359,7 +366,12 @@ func _drive(delta: float) -> void:
 	var top := vehicle.top_speed()
 	if vehicle.kind == Vehicle.Kind.VAN and x_in(city_limit, vehicle.global_position.x):
 		top = minf(top, CITY_SPEED)
-	vehicle.drive(dir, top, delta, _min_x, _max_x)
+	var lo := _min_x
+	if vehicle.kind == Vehicle.Kind.BIKES:
+		lo = maxf(lo, foot_limit)            # bikes stop at the motorway fork
+		if vehicle.global_position.x <= lo + 0.5 and dir < 0.0:
+			_foot_warning(vehicle)
+	vehicle.drive(dir, top, delta, lo, _max_x)
 	# The leader rides along (visible on the bikes, hidden in the van).
 	leader.global_position = vehicle.global_position
 	leader.velocity = vehicle.velocity
@@ -407,6 +419,13 @@ func _update_followers() -> void:
 ## from the leader than their own gap walks after them (jogs when far
 ## behind), now and then someone pauses for a moment, and when they stand
 ## still long enough they smoke, drink or play.
+func _foot_warning(at: Node2D) -> void:
+	if _foot_note > 0.0:
+		return
+	_foot_note = 3.0
+	_say_at(at, "No walking or cycling on the motorway")
+
+
 func _walk_followers(delta: float) -> void:
 	var lx := leader.global_position.x
 	for m in followers:

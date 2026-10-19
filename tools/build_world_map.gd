@@ -16,17 +16,18 @@ extends RefCounted
 const W := 21600
 const GY := 288.0
 const TOWN := Vector2(6400, 18240)          # canal + city
-const HIGHWAY_MERGE := 5700.0               # the highway joins our road here
+const SPLIT_X := 4600.0                     # the fork: city road east of it, motorway only west (no walking/cycling)
+const HIGHWAY_MERGE := SPLIT_X - 40.0       # the motorway sweeps in from the distance at the fork
 const FARM_P := 5300.0                      # the van, at a farm just out of town
 const MAP_MIN := -4000.0                    # west end: open meadow with cows only (x < 0)
 const PARK_END := 7083.0                    # hotels | park: the canal starts here (behind trees)
 const CANAL_FROM := PARK_END
-const VIADUCT := Vector2(5650, 7083)        # west of the park the road runs over a viaduct
-const GRASS_BANK := Vector2(4700, 5650)     # then a grass bank in front, then the polder ditch
-const CANOPIES := [7083.0, 5650.0, 18240.0] # dense trees in front hide each change
+const VIADUCT := Vector2(SPLIT_X, 7083)     # west of the park the road runs over a viaduct, to the fork
+const GRASS_BANK := Vector2(3800, SPLIT_X)  # then a grass bank in front, then the polder ditch
+const CANOPIES := [7083.0, SPLIT_X, 18240.0]  # dense trees in front hide each change
 const OVERPASS_X := 6330.0                  # the ring road crosses over; the city limit starts here
 const CONSTRUCTION := Vector2(5790, 6200)   # building site behind the road
-const ROUND_HOTEL_X := 5120.0               # the round glass hotel, in front of the road
+const ROUND_HOTEL_X := 5120.0               # the round glass hotel, rising from below the viaduct
 const GANTRIES := [[2300.0, "Utrecht|A2", "Schiphol|A4"], [200.0, "Haarlem|A9", "Amsterdam|A10"],
 	[-1800.0, "Den Haag|A4", "Leiden|A44"], [20550.0, "Schiphol|A4", "Amsterdam|A10"]]
 const CENTRE := 9600.0                      # old town ends, canal centre begins
@@ -79,6 +80,7 @@ func build() -> int:
 	root.set("town", TOWN)
 	root.set("map_min", MAP_MIN)
 	root.set("city_limit", Vector2(OVERPASS_X, TOWN.y))
+	root.set("foot_limit", SPLIT_X)
 
 	var sky := CanvasLayer.new(); sky.set_script(load("res://scripts/world/sky.gd"))
 	_add(root, sky, "Sky")
@@ -178,6 +180,8 @@ func build() -> int:
 	var ov_back := Node2D.new(); ov_back.set_script(Ov); ov_back.position = Vector2(OVERPASS_X, GY)
 	ov_back.set("part", 0); ov_back.set("structure", false)
 	_add(root, ov_back, "OverpassBack")
+	var fork := Node2D.new(); fork.set_script(load("res://scripts/world/road_signs.gd")); fork.position = Vector2(SPLIT_X + 60.0, GY)
+	_add(root, fork, "Fork")
 	for i in GANTRIES.size():
 		var g := Node2D.new(); g.set_script(Gt); g.position = Vector2(GANTRIES[i][0], GY); g.set("part", 0)
 		g.set("signs", PackedStringArray([GANTRIES[i][1], GANTRIES[i][2]]))
@@ -266,9 +270,6 @@ func build() -> int:
 	ped_front.set("side", 1); ped_front.set("busy", _people())
 	_add(root, ped_front, "PeopleFront")
 	_add(root, traffic_front, "TrafficFront")
-	var rh := Node2D.new(); rh.set_script(load("res://scripts/world/outskirts.gd")); rh.position = Vector2(ROUND_HOTEL_X, GY + 46)
-	rh.set("kind", 12); rh.set("sign_text", "HOTEL")
-	_add(root, rh, "RoundHotel")
 	var water := _add(root, Node2D.new(), "Water")
 	var Wt = load("res://scripts/world/water.gd")
 	for w in [["DitchWest", MAP_MIN - 400.0, GRASS_BANK.x, true], ["Canal", CANAL_FROM, TOWN.y, false], ["DitchEast", TOWN.y, W + 400.0, true]]:
@@ -299,6 +300,9 @@ func build() -> int:
 		var g := Node2D.new(); g.set_script(FG); g.position = Vector2(f[1], GY)
 		g.set("length", f[2] - f[1]); g.set("kind", f[3]); g.set("top", f[4])
 		_add(root, g, f[0])
+	var rh := Node2D.new(); rh.set_script(load("res://scripts/world/outskirts.gd")); rh.position = Vector2(ROUND_HOTEL_X, GY + 150)
+	rh.set("kind", 12); rh.set("sign_text", "HOTEL")
+	_add(root, rh, "RoundHotel")                 # in front of the viaduct, from the ground far below
 	var Cn = load("res://scripts/world/canopy.gd")
 	for i in CANOPIES.size():
 		var cn := Node2D.new(); cn.set_script(Cn); cn.position = Vector2(CANOPIES[i], GY); cn.set("seed_value", 11 + i)

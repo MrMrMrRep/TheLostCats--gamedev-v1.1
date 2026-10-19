@@ -89,11 +89,11 @@ func _test_band_line() -> void:
 
 
 func _test_road_block() -> void:
-	await _place_leader(140.0)
+	await _place_leader(map.foot_limit + 60.0)
 	Input.action_press("move_left")
-	await _frames(60)
+	await _frames(90)
 	Input.action_release("move_left")
-	_check(map.leader.global_position.x > 40.0, "the west road block stops the band (x %.0f)" % map.leader.global_position.x)
+	_check(map.leader.global_position.x >= map.foot_limit - 0.5, "on foot the band stops at the motorway fork (x %.0f)" % map.leader.global_position.x)
 
 
 func _test_geordie_quest() -> void:

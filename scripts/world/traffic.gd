@@ -108,6 +108,9 @@ func _town_depth(x: float) -> float:
 
 func _spawn(view: Vector2) -> void:
 	var dir := 1.0 if _rng.randf() < 0.5 else -1.0
+	var mid := (view.x + view.y) / 2.0
+	if not _in_town(mid):                   # motorway: drive on the right; leaving the city
+		dir = -1.0 if lane == Lane.BACK else 1.0   # on the far carriageway, inbound on the near one
 	var x := view.x - 60.0 if dir > 0.0 else view.y + 60.0
 	if _rng.randf() < 0.25:                  # now and then one appears ahead
 		x = _rng.randf_range(view.x, view.y)
