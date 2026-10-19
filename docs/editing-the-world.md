@@ -7,6 +7,9 @@ press Play.
 **Rule of thumb:** you place things and tune numbers; code does the drawing
 and the behaviour.
 
+> **Can't see the scene tree, the Inspector or the 2D view?** Turn on
+> **developer view** in Summer first.
+
 > The old generator `tools/build_world_map.gd` is **retired**. Don't run it:
 > it would wipe out all your edits. It refuses to run anyway.
 
