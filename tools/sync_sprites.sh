@@ -18,5 +18,8 @@ for m in $MEMBERS; do
 done
 mkdir -p "$DST/assets/sprites/fx"
 cp "$SRC"/_shared/fx/*.png "$DST/assets/sprites/fx/"
+mkdir -p "$DST/assets/sprites/vehicles"
+cp "$SRC"/_shared/vehicles/bike_parked_*.png "$DST/assets/sprites/vehicles/"
+cp "$SRC/_godot/jtc_bike.gd" "$DST/scripts/world/jtc_bike.gd"
 cp "$SRC/_godot/jtc_sprite_data.gd" "$DST/scripts/characters/jtc_sprite_data.gd"
 echo "synced fx + jtc_sprite_data.gd ($(head -2 "$SRC/CHANGELOG.md" | tail -1))"

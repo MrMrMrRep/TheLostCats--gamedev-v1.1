@@ -327,7 +327,7 @@ func board(v: Vehicle) -> void:
 	var riding := v.kind == Vehicle.Kind.BIKES
 	for m in band.members:
 		m.visible = riding
-		_bikes[m].visible = riding
+		_bikes[m].visible = riding and not JTCBike.has_bike_art(m)
 	if riding:
 		place_band(v.global_position.x, leader.facing)
 		leader.set_physics_process(false)
@@ -343,6 +343,8 @@ func board(v: Vehicle) -> void:
 
 
 func leave_vehicle() -> bool:
+	for m in band.members:
+		JTCBike.dismount(m)
 	if vehicle == null or _cooldown > 0.0:
 		return false
 	var v := vehicle
@@ -390,7 +392,10 @@ func _drive(delta: float) -> void:
 	leader.velocity = vehicle.velocity
 	leader.facing = vehicle.facing
 	leader.sprite.flip_h = vehicle.facing < 0.0
-	_set_anim(leader, &"idle")
+	if vehicle.kind == Vehicle.Kind.BIKES:
+		JTCBike.ride(leader, vehicle.velocity.x, top, dir != 0.0)
+	else:
+		_set_anim(leader, &"idle")
 	_bikes[leader].facing = vehicle.facing
 	if vehicle.kind == Vehicle.Kind.VAN and Input.is_action_just_pressed("use_item"):
 		radio.next_channel()
@@ -475,7 +480,7 @@ func _move_follower(m: BandMember, p: Vector2) -> void:
 	m.sprite.flip_h = m.facing < 0.0
 	_bikes[m].facing = m.facing
 	if vehicle and vehicle.kind == Vehicle.Kind.BIKES:
-		_set_anim(m, &"idle")
+		JTCBike.ride(m, vehicle.velocity.x, vehicle.top_speed(), Input.get_axis("move_left", "move_right") != 0.0)
 	elif p.y < GROUND_Y - 1.0:
 		_set_anim(m, &"jump" if d.y < 0.0 else &"fall")
 	else:

@@ -1,4 +1,4 @@
-[gd_resource type="SpriteFrames" load_steps=155 format=3]
+[gd_resource type="SpriteFrames" load_steps=171 format=3]
 
 [ext_resource type="Texture2D" path="res://assets/sprites/characters/keys_joep/keys_joep_sheet.png" id="1_sheet"]
 
@@ -614,6 +614,70 @@ region = Rect2(2304, 2016, 96, 96)
 atlas = ExtResource("1_sheet")
 region = Rect2(2400, 2016, 96, 96)
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_154"]
+atlas = ExtResource("1_sheet")
+region = Rect2(0, 2112, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_155"]
+atlas = ExtResource("1_sheet")
+region = Rect2(96, 2112, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_156"]
+atlas = ExtResource("1_sheet")
+region = Rect2(192, 2112, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_157"]
+atlas = ExtResource("1_sheet")
+region = Rect2(288, 2112, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_158"]
+atlas = ExtResource("1_sheet")
+region = Rect2(384, 2112, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_159"]
+atlas = ExtResource("1_sheet")
+region = Rect2(480, 2112, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_160"]
+atlas = ExtResource("1_sheet")
+region = Rect2(576, 2112, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_161"]
+atlas = ExtResource("1_sheet")
+region = Rect2(672, 2112, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_162"]
+atlas = ExtResource("1_sheet")
+region = Rect2(0, 2208, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_163"]
+atlas = ExtResource("1_sheet")
+region = Rect2(96, 2208, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_164"]
+atlas = ExtResource("1_sheet")
+region = Rect2(192, 2208, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_165"]
+atlas = ExtResource("1_sheet")
+region = Rect2(288, 2208, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_166"]
+atlas = ExtResource("1_sheet")
+region = Rect2(384, 2208, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_167"]
+atlas = ExtResource("1_sheet")
+region = Rect2(480, 2208, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_168"]
+atlas = ExtResource("1_sheet")
+region = Rect2(576, 2208, 96, 96)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_169"]
+atlas = ExtResource("1_sheet")
+region = Rect2(672, 2208, 96, 96)
+
 [resource]
 animations = [{
 "frames": [{
@@ -1183,5 +1247,63 @@ animations = [{
 }],
 "loop": false,
 "name": &"attack_special_a",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_154")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_155")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_156")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_157")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_158")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_159")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_160")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_161")
+}],
+"loop": true,
+"name": &"bike_pedal",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_162")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_163")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_164")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_165")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_166")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_167")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_168")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_169")
+}],
+"loop": true,
+"name": &"bike_roll",
 "speed": 12.0
 }]

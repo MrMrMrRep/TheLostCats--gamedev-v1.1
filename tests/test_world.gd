@@ -118,7 +118,10 @@ func _test_bikes() -> void:
 	await _place_leader(bikes.global_position.x)
 	await _tap("interact")
 	await _frames(2)
-	_check(map.vehicle == bikes and map._bikes[map.leader].visible, "E at the bikes: the whole band rides")
+	# Members with bike art ride on their own sprite; the others on the placeholder bike.
+	var all_ride: bool = map.band.members.all(func(m): return m.visible and \
+		(map._bikes[m].visible or m.sprite.sprite_frames.has_animation(&"bike_pedal")))
+	_check(map.vehicle == bikes and all_ride, "E at the bikes: the whole band rides")
 	Input.action_press("move_right")
 	await _frames(90)
 	var speed: float = bikes.velocity.x

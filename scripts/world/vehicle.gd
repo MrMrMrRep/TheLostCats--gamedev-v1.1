@@ -165,9 +165,8 @@ func restore_position() -> void:
 func _draw() -> void:
 	if kind == Kind.VAN:
 		_draw_van()
-	elif not occupied:                      # riding bikes are drawn under each member
-		for i in 3:
-			BikeSprite.draw_bike(self, Vector2(-12 + i * 10, 0), 1.0, Color(0.85, 0.85, 0.9, 0.9 - i * 0.15))
+	elif not occupied:                      # parked: the band's five bikes on their kickstands
+		JTCBike.draw_parked(self, Vector2.ZERO, facing)
 
 
 func _draw_van() -> void:
