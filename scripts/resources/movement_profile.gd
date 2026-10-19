@@ -12,6 +12,10 @@ const TILE := 24.0
 @export var max_hp := 3                     ## Geoff has 1
 @export var ability: Script                 ## MemberAbility subclass (scripts/abilities/)
 
+@export_group("Sprite")
+@export var sprite_frames: SpriteFrames     ## band sheet from the asset repo (tools/sync_sprites.sh); empty = placeholder
+@export_file("*.json") var sprite_data := "" ## <member>.json next to it: hurt/hit boxes, spawn events
+
 @export_group("Run")
 @export var run_speed_tiles := 7.0          ## top speed, tiles per second
 @export var accel_time := 0.08              ## seconds from standstill to top speed

@@ -275,8 +275,7 @@ func _move_follower(m: BandMember, p: Vector2) -> void:
 
 
 func _set_anim(m: BandMember, anim: StringName) -> void:
-	if m.sprite.animation != anim:
-		m.sprite.play(anim)
+	m.play_anim(anim)
 
 
 # --- Interact, talk, doors -------------------------------------------------

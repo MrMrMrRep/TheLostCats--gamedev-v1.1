@@ -89,7 +89,7 @@ func fall_cap(default_cap: float) -> float:
 func physics_end(_delta: float) -> void:
 	var wall: float = wall_dir()
 	wall_sliding = wall != 0.0 and member.in_dir == wall and member.velocity.y > 0.0 and not member.is_on_floor()
-	member.anim_override = &"fall" if wall_sliding else &""
+	member.anim_override = &"wall_slide" if wall_sliding else &""
 
 
 func on_beer() -> void:

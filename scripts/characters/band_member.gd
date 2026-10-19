@@ -24,6 +24,28 @@ const DEATH_ANIM_SPEED := 2.0               # 12-frame death anim in 0.5 s
 const GIVE_RANGE := 24.0                    # 1 tile
 const KEY_RANGE := 32.0                     # how close a locked door must be to use a key
 const BEER := preload("res://resources/items/beer.tres")
+const SHEET_SCALE := 0.5                    # band sheets are drawn at 2x the world grid (54 px tall -> 27)
+const SHEET_OFFSET := Vector2(0, -48)       # 96x96 cell, feet at (48, 95)
+const PLACEHOLDER_OFFSET := Vector2(0, -28)
+const FIDGET_TIME := 6.0                    # idle this long -> play an instrument, drink or smoke
+const FIDGET_LENGTH := 5.0                  # drinking / smoking lasts this long (the instrument until you move)
+const FIDGETS: Array[StringName] = [&"idle_instrument", &"idle_drinking", &"idle_smoking"]
+# The game asks for logical animations; a sprite set without one plays the first
+# alias it has (band sheets name things differently from the placeholder).
+const ANIM_ALIASES := {
+	&"idle": [&"idle_breathing"],
+	&"walk": [&"run"],
+	&"jump_start": [&"jump_rise"],
+	&"jump": [&"jump_rise"],
+	&"apex": [&"jump_apex", &"jump"],
+	&"fall": [&"jump_fall"],
+	&"land": [&"jump_land"],
+	&"wall_slide": [&"fall"],
+	&"attack": [&"attack_special_a"],
+	&"air_attack": [&"attack_punch"],
+	&"hurt": [&"jump_fall"],
+	&"death": [&"crouch_hold"],
+}
 
 @export var profile: MovementProfile: set = set_profile
 @export var stamina_config: StaminaConfig
@@ -33,6 +55,8 @@ var is_active := false
 var ai_dir := 0.0                           # horizontal input while inactive (-1..1)
 var show_name_tag := true                   # the zoomed-out world map hides it
 var anim_override: StringName = &""         # ability animation (climb, hover, shield)
+var anim: StringName = &"idle"              # logical animation playing (see ANIM_ALIASES)
+var sprite_data: JTCSpriteData              # boxes and spawn events of a band sheet, else null
 var ability: MemberAbility
 var inventory: Inventory
 
@@ -76,6 +100,10 @@ var _dead := false
 var _air_speed := 0.0
 var _ai_jump_queued := false
 var _ai_jump_hold := 0.0
+var _placeholder_frames: SpriteFrames
+var _idle_time := 0.0
+var _fidget: StringName = &""               # idle variation playing (FIDGETS)
+var _fidget_time := 0.0
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var stamina: StaminaComponent = $Stamina
@@ -88,6 +116,7 @@ func _ready() -> void:
 	inventory.name = "Inventory"
 	add_child(inventory)
 	sprite.animation_finished.connect(_on_animation_finished)
+	_placeholder_frames = sprite.sprite_frames
 	_apply_profile()
 
 
@@ -102,7 +131,19 @@ func _apply_profile() -> void:
 		return
 	_gravity = profile.gravity()
 	_jump_velocity = profile.jump_velocity()
-	sprite.modulate = profile.tint
+	if profile.sprite_frames:
+		sprite.sprite_frames = profile.sprite_frames
+		sprite.scale = Vector2.ONE * SHEET_SCALE
+		sprite.offset = SHEET_OFFSET
+		sprite.modulate = Color.WHITE
+		sprite_data = JTCSpriteData.load_member(profile.sprite_data) if profile.sprite_data != "" else null
+	else:
+		sprite.sprite_frames = _placeholder_frames
+		sprite.scale = Vector2.ONE
+		sprite.offset = PLACEHOLDER_OFFSET
+		sprite.modulate = profile.tint
+		sprite_data = null
+	_play(&"idle")
 	stamina.settings = stamina_config.for_member(profile.id) if stamina_config else null
 	health.set_max_hp(profile.max_hp)
 	name_tag.text = profile.display_name
@@ -301,7 +342,10 @@ func play_death() -> void:
 	sprite.speed_scale = DEATH_ANIM_SPEED
 	_anim_lock = true
 	anim_override = &""
-	sprite.play(&"death")
+	_play_once(&"death")
+	if anim_name(&"death") != &"death":     # band sheets have no death anim: crouch and fade
+		var tween := create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tween.tween_property(sprite, "modulate:a", 0.0, 0.5)
 
 
 ## Back to life at `pos` with `hp`, all transient state cleared.
@@ -327,8 +371,9 @@ func respawn(pos: Vector2, hp: int, grace := 0.0) -> void:
 	sprite.process_mode = Node.PROCESS_MODE_INHERIT
 	sprite.speed_scale = 1.0
 	sprite.visible = true
+	sprite.modulate.a = 1.0
 	_anim_lock = false
-	sprite.play(&"idle")
+	_play(&"idle")
 
 
 ## R: use the current item. Beer is drunk, a keycard opens a locked door next
@@ -505,40 +550,122 @@ func _correct_corners(delta: float) -> void:
 
 func _update_animation() -> void:
 	var on_floor := is_on_floor()
+	var moving := absf(velocity.x) > 1.0
 	sprite.flip_h = facing < 0.0
 
-	if on_floor and not _was_on_floor and absf(velocity.x) < 1.0:
+	if on_floor and not _was_on_floor and not moving:
 		_play_once(&"land")
 	_was_on_floor = on_floor
+	if not on_floor or moving or anim_override != &"":
+		_idle_time = 0.0
+		_fidget = &""
 
 	if anim_override != &"":
 		_anim_lock = false
 		_play(anim_override)
-		return
-
-	if _anim_lock:
+	elif _anim_lock:
 		# Running or falling cancels a one-shot.
-		if on_floor and absf(velocity.x) > 1.0 and sprite.animation == &"land":
+		if on_floor and moving and (anim == &"land" or anim == &"fidget"):
 			_anim_lock = false
 		elif not on_floor and velocity.y > 0.0:
 			_anim_lock = false
+	if anim_override == &"" and not _anim_lock:
+		if on_floor:
+			if moving:
+				_play(&"run" if absf(velocity.x) > _run_speed() * 0.6 else &"walk")
+			else:
+				_update_idle()
+		elif velocity.y < -profile.apex_threshold:
+			_play(&"jump")
+		elif velocity.y < profile.apex_threshold:
+			_play(&"apex")
 		else:
-			return
-
-	if on_floor:
-		_play(&"run" if absf(velocity.x) > 1.0 else &"idle")
-	else:
-		_play(&"jump" if velocity.y < 0.0 else &"fall")
+			_play(&"fall")
+	# Band sheets draw the wall slide with the wall on the left of the art.
+	if sprite.animation == &"wall_slide":
+		sprite.flip_h = facing > 0.0
 
 
-func _play(anim: StringName) -> void:
-	if sprite.animation != anim:
-		sprite.play(anim)
+func _run_speed() -> float:
+	return profile.run_speed_tiles * TILE if profile else 1.0
 
 
-func _play_once(anim: StringName) -> void:
+## Standing still: breathe; after a while play an instrument, drink or smoke
+## (band sheets only), with the _in / _loop / _out parts where the sheet has them.
+func _update_idle() -> void:
+	var delta := get_physics_process_delta_time()
+	_idle_time += delta
+	if _fidget == &"" and _idle_time >= FIDGET_TIME and sprite_data:
+		var options := FIDGETS.filter(func(f: StringName) -> bool: return _has_part(f, "") or _has_part(f, "_in"))
+		if not options.is_empty():
+			_fidget = options[randi() % options.size()]
+			_fidget_time = 0.0
+			if _has_part(_fidget, "_in"):
+				_play_raw_once(StringName(_fidget + "_in"))
+				return
+	if _fidget == &"":
+		_play(&"idle")
+		return
+	_fidget_time += delta
+	if _fidget != &"idle_instrument" and _fidget_time >= FIDGET_LENGTH:
+		var out := StringName(_fidget + "_out")
+		_fidget = &""
+		_idle_time = 0.0
+		if _has_part(out, ""):
+			_play_raw_once(out)
+		else:
+			_play(&"idle")
+		return
+	var loop := StringName(_fidget + "_loop")
+	_play_raw(loop if _has_part(loop, "") else _fidget)
+
+
+func _has_part(base: StringName, suffix: String) -> bool:
+	return sprite.sprite_frames.has_animation(StringName(base + suffix))
+
+
+## The sheet animation that plays for logical `name` (itself or an alias).
+func anim_name(name: StringName, depth := 0) -> StringName:
+	if sprite.sprite_frames.has_animation(name) or depth > 3:
+		return name
+	for alias in ANIM_ALIASES.get(name, []):
+		var found := anim_name(alias, depth + 1)
+		if sprite.sprite_frames.has_animation(found):
+			return found
+	return name
+
+
+## Play logical animation `name` (looping; the sheet's alias if it lacks it).
+func play_anim(name: StringName) -> void:
+	_play(name)
+
+
+func _play(name: StringName) -> void:
+	anim = name
+	var actual := anim_name(name)
+	if sprite.animation != actual and sprite.sprite_frames.has_animation(actual):
+		sprite.play(actual)
+
+
+func _play_once(name: StringName) -> void:
 	_anim_lock = true
-	sprite.play(anim)
+	anim = name
+	var actual := anim_name(name)
+	if sprite.sprite_frames.has_animation(actual):
+		sprite.play(actual)
+
+
+## Idle variations play sheet names directly (logical anim "fidget").
+func _play_raw(actual: StringName) -> void:
+	anim = &"fidget"
+	if sprite.animation != actual:
+		sprite.play(actual)
+
+
+func _play_raw_once(actual: StringName) -> void:
+	_anim_lock = true
+	anim = &"fidget"
+	sprite.play(actual)
 
 
 func _on_animation_finished() -> void:

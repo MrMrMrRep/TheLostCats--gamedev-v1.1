@@ -5,7 +5,7 @@ extends SceneTree
 const TILE := 24.0
 var failures := 0
 var checks := 0
-const EXPECTED_CHECKS := 13          # a crashed check must not look like a pass
+const EXPECTED_CHECKS := 14          # a crashed check must not look like a pass
 
 
 func _initialize() -> void:
@@ -20,7 +20,8 @@ func _run() -> void:
 	var sprite: AnimatedSprite2D = player.get_node("Sprite")
 	var ground_y = player.global_position.y
 	_check(player.is_on_floor(), "starts on the floor")
-	_check(sprite.animation == &"idle", "idle animation at rest (got %s)" % sprite.animation)
+	_check(player.anim == &"idle", "idle animation at rest (got %s)" % player.anim)
+	_check(sprite.sprite_frames.has_animation(sprite.animation), "the sheet has the animation it plays (%s)" % sprite.animation)
 
 	# --- Jump in place (held): measure apex height and time to apex.
 	Input.action_press("jump")
@@ -31,7 +32,7 @@ func _run() -> void:
 	while t < 2.0:
 		await physics_frame
 		t += 1.0 / 60.0
-		seen[sprite.animation] = true
+		seen[player.anim] = true
 		if player.global_position.y < peak:
 			peak = player.global_position.y
 			apex_time = t
@@ -57,7 +58,7 @@ func _run() -> void:
 	print("run: top speed %.1f px/s after %d frames" % [player.velocity.x, accel_frames])
 	_check(accel_frames <= 6, "reaches top speed within 0.1 s")
 	await _frames(5)
-	_check(sprite.animation == &"run", "run animation while running")
+	_check(player.anim == &"run", "run animation while running")
 	_check(not sprite.flip_h, "faces right")
 	await _frames(60)
 	_check(player.global_position.x < 14 * TILE, "1-tile step blocks running (x=%.1f)" % player.global_position.x)

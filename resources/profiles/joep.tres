@@ -3,10 +3,14 @@
 [ext_resource type="Script" uid="uid://bh87mwt67d8gw" path="res://scripts/abilities/joep_ability.gd" id="1_3t8vd"]
 [ext_resource type="Script" uid="uid://hsujlvahca0" path="res://scripts/resources/movement_profile.gd" id="1_gtgoh"]
 
+[ext_resource type="SpriteFrames" path="res://assets/sprites/characters/keys_joep/keys_joep_frames.tres" id="9_frames"]
+
 [resource]
 script = ExtResource("1_gtgoh")
 id = &"joep"
 display_name = "Joep"
+sprite_frames = ExtResource("9_frames")
+sprite_data = "res://assets/sprites/characters/keys_joep/keys_joep.json"
 ability = ExtResource("1_3t8vd")
 run_speed_tiles = 7.5
 jump_height_tiles = 3.3
