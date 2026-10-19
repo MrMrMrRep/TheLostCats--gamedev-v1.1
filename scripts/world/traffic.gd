@@ -158,10 +158,14 @@ func _vehicle(pos: Vector2, dir: float, s: float, kind: int, col: Color, alpha: 
 		Kind.CAR: CarArt.car(self, CarArt.style_for(seed), col, alpha, phase, seed)
 		Kind.VAN:
 			CarArt.shadow(self, 150, alpha)
-			_van(Color(col, alpha), alpha, phase, LIVERIES[absi(seed) % LIVERIES.size()])
+			_van(Color(col, alpha), alpha, phase, "")
+			var text: String = LIVERIES[absi(seed) % LIVERIES.size()]
+			var ink := Color.WHITE if col.get_luminance() < 0.6 else Color("1d1a22")
+			_livery(pos, dir, s, text, -70.0, -40.0, 104.0, 11, Color(ink, alpha))
 		Kind.TRUCK:
 			CarArt.shadow(self, 300, alpha)
-			_truck(Color(col, alpha), alpha, phase, TRUCK_LIVERIES[absi(seed) % TRUCK_LIVERIES.size()])
+			_truck(Color(col, alpha), alpha, phase, "")
+			_livery(pos, dir, s, TRUCK_LIVERIES[absi(seed) % TRUCK_LIVERIES.size()], -140.0, -50.0, 190.0, 16, Color(col, alpha))
 		Kind.BUS:
 			CarArt.shadow(self, 340, alpha)
 			_bus(alpha, phase)
@@ -171,6 +175,16 @@ func _vehicle(pos: Vector2, dir: float, s: float, kind: int, col: Color, alpha: 
 
 
 # --- Vehicles in art px, facing right, wheels on y 0 -------------------------
+
+## Lettering on a vehicle side, always readable: drawn unmirrored, with the
+## text box mirrored when the vehicle faces left.
+func _livery(pos: Vector2, dir: float, s: float, text: String, x0: float, y: float, w: float, size: int, c: Color) -> void:
+	if text == "":
+		return
+	draw_set_transform(pos, 0.0, Vector2(s, s))
+	var x := x0 if dir > 0.0 else -(x0 + w)
+	draw_string(ThemeDB.fallback_font, Vector2(x, y), text, HORIZONTAL_ALIGNMENT_CENTER, w, size, c)
+
 
 func _glass(alpha: float) -> Color:
 	return Color(Color("3a4a62"), alpha)

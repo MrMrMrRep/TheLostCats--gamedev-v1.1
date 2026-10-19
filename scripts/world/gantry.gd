@@ -1,11 +1,11 @@
 @tool
 class_name WorldGantry
 extends Node2D
-## An overhead sign gantry across the motorway: steel posts on both sides
-## and a lattice beam with blue direction signs (and a green route number),
-## lane arrows under them. Like the overpass it comes in two parts: BACK (the
-## far post, behind the traffic) and FRONT (beam, signs and the near post, in
-## front: the cars and our van drive underneath). Origin = street line.
+## An overhead sign gantry on the motorway, standing in the median between
+## the two carriageways: a steel post and a lattice beam with blue direction
+## signs (and a green route number), arrows under them. Drawn behind our lane,
+## in front of the opposite carriageway. (`part` FRONT draws nothing; kept so
+## old scenes load.) Origin = street line.
 
 enum Part { BACK, FRONT }
 
@@ -21,10 +21,9 @@ const BEAM_Y := -66.0
 
 
 func _draw() -> void:
-	if part == Part.BACK:
-		_post(-4.0, -4.0, STEEL.lerp(WorldPalette.HAZE, 0.25))
+	if part == Part.FRONT:
 		return
-	_post(0.0, 30.0, STEEL)
+	_post(0.0, -1.0, STEEL)
 	# Lattice beam.
 	var w := 70.0 + signs.size() * 76.0
 	var x0 := -w + 10.0

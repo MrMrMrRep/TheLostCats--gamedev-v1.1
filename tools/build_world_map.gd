@@ -27,9 +27,8 @@ const CANOPIES := [7083.0, 5650.0, 18240.0] # dense trees in front hide each cha
 const OVERPASS_X := 6330.0                  # the ring road crosses over; the city limit starts here
 const CONSTRUCTION := Vector2(5790, 6200)   # building site behind the road
 const ROUND_HOTEL_X := 5120.0               # the round glass hotel, in front of the road
-const GANTRIES := [[4300.0, "Amsterdam|A10", "Den Haag|A4"], [2300.0, "Utrecht|A2", "Schiphol|A4"],
-	[200.0, "Haarlem|A9", "Amsterdam|A10"], [-1800.0, "Den Haag|A4", "Leiden|A44"], [-3400.0, "Rotterdam|A4", "Utrecht|A12"],
-	[20550.0, "Schiphol|A4", "Amsterdam|A10"]]
+const GANTRIES := [[2300.0, "Utrecht|A2", "Schiphol|A4"], [200.0, "Haarlem|A9", "Amsterdam|A10"],
+	[-1800.0, "Den Haag|A4", "Leiden|A44"], [20550.0, "Schiphol|A4", "Amsterdam|A10"]]
 const CENTRE := 9600.0                      # old town ends, canal centre begins
 const OUTSKIRTS := 15400.0                  # canal centre ends: apartments, then industry
 const STUDIO_X := 11800.0
@@ -181,7 +180,8 @@ func build() -> int:
 	_add(root, ov_back, "OverpassBack")
 	for i in GANTRIES.size():
 		var g := Node2D.new(); g.set_script(Gt); g.position = Vector2(GANTRIES[i][0], GY); g.set("part", 0)
-		_add(root, g, "GantryBack%d" % i)
+		g.set("signs", PackedStringArray([GANTRIES[i][1], GANTRIES[i][2]]))
+		_add(root, g, "Gantry%d" % i)
 
 	var Bar = load("res://scripts/world/barrier.gd")
 	for x in [MAP_MIN + 40.0, W - 40.0]:
@@ -266,10 +266,6 @@ func build() -> int:
 	ped_front.set("side", 1); ped_front.set("busy", _people())
 	_add(root, ped_front, "PeopleFront")
 	_add(root, traffic_front, "TrafficFront")
-	for i in GANTRIES.size():
-		var g := Node2D.new(); g.set_script(Gt); g.position = Vector2(GANTRIES[i][0], GY); g.set("part", 1)
-		g.set("signs", PackedStringArray([GANTRIES[i][1], GANTRIES[i][2]]))
-		_add(root, g, "GantryFront%d" % i)
 	var rh := Node2D.new(); rh.set_script(load("res://scripts/world/outskirts.gd")); rh.position = Vector2(ROUND_HOTEL_X, GY + 46)
 	rh.set("kind", 12); rh.set("sign_text", "HOTEL")
 	_add(root, rh, "RoundHotel")
@@ -294,6 +290,7 @@ func build() -> int:
 	for wl in [[CANAL_FROM + 140.0, 8200.0 - CANAL_FROM - 140.0, -1.0, 5], [MAP_MIN, GRASS_BANK.x - 100.0 - MAP_MIN, -1.0, 9]]:
 		var life_w := Node2D.new(); life_w.set_script(WL); life_w.position = Vector2(wl[0], GY)
 		life_w.set("length", wl[1]); life_w.set("lock_x", wl[2]); life_w.set("seed_value", wl[3])
+		life_w.set("water_y", 22.0 if wl[3] == 5 else 38.0)   # the ditch lies below the motorway verge
 		_add(root, life_w, "WaterLife%d" % wl[3])
 	# No water west of the park: a viaduct, then a grass bank; trees hide the joins.
 	var FG = load("res://scripts/world/front_ground.gd")
