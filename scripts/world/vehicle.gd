@@ -3,7 +3,7 @@ class_name Vehicle
 extends Interactable
 ## Band transport on the world map. BIKES: the whole band rides (1.6x walking
 ## speed), get on and off anywhere; parked bikes wait where you left them.
-## VAN: 3x walking speed, but you can only get in and out at a P parking spot.
+## VAN: 2.2x walking speed, but you can only get in and out at a P parking spot.
 ## The WorldMap drives it; position persists in Game.
 ## Driving model: the engine (or pedalling) pulls hard from standstill and
 ## fades toward top speed, letting go coasts with rolling resistance + drag,
@@ -24,7 +24,7 @@ const VAN_GROUND := 50.0                    # tyre bottoms in the frame
 const VAN_FRAMES := 4
 
 # Feel per kind: [pull px/s^2, brake px/s^2, rolling px/s^2, drag 1/s]
-const FEEL := {Kind.BIKES: [820.0, 700.0, 70.0, 0.35], Kind.VAN: [720.0, 900.0, 40.0, 0.18]}
+const FEEL := {Kind.BIKES: [820.0, 700.0, 70.0, 0.35], Kind.VAN: [560.0, 800.0, 36.0, 0.16]}
 const PITCH_PER_ACCEL := 0.000045           # rad of body pitch per px/s^2
 const PITCH_MAX := 0.045
 const PITCH_SPRING := 90.0
@@ -58,7 +58,7 @@ func interact(_member: BandMember, map: Node) -> void:
 
 
 func speed_mult() -> float:
-	return 3.0 if kind == Kind.VAN else 1.6
+	return 2.2 if kind == Kind.VAN else 1.6
 
 
 func display_name() -> String:

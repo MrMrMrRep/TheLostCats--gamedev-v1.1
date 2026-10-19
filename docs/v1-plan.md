@@ -147,6 +147,8 @@ Not in M6: quiet/stealth part of Joep's beer (nothing listens yet), whiskey/join
 - [x] **Bigger map (9600 px)**: polder west with a farm (the van waits there), the canal centre twice as long (6 bridges, studio, Café De Kat), outskirts (service station, shopping centre, car parks, self storage) and **the band's storage** at the east end. Houses ~1.3× bigger
 - [x] **Storage gate**: locked keypad, Joep hacks it with his phone (gate opens on his hack-complete frame), then it's the door into the abilities level. Coming out of a level puts you back at the door you used. Geordie waits in front of the storage
 - [x] **Vehicles**: engine/pedal pull that fades near top speed, coasting with drag, braking by steering back; the van pitches on a spring and puffs exhaust smoke
+- [x] **Map 18400 px, softer edges**: west of the centre the old town (churches, market square, bars and little shops), a park and the theatre, hotels; then a highway sweeps in from the distance and joins a long country road (~15 s by van). East of the centre new apartment blocks lead into the industrial outskirts
+- [x] **Traffic**: a back lane (behind the band, smaller, hazy; bikes in town) and a front lane outside town (in front of the band, reflected) — you pass and get passed, never bump. Van 2.2x walking speed; the driving zoom eases slowly (~10 s)
 - [x] **Van radio** (R): dummy synth songs on 3 Dutch stations (German ones are ready for Germany), static between channels, station in the HUD
 - [x] **Controls review**: E uses the selected item when nothing is near, Esc/P pause with a controls screen, hint bars fixed (abilities are J/K, not A/B). `tests/test_controls.gd` (27 checks) presses the real keys
 

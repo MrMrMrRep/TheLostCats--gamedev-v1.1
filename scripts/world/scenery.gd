@@ -21,6 +21,7 @@ const STREET_Y := 288.0
 		queue_redraw()
 @export var town := Vector2(1100, 3640)     ## world x range of the city
 @export var outskirts := 7200.0             ## world x where the centre turns into outskirts
+@export var centre := Vector2(1100, 7200)   ## world x range with the church-tower skyline
 @export var map_width := 3840.0
 @export var seed_value := 5
 
@@ -99,21 +100,21 @@ func _draw() -> void:
 func _draw_skyline(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var base := STREET_Y - 40
-	var x := _local(town.x) - 120
-	var end := _local(outskirts) + 60
+	var x := _local(centre.x) - 120
+	var end := _local(centre.y) + 60
 	while x < end:
 		var w := rng.randf_range(14, 30)
 		var h := rng.randf_range(18, 44)
 		draw_rect(Rect2(x, base - h, w, h + 60), p.HAZE)
 		draw_rect(Rect2(x + w / 4, base - h - 5, w / 2, 5), p.HAZE)
 		x += w
-	var spires := int((end - _local(town.x)) / 260.0) + 1
+	var spires := int((end - _local(centre.x)) / 260.0) + 1
 	for i in spires:
-		var sx := _local(town.x) + 60 + i * 260 + rng.randf_range(-30, 30)
+		var sx := _local(centre.x) + 60 + i * 260 + rng.randf_range(-30, 30)
 		draw_rect(Rect2(sx, base - 84, 12, 86), p.HAZE_DARK)
 		WorldPalette.triangle(self, sx - 2, base - 84, 16, 24, p.HAZE_DARK)
 		draw_rect(Rect2(sx + 5, base - 114, 2, 8), p.HAZE_DARK)
-	var crane := _local((town.x + town.y) / 2.0) + 90
+	var crane := _local((centre.x + centre.y) / 2.0) + 90
 	draw_rect(Rect2(crane, base - 80, 2, 80), p.HAZE_DARK)
 	draw_rect(Rect2(crane - 30, base - 80, 60, 2), p.HAZE_DARK)
 

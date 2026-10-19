@@ -105,6 +105,8 @@ Zoom changes ease (~1.6 s) when you enter or leave a zone. It's pixel-perfect at
 - **Idea (2026-10-19): the leg as a semi-cutscene.** You drive out of the city yourself, the landscape changes and the camera zooms out, the radio keeps playing; at some point fade out → load → fade in on the German side (radio switches to German stations). Not decided yet
 - **Idea: junctions.** A stop on the road where you choose where to go, e.g. Düsseldorf, or down to Calais for the ferry to the UK
 
+**Built so far (2026-10-19)**: zones along the map, west to east: country road (polder, farms, mills, turbines) → highway joining from the distance → hotels → park + theatre → old town (churches, market, bars, local shops) → canal centre → new apartment blocks → industry/outskirts → our storage. Traffic on two lanes (behind and in front of the band).
+
 ## 11. Day/night cycle (proposal)
 - **Time only runs on the world map / road**, never in levels (gigs are their own scenes)
 - **One tour day ≈ 8 minutes of map time**: morning 2 min → afternoon 3 min → evening 1.5 min → night 1.5 min. Visiting a gig skips you to after the show (night). Sleeping (studio/hotel/van) jumps to the next morning = next tour day

@@ -18,6 +18,14 @@ extends Node2D
 	set(value):
 		sign_text = value
 		queue_redraw()
+@export_range(0.0, 1.0) var shop_rate := 0.3:  ## share of houses with a shop front
+	set(value):
+		shop_rate = value
+		queue_redraw()
+@export var shop_signs: PackedStringArray = []: ## shop/bar names (old town); shops get one each
+	set(value):
+		shop_signs = value
+		queue_redraw()
 
 
 ## The row's houses as [width, height, colour, gable, shop].
@@ -29,7 +37,7 @@ func layout() -> Array:
 		var w := rng.randi_range(54, 70)
 		var h := rng.randi_range(110, 138)
 		var c: Color = WorldPalette.FACADES[(i * 3 + rng.randi_range(0, 2) + seed_value) % WorldPalette.FACADES.size()]
-		out.append([w, h, c, rng.randi_range(0, 3), rng.randf() < 0.3, rng.randi()])
+		out.append([w, h, c, rng.randi_range(0, 3), rng.randf() < shop_rate, rng.randi()])
 	return out
 
 
@@ -46,7 +54,18 @@ func _draw() -> void:
 	var mid := houses / 2
 	for i in rows.size():
 		var hdef: Array = rows[i]
-		_house(x, hdef[0], hdef[1], hdef[2], hdef[3], hdef[4] and sign_text == "", hdef[5])
+		var shop: bool = hdef[4] and sign_text == ""
+		_house(x, hdef[0], hdef[1], hdef[2], hdef[3], shop, hdef[5])
+		if shop and not shop_signs.is_empty():
+			var shop_name := shop_signs[(i + seed_value) % shop_signs.size()]
+			var w: float = hdef[0]
+			draw_rect(Rect2(x + 4, -40, w - 8, 10), WorldPalette.NAVY if i % 2 == 0 else Color("6b2a2a"))
+			draw_string(ThemeDB.fallback_font, Vector2(x + 4, -32), shop_name, HORIZONTAL_ALIGNMENT_CENTER, w - 8, 7, WorldPalette.LIT)
+			if shop_name.contains("BAR") or shop_name.contains("CAFE"):     # terrace
+				draw_rect(Rect2(x + 6, -8, 8, 2), WorldPalette.IRON)
+				draw_rect(Rect2(x + 9, -6, 2, 6), WorldPalette.IRON)
+				draw_rect(Rect2(x + w - 14, -8, 8, 2), WorldPalette.IRON)
+				draw_rect(Rect2(x + w - 11, -6, 2, 6), WorldPalette.IRON)
 		if sign_text != "" and i == mid:
 			var w: float = hdef[0]
 			var top: float = -hdef[1]

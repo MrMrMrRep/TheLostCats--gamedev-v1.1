@@ -6,7 +6,7 @@ extends Node2D
 ## anywhere) and the band van (fast, only at P signs) move the band; doors lead
 ## into levels; Geordie gives the tour quest. The camera zoom tells you where
 ## you are: 3x at the studio, 2x in the city, 1x driving the van in town and
-## 0.5x on the road outside town (birds fly by). Zoom changes ease in ~2 s and
+## 0.5x on the road outside town (birds fly by). Zoom changes ease slowly (slower still while driving) and
 ## the view height follows, so the canal stays in shot.
 
 const GROUND_Y := 288.0
@@ -22,7 +22,8 @@ const ZOOM_STUDIO := 3.0
 const ZOOM_CITY := 2.0
 const ZOOM_VAN_TOWN := 1.0
 const ZOOM_ROAD := 0.5
-const ZOOM_EASE := 1.6                      # higher = faster zoom changes
+const ZOOM_EASE := 0.9                      # higher = faster zoom changes (on foot)
+const ZOOM_EASE_DRIVE := 0.22               # driving: a slow, calm zoom out / in
 
 @export var map_width := 3840
 @export var start_spawn: NodePath
@@ -125,7 +126,8 @@ func target_zoom_at(x: float) -> float:
 func _update_zoom(delta: float) -> void:
 	var x := vehicle.global_position.x if vehicle else leader.global_position.x
 	var target := target_zoom_at(x)
-	zoom = lerpf(zoom, target, 1.0 - exp(-delta * ZOOM_EASE))
+	var rate := ZOOM_EASE_DRIVE if vehicle and vehicle.kind == Vehicle.Kind.VAN else ZOOM_EASE
+	zoom = lerpf(zoom, target, 1.0 - exp(-delta * rate))
 	if absf(zoom - target) < 0.002:
 		zoom = target
 	_apply_zoom()

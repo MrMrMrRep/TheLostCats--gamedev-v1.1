@@ -3,7 +3,7 @@ class_name WorldStreet
 extends Node2D
 ## The street the band walks on and its edge toward the water, across the whole
 ## map. In town: cobbles, curb, stone quay wall, iron railing and bollards.
-## Outside town: an asphalt dike road with a dashed line and a grassy bank.
+## Outside town: a two-lane dike road (traffic on the near lane) and a grassy bank.
 ## Origin at x 0, y = the street line (the band's feet).
 
 @export var map_width := 3840.0
@@ -40,13 +40,18 @@ func _draw() -> void:
 	while xb < b:
 		draw_rect(Rect2(xb, 10, 3, 6), p.IRON)
 		xb += 90
-	# Outside town: dike road and grass bank (both sides).
+	# Outside town: a two-lane dike road (we drive on the far lane, traffic
+	# passes on the near one), a strip of the opposite carriageway behind us,
+	# and a grassy bank down to the ditch.
 	for seg in [Vector2(-400, a), Vector2(b, map_width + 400)]:
 		var w: float = seg.y - seg.x
-		draw_rect(Rect2(seg.x, 0, w, 10), p.ROAD)
+		draw_rect(Rect2(seg.x, -6, w, 6), p.ROAD.lerp(p.HAZE, 0.25))
+		draw_rect(Rect2(seg.x, -1, w, 1), p.CURB.lerp(p.HAZE, 0.3))
+		draw_rect(Rect2(seg.x, 0, w, 20), p.ROAD)
 		var xd: float = seg.x
 		while xd < seg.y:
-			draw_rect(Rect2(xd, 5, 12, 1), p.WHITE.lerp(p.ROAD, 0.4))
+			draw_rect(Rect2(xd, 10, 12, 1), p.WHITE.lerp(p.ROAD, 0.4))
 			xd += 24
-		draw_rect(Rect2(seg.x, 10, w, EDGE_H - 10), p.GRASS[0])
-		draw_rect(Rect2(seg.x, 10, w, 2), p.GRASS[1])
+		draw_rect(Rect2(seg.x, 19, w, 1), p.WHITE.lerp(p.ROAD, 0.5))
+		draw_rect(Rect2(seg.x, 20, w, EDGE_H - 20 + 4), p.GRASS[0])
+		draw_rect(Rect2(seg.x, 20, w, 1), p.GRASS[1])

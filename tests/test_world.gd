@@ -133,7 +133,7 @@ func _test_van() -> void:
 	await _frames(150)
 	var speed: float = van.velocity.x
 	Input.action_release("move_right")
-	_check(absf(speed - WALK_SPEED * 3.0) < 5.0, "the van goes 3x walking speed (%.0f px/s)" % speed)
+	_check(absf(speed - WALK_SPEED * 2.2) < 5.0, "the van goes 2.2x walking speed (%.0f px/s)" % speed)
 	await _frames(30)
 	var coasted: float = van.velocity.x
 	_check(coasted > speed * 0.6 and coasted < speed - 5.0, "letting go coasts (%.0f -> %.0f px/s)" % [speed, coasted])
@@ -141,11 +141,13 @@ func _test_van() -> void:
 	await _frames(20)
 	Input.action_release("move_left")
 	_check(van.velocity.x < coasted - 200.0, "steering back brakes hard (%.0f px/s)" % van.velocity.x)
-	_check(absf(map.zoom - 1.0) < 0.1, "driving in town: zoom eases out to 1x (%.2f)" % map.zoom)
+	_check(map.target_zoom_at(van.global_position.x) == 1.0 and map.zoom < 1.8, "driving in town: zoom slowly eases out toward 1x (%.2f)" % map.zoom)
 	var x_back: float = van.global_position.x
+	var zoom_before: float = map.zoom
 	van.global_position.x = 700.0               # out of town, on the dike road
 	await _frames(240)
-	_check(absf(map.zoom - 0.5) < 0.05 and map.birds.active, "on the road outside town: zoom 0.5x, birds (%.2f)" % map.zoom)
+	_check(map.target_zoom_at(700.0) == 0.5 and map.zoom < zoom_before - 0.2 and map.birds.active,
+		"on the road outside town: zoom slowly out toward 0.5x (%.2f -> %.2f), birds" % [zoom_before, map.zoom])
 	van.global_position.x = x_back
 	await _frames(240)
 	await _frames(70)
