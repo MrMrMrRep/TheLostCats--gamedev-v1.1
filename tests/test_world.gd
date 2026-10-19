@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 23
+const EXPECTED_CHECKS := 28
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -27,6 +27,7 @@ func _run() -> void:
 	router = root.get_node("SceneRouter")
 	map = await _load_map()
 
+	await _test_zoom_walking()
 	await _test_band_line()
 	await _test_road_block()
 	await _test_geordie_quest()
@@ -34,6 +35,7 @@ func _run() -> void:
 	await _test_van()
 	await _test_package()
 	await _test_return_from_gig()
+	await _test_studio_door()
 	await _test_venue_door()
 
 	if checks != EXPECTED_CHECKS:
@@ -41,6 +43,15 @@ func _run() -> void:
 		failures += 1
 	print("FAILURES: %d" % failures)
 	quit(1 if failures > 0 else 0)
+
+
+func _test_zoom_walking() -> void:
+	_check(is_equal_approx(map.zoom, 3.0), "zoom 3x at the studio (%.2f)" % map.zoom)
+	await _place_leader(2600.0)
+	await _frames(240)
+	_check(absf(map.zoom - 2.0) < 0.05, "zoom 2x in the city (%.2f)" % map.zoom)
+	await _place_leader(map.get_node("Places/Start").global_position.x)
+	await _frames(240)
 
 
 func _test_band_line() -> void:
@@ -116,6 +127,13 @@ func _test_van() -> void:
 	var speed: float = van.velocity.x
 	Input.action_release("move_right")
 	_check(absf(speed - WALK_SPEED * 3.0) < 5.0, "the van goes 3x walking speed (%.0f px/s)" % speed)
+	_check(absf(map.zoom - 1.0) < 0.1, "driving in town: zoom eases out to 1x (%.2f)" % map.zoom)
+	var x_back: float = van.global_position.x
+	van.global_position.x = 700.0               # out of town, on the dike road
+	await _frames(240)
+	_check(absf(map.zoom - 0.5) < 0.05 and map.birds.active, "on the road outside town: zoom 0.5x, birds (%.2f)" % map.zoom)
+	van.global_position.x = x_back
+	await _frames(240)
 	await _frames(70)
 	await _tap("interact")
 	await _frames(2)
@@ -163,6 +181,22 @@ func _test_return_from_gig() -> void:
 	await _frames(25)
 	_check(game.get_flag(&"quest_cafe", "") == "done" and map.hud._objective.text == "Tour day 1 complete!",
 		"talk to Geordie: Tour day 1 complete!")
+
+
+func _test_studio_door() -> void:
+	var door = map.get_node("Places/StudioDoor")
+	var target := [""]
+	router.transition_started.connect(func(p): target[0] = p, CONNECT_ONE_SHOT)
+	await _place_leader(door.global_position.x)
+	await _tap("interact")
+	_check(target[0] == "res://scenes/levels/abilities_test.tscn", "the studio door leads into the abilities level")
+	await _frames(60)
+	# The transition loads the level on top in --script mode; start fresh.
+	for n in root.get_children():
+		if n.name != "Game" and n.name != "SceneRouter" and n.name != "Audio" and n != map:
+			n.queue_free()
+	router.is_transitioning = false
+	await _frames(5)
 
 
 func _test_venue_door() -> void:

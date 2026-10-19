@@ -136,12 +136,14 @@ Not in M6: quiet/stealth part of Joep's beer (nothing listens yet), whiskey/join
 - [x] The band moves as a group: the active member leads, the others trail on the leader's exact path, 16 px apart (jumps included). No switching, no deaths
 - [x] **Bikes**: E at the bikes, the whole band rides at 1.6× walking speed; E anywhere to get off, the bikes stay parked there
 - [x] **Band van**: 3× walking speed with smooth acceleration; get in/out only at a **P** sign. Where you parked it is remembered across levels
-- [x] Doors: Café De Kat → the test level; studio and service station say "not open yet". Coming out of the level's last door brings you back to the venue
+- [x] Doors: Café De Kat → the test level; the service station says "not open yet". Coming out of the level's last door brings you back to the venue
 - [x] Packages: +10 coins once (remembered); not collected from inside the van
 - [x] Geordie: "!" → dialogue box (typewriter, E advances) → quest "Get to Café De Kat" → after the gig "?" → "Tour day 1 complete!"
 - [x] Map HUD: objective + coins + vehicle hint. Camera: zoom 1×, slower follow, look-ahead 80 px walking / 160 px driving. World text full size on the map
-- [x] Headless test `tests/test_world.gd` (23 checks)
+- [x] Headless test `tests/test_world.gd` (28 checks)
 - [x] **Done when:** you can take the bike or van from the studio to the venue and enter it ✅
+- [x] **Art pass** (`docs/art-style.md`): sky + drifting clouds, parallax skyline / back street / polder (turbines, mills, cows, highway), new canal houses, 3 bridges, live canal reflection (`shaders/water_reflection.gdshader`), birds outside town, the black band van sprite. Zoom zones 3× studio, 2× city, 1× van in town, 0.5× outside town. The map is built by `tools/build_world_map.gd`
+- [x] **Studio door** → the abilities test level; its exit brings you back to the studio
 
 Not in M8: day/night and police, studio interior and upgrades, shops that sell, fans/merch, procedural map, music (M10).
 

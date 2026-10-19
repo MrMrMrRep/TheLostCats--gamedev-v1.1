@@ -14,6 +14,7 @@ const TARGET_OFFSET := Vector2(0, -16)      # aim at the body, not the feet
 @export var look_ahead_min_speed := 20.0    ## px/s before look-ahead kicks in
 
 var target: Node2D
+var fixed_y := NAN                          # world map: keep the view at this height
 
 var _focus := Vector2.ZERO
 var _look := 0.0
@@ -52,6 +53,8 @@ func snap() -> void:
 		_tween.kill()
 	_blend = 1.0
 	_focus = _target_position()
+	if not is_nan(fixed_y):
+		_focus.y = fixed_y
 	_look = 0.0
 	position_smoothing_enabled = true
 	global_position = _focus
@@ -69,6 +72,9 @@ func _physics_process(delta: float) -> void:
 	if target == null:
 		return
 	var t := _target_position()
+	if not is_nan(fixed_y):
+		t.y = fixed_y
+		_focus.y = fixed_y
 	var d := t - _focus
 	if absf(d.x) > deadzone.x:
 		_focus.x = t.x - signf(d.x) * deadzone.x

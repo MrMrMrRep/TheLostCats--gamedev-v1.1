@@ -1,6 +1,6 @@
 # Art Style — World Map ("Amsterdam canal, Kingdom Eighties feel")
 
-**Status: concept, palette approved (2026-10-19); zoom/journey and day/night below await approval.** Mocks: `docs/art/style_mock_city_2x.png`, `docs/art/style_mock_polder_2x.png` (rendered by `tools/style_mock.gd`, the same palette and layer stack as below).
+**Status: palette and zoom approved; first pass built into the world map (2026-10-19): sky + clouds, skyline, back street, polder layers, canal houses, 3 bridges, live canal reflection, birds, zoom zones, band van. Not built yet: the road trip between cities, day/night, foreground reeds, van radio.** Mocks: `docs/art/style_mock_city_2x.png`, `docs/art/style_mock_polder_2x.png` (rendered by `tools/style_mock.gd`, the same palette and layer stack as below).
 
 ## 1. In one line
 Crisp pixel art at a native 1× grid, an Amsterdam canal front seen **from across the water**: a saturated blue sky with big clouds, narrow gabled houses in **slate blue + Dutch orange + warm brick**, cream trims, and a **canal in the foreground that mirrors the street**.
@@ -48,7 +48,7 @@ This replaces today's layout (street at y 288 with a thin canal strip).
 | 4 | Skyline silhouette (rooftops, church towers, cranes) | 0.2 | Hazy blue |
 | 5 | Back street (smaller muted houses + trees) | 0.45 | Shows through **gaps** in the front row |
 | 6 | Trees, lamps | 0.8 | |
-| 7 | **Play layer**: canal houses, doors (studio, venue), street, bikes, NPCs, band | 1.0 | Every 4–6 houses a gap (side street, bridge) shows layers 4–5 |
+| 7 | **Play layer**: canal houses, doors (studio, venue), street, bikes, NPCs, band | 1.0 | **Bridges** (3 in Amsterdam, 96 px each): the house row opens, you look down a side canal (houses on both banks shrinking to a vanishing point), iron railing on the deck, stone arch in the quay wall |
 | 8 | Quay wall, railing, bollards, moored boats | 1.0 | |
 | 9 | **Canal water**: live reflection of the play layer (screen-reading shader: mirror + per-row jitter + streaks) | 1.0 | Priority item |
 | 10 | Foreground (reeds, a boat bow, a lamppost) | 1.3, darker | Sparse, never blocks the band |
@@ -81,17 +81,20 @@ So new band sprites drop straight into the engine:
 2. **Water is not everywhere**: it fades out with the zones (city canal → polder ditch → no water in Germany, hills instead). See §10.
 3. **Driving between cities** is part of the game (§10).
 4. **Day/night cycle**: wanted; proposal in §11.
+5. **Zoom**: 3× studio, 2× city, 0.5× road trip with radio and birds (§10).
+6. **Bridges** in the city (§5, layer 7).
 
 ## 10. Zoom levels and the road trip
 The camera zoom tells you what kind of moment you're in:
 
 | Where | Zoom | View | Feel |
 |---|---|---|---|
-| Studio / storage (home base) | **2×** (as in levels) | 320×180 | Close, cosy, detailed |
-| City streets (Amsterdam, Essen) | **1×** | 640×360 | The walkable map |
-| On the road between cities | **0.5×** | 1280×720 | Wide, calm, "meditation" |
+| Studio / storage (home base) | **3×** | 213×120 | Close, cosy, detailed |
+| City streets on foot / bikes (Amsterdam, Essen) | **2×** | 320×180 | The walkable map |
+| Driving the van in town | **1×** | 640×360 | A little wider while driving |
+| On the road between cities | **0.5×** | 1280×720 | Wide, calm, "meditation", radio and birds |
 
-Zoom changes ease over ~2 s when you enter or leave a zone. It's pixel-perfect at 2×, 1× and 0.5×; in between there's brief shimmer, which is acceptable during a smooth ease.
+Zoom changes ease (~1.6 s) when you enter or leave a zone. It's pixel-perfect at 3×, 2×, 1× and 0.5×; in between there's brief shimmer, acceptable during a smooth ease. The camera keeps the canal at the bottom of the screen: the more you zoom out, the more water and sky you see (`world_map.gd` `_apply_zoom`).
 
 **The road trip** (e.g. Amsterdam → Ruhrpott/Essen–Düsseldorf):
 - You get in the van at a P sign, choose the next tour stop, and drive: the camera eases out to 0.5×, **the van radio starts** (the band's music, a calm mix), **birds** fly in loose flocks, clouds drift

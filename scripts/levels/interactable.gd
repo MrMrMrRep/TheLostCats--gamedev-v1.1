@@ -50,12 +50,20 @@ func set_prompt_text(text: String) -> void:
 	_prompt_label.text = text
 
 
-## World text is drawn at half size for the 2x-zoomed rooms; the 1x world map
-## uses full size so it stays readable.
+## Prompt and speech text keep the same on-screen size at any camera zoom.
 func set_label_scale(s: float) -> void:
 	for l in [_prompt_label, _say_label]:
 		l.scale = Vector2(s, s)
 		l.position.x = -l.size.x * s / 2.0
+
+
+func _process(_delta: float) -> void:
+	if Engine.is_editor_hint() or not (_prompt_label.visible or _say_label.visible):
+		return
+	var cam := get_viewport().get_camera_2d()
+	var s := 1.0 / cam.zoom.x if cam else 0.5
+	if not is_equal_approx(_prompt_label.scale.x, s):
+		set_label_scale(s)
 
 
 func say(text: String, seconds := 1.6) -> void:

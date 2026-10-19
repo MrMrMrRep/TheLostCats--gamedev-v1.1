@@ -4,8 +4,10 @@ extends Node2D
 ## member leads; the others trail behind on the leader's exact path (Kingdom
 ## Eighties style). No switching, no deaths. Bikes (whole band rides, off
 ## anywhere) and the band van (fast, only at P signs) move the band; doors lead
-## into levels; Geordie gives the tour quest. Camera: zoomed out, slow follow,
-## wide look-ahead (wider while driving).
+## into levels; Geordie gives the tour quest. The camera zoom tells you where
+## you are: 3x at the studio, 2x in the city, 1x driving the van in town and
+## 0.5x on the road outside town (birds fly by). Zoom changes ease in ~2 s and
+## the view height follows, so the canal stays in shot.
 
 const GROUND_Y := 288.0
 const TRAIL_STEP := 2.0                     # px between recorded trail points
@@ -15,14 +17,23 @@ const WALK_LOOK_AHEAD := 80.0
 const DRIVE_LOOK_AHEAD := 160.0
 const INTERACT_COOLDOWN := 0.3
 const EDGE_MARGIN := 30.0                   # vehicles stop this far from a road block
+const WATER_LINE := GROUND_Y + 22.0         # top of the canal
+const ZOOM_STUDIO := 3.0
+const ZOOM_CITY := 2.0
+const ZOOM_VAN_TOWN := 1.0
+const ZOOM_ROAD := 0.5
+const ZOOM_EASE := 1.6                      # higher = faster zoom changes
 
 @export var map_width := 3840
 @export var start_spawn: NodePath
+@export var town := Vector2(1100, 3640)     ## world x range of the city
+@export var studio_area := Vector2(1760, 2060)  ## world x range zoomed in on the studio
 
 var leader: BandMember
 var followers: Array[BandMember] = []
 var vehicle: Vehicle                        # the one the band is using, or null on foot
 var talking := false
+var zoom := ZOOM_CITY
 
 var _trail: Array[Vector2] = []
 var _bikes := {}                            # BandMember -> BikeSprite
@@ -34,6 +45,7 @@ var _max_x := 0.0
 @onready var band: Band = $Band
 @onready var hud: MapHud = $MapHud
 @onready var dialogue: DialogueBox = $DialogueBox
+@onready var birds: WorldBirds = get_node_or_null("Birds")
 
 
 static func of(node: Node) -> WorldMap:
@@ -44,14 +56,11 @@ func _ready() -> void:
 	add_to_group(&"world_map")
 	band.locked = true                      # no switching or gather on the map
 	var cam := band.camera
-	cam.zoom = Vector2.ONE
 	cam.position_smoothing_speed = 4.0
 	cam.deadzone = Vector2(24, 40)
 	cam.look_ahead = WALK_LOOK_AHEAD
-	cam.set_bounds(Rect2i(0, 0, map_width, 360))
+	cam.set_bounds(Rect2i(0, -10000, map_width, 20000))
 	leader = band.active
-	for node in get_tree().get_nodes_in_group(&"interactable"):
-		node.set_label_scale(1.0)
 	for m in band.members:
 		m.show_name_tag = false
 		m.name_tag.visible = false
@@ -75,6 +84,8 @@ func _ready() -> void:
 	var spawn := _spawn_from_router()
 	if spawn == null:
 		spawn = get_node(start_spawn)
+	zoom = target_zoom_at(spawn.global_position.x)
+	_apply_zoom()
 	place_band(spawn.global_position.x, 1.0)
 	_update_vehicle_hint()
 
@@ -87,7 +98,43 @@ func _physics_process(delta: float) -> void:
 		_drive(delta)
 	_record_trail()
 	_update_followers()
+	_update_zoom(delta)
 	_update_interact()
+
+
+# --- Zoom ------------------------------------------------------------------
+
+func in_town(x: float) -> bool:
+	return x >= town.x and x <= town.y
+
+
+## Zoom wanted at world x for how the band is moving right now.
+func target_zoom_at(x: float) -> float:
+	if vehicle and vehicle.kind == Vehicle.Kind.VAN:
+		return ZOOM_VAN_TOWN if in_town(x) else ZOOM_ROAD
+	if x >= studio_area.x and x <= studio_area.y:
+		return ZOOM_STUDIO
+	return ZOOM_CITY
+
+
+func _update_zoom(delta: float) -> void:
+	var x := vehicle.global_position.x if vehicle else leader.global_position.x
+	var target := target_zoom_at(x)
+	zoom = lerpf(zoom, target, 1.0 - exp(-delta * ZOOM_EASE))
+	if absf(zoom - target) < 0.002:
+		zoom = target
+	_apply_zoom()
+	if birds:
+		birds.active = not in_town(x)
+
+
+## Camera zoom + view height: the street sits low, with a band of canal below.
+func _apply_zoom() -> void:
+	var cam := band.camera
+	cam.zoom = Vector2(zoom, zoom)
+	var view_h := 360.0 / zoom
+	var water_visible := clampf(view_h * 0.22, 30.0, 160.0)
+	cam.fixed_y = WATER_LINE + water_visible - view_h / 2.0
 
 
 func vehicles() -> Array[Vehicle]:

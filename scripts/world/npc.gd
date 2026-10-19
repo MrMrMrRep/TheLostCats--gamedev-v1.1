@@ -79,6 +79,7 @@ func _draw() -> void:
 		draw_string(ThemeDB.fallback_font, Vector2(-3, -48 + bob), m, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, MARKER_COLOR)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	super(delta)
 	if marker() != "":
 		queue_redraw()

@@ -16,7 +16,8 @@ static func spawn(parent: Node, pos: Vector2, text: String, color := Color.WHITE
 
 func _show(text: String, color: Color) -> void:
 	z_index = 20
-	var s := 1.0 if get_tree().get_first_node_in_group(&"world_map") else 0.5   # map is zoomed out
+	var cam := get_viewport().get_camera_2d()
+	var s := 1.0 / cam.zoom.x if cam else 0.5   # same on-screen size at any zoom
 	var l := Label.new()
 	l.text = text
 	l.size = Vector2(200, 12)
