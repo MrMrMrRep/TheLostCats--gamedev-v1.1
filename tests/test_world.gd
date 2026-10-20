@@ -329,19 +329,19 @@ func _test_storage_gate() -> void:
 	_check(gate.is_open() and not map.talking, "hack complete: the gate is open (%d frames)" % n)
 	await _frames(25)
 	await _tap("interact")
-	_check(target[0] == "res://scenes/levels/abilities_test.tscn", "the open gate leads into the level")
+	_check(target[0] == "res://scenes/levels/base.tscn", "the open gate leads into the band's base")
 	await _frames(60)
 	for node in root.get_children():
 		if node.name != "Game" and node.name != "SceneRouter" and node.name != "Audio" and node != map:
 			node.queue_free()
 	router.is_transitioning = false
-	# The level's exit names the studio door; the band comes out where it went in.
+	# The base's door leads back out to the storage gate.
 	map.queue_free()
 	await _frames(2)
-	router.pending_spawn = &"StudioDoor"
+	router.pending_spawn = &"StorageGate"
 	map = await _load_map()
 	gate = _place("StorageGate")
-	_check(absf(map.leader.global_position.x - gate.global_position.x) < 1.0, "back out of the level: at the storage gate, not the studio")
+	_check(absf(map.leader.global_position.x - gate.global_position.x) < 1.0, "back out of the base: at the storage gate")
 
 
 func _test_venue_door() -> void:

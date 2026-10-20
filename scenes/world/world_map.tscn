@@ -850,7 +850,8 @@ width = 120.0
 [node name="StorageGate" type="Area2D" parent="Places/Storage" unique_id=1294635098]
 position = Vector2(17745, 288)
 script = ExtResource("21_2aoi7")
-target_scene = "res://scenes/levels/abilities_test.tscn"
+target_scene = "res://scenes/levels/base.tscn"
+target_spawn = &"BaseEntry"
 
 [node name="Geordie" type="Area2D" parent="Places/Storage" unique_id=195515149]
 position = Vector2(17630, 288)

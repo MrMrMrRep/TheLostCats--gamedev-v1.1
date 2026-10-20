@@ -244,3 +244,21 @@ House windows, street lamps, cars and the van light up by themselves.
 
 ### Stamina: `resources/config/stamina_config.tres`
 Per member and per ability.
+
+---
+
+## 9. The base (the band's storage)
+
+`scenes/levels/base.tscn`: one room, entered through the storage gate on the
+map (after Joep's hack). The whole band hangs out here.
+
+- **Party board** ("TOUR", on the wall): E opens *Who goes out?*. Press 1–5
+  or click to choose who comes along, then E. Only the chosen members show up
+  on the world map and go into levels from there. On the map, **Tab / Q /
+  1–5** switch who you control (on foot).
+- **Furniture** (`BaseProp`): couch, fridge, beer crate, rug, lamp, posters,
+  drums, amps with guitar and bass, keys, mic. Pick the `kind`, drag it,
+  copy it.
+- **Upgrades:** each piece has `min_base_level`. It only shows once the base
+  is at that level (`Game.base_level`, 1 for now). Example: `PosterTour` is
+  level 2. Later, upgrades can raise the base level.

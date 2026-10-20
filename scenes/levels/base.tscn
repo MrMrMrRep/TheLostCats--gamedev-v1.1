@@ -1,0 +1,138 @@
+[gd_scene format=4 uid="uid://xdbbo3cy6eg4"]
+
+[ext_resource type="Script" uid="uid://bjpp0gxpl4g5d" path="res://scripts/levels/level.gd" id="1_66q7t"]
+[ext_resource type="Script" uid="uid://c8se8pqso0o1" path="res://scripts/base/base_room_art.gd" id="2_lwdwt"]
+[ext_resource type="TileSet" uid="uid://q6tppnguf7t6" path="res://resources/tiles/amwoods_tileset.tres" id="3_d8s0w"]
+[ext_resource type="Script" uid="uid://bl1xgkusb6cea" path="res://scripts/levels/room.gd" id="4_qpqag"]
+[ext_resource type="Script" uid="uid://ce1t2h7bs0yn8" path="res://scripts/levels/door.gd" id="5_pegih"]
+[ext_resource type="Script" uid="uid://ck5hhy3s1e17q" path="res://scripts/base/base_prop.gd" id="6_kyn2g"]
+[ext_resource type="Script" uid="uid://ci4iml15t20ep" path="res://scripts/base/party_board.gd" id="7_6ioop"]
+[ext_resource type="PackedScene" uid="uid://5kg36m4l2u54" path="res://scenes/characters/band.tscn" id="8_fhyqt"]
+[ext_resource type="Script" uid="uid://b8dp2br6re13s" path="res://scripts/characters/band.gd" id="9_mcj3j"]
+[ext_resource type="PackedScene" uid="uid://716uph60xpmh" path="res://scenes/ui/hud.tscn" id="10_r26nw"]
+[ext_resource type="Script" uid="uid://4dlfjoixdw3s" path="res://scripts/ui/hud.gd" id="11_kfwlh"]
+[ext_resource type="PackedScene" uid="uid://1hjoq3evq167" path="res://scenes/ui/debug_overlay.tscn" id="12_nkyh7"]
+[ext_resource type="Script" uid="uid://dw4t1nli8on3e" path="res://scripts/ui/debug_overlay.gd" id="13_o7st5"]
+
+[node name="Base" type="Node2D" unique_id=2050879045]
+script = ExtResource("1_66q7t")
+start_room = NodePath("Rooms/Rehearsal")
+start_spawn = NodePath("Rooms/Rehearsal/BaseEntry")
+party_only = false
+
+[node name="RoomArt" type="Node2D" parent="." unique_id=855483153]
+script = ExtResource("2_lwdwt")
+
+[node name="Ground" type="TileMapLayer" parent="." unique_id=1926082537]
+visible = false
+tile_map_data = PackedByteArray("AAD+/wwAAAAMAAAAAAD//wwAAAAMAAAAAAAAAAwAAAAMAAAAAAABAAwAAAAMAAAAAAACAAwAAAAMAAAAAAADAAwAAAAMAAAAAAAEAAwAAAAMAAAAAAAFAAwAAAAMAAAAAAAGAAwAAAAMAAAAAAAHAAwAAAAMAAAAAAAIAAwAAAAMAAAAAAAJAAwAAAAMAAAAAAAKAAwAAAAMAAAAAAALAAwAAAAMAAAAAAAMAAwAAAAMAAAAAAANAAwAAAAMAAAAAAAOAAwAAAAMAAAAAAAPAAwAAAAMAAAAAAAQAAwAAAAMAAAAAAARAAwAAAAMAAAAAAASAAwAAAAMAAAAAAATAAwAAAAMAAAAAAAUAAwAAAAMAAAAAAAVAAwAAAAMAAAAAAAWAAwAAAAMAAAAAAAXAAwAAAAMAAAAAAAYAAwAAAAMAAAAAAAZAAwAAAAMAAAAAAAaAAwAAAAMAAAAAAAbAAwAAAAMAAAAAAAcAAwAAAAMAAAAAAD//wAAAAAMAAAAAAAbAAAAAAAMAAAAAAD//wEAAAAMAAAAAAAbAAEAAAAMAAAAAAD//wIAAAAMAAAAAAAbAAIAAAAMAAAAAAD//wMAAAAMAAAAAAAbAAMAAAAMAAAAAAD//wQAAAAMAAAAAAAbAAQAAAAMAAAAAAD//wUAAAAMAAAAAAAbAAUAAAAMAAAAAAD//wYAAAAMAAAAAAAbAAYAAAAMAAAAAAD//wcAAAAMAAAAAAAbAAcAAAAMAAAAAAD//wgAAAAMAAAAAAAbAAgAAAAMAAAAAAD//wkAAAAMAAAAAAAbAAkAAAAMAAAAAAD//woAAAAMAAAAAAAbAAoAAAAMAAAAAAD//wsAAAAMAAAAAAAbAAsAAAAMAAAAAAA=")
+tile_set = ExtResource("3_d8s0w")
+
+[node name="Rooms" type="Node2D" parent="." unique_id=1373100899]
+
+[node name="Rehearsal" type="Node2D" parent="Rooms" unique_id=811094510]
+script = ExtResource("4_qpqag")
+bounds = Rect2i(0, 116, 640, 196)
+
+[node name="BaseEntry" type="Marker2D" parent="Rooms/Rehearsal" unique_id=217806795]
+position = Vector2(84, 288)
+
+[node name="BaseExit" type="Area2D" parent="Rooms/Rehearsal" unique_id=809798647]
+position = Vector2(40, 288)
+script = ExtResource("5_pegih")
+target_scene = "res://scenes/world/world_map.tscn"
+target_spawn = &"StorageGate"
+
+[node name="Fridge" type="Node2D" parent="Rooms/Rehearsal" unique_id=1376718245]
+position = Vector2(112, 288)
+script = ExtResource("6_kyn2g")
+kind = 1
+
+[node name="BeerCrate" type="Node2D" parent="Rooms/Rehearsal" unique_id=1949073982]
+position = Vector2(136, 288)
+script = ExtResource("6_kyn2g")
+kind = 10
+
+[node name="Poster" type="Node2D" parent="Rooms/Rehearsal" unique_id=338952531]
+position = Vector2(168, 214)
+script = ExtResource("6_kyn2g")
+kind = 7
+text = "KAT"
+
+[node name="Rug" type="Node2D" parent="Rooms/Rehearsal" unique_id=2049869782]
+position = Vector2(226, 288)
+script = ExtResource("6_kyn2g")
+kind = 8
+
+[node name="Couch" type="Node2D" parent="Rooms/Rehearsal" unique_id=2061605493]
+position = Vector2(226, 288)
+script = ExtResource("6_kyn2g")
+
+[node name="Lamp" type="Node2D" parent="Rooms/Rehearsal" unique_id=1830820093]
+position = Vector2(272, 288)
+script = ExtResource("6_kyn2g")
+kind = 9
+
+[node name="AmpBass" type="Node2D" parent="Rooms/Rehearsal" unique_id=200050730]
+position = Vector2(382, 288)
+script = ExtResource("6_kyn2g")
+kind = 4
+
+[node name="Drums" type="Node2D" parent="Rooms/Rehearsal" unique_id=1693321876]
+position = Vector2(452, 288)
+script = ExtResource("6_kyn2g")
+kind = 2
+
+[node name="AmpGuitar" type="Node2D" parent="Rooms/Rehearsal" unique_id=618633668]
+position = Vector2(512, 288)
+script = ExtResource("6_kyn2g")
+kind = 3
+
+[node name="Mic" type="Node2D" parent="Rooms/Rehearsal" unique_id=2008500148]
+position = Vector2(548, 288)
+script = ExtResource("6_kyn2g")
+kind = 6
+
+[node name="Keys" type="Node2D" parent="Rooms/Rehearsal" unique_id=21236610]
+position = Vector2(592, 288)
+script = ExtResource("6_kyn2g")
+kind = 5
+
+[node name="PosterBand" type="Node2D" parent="Rooms/Rehearsal" unique_id=1095758077]
+position = Vector2(452, 196)
+script = ExtResource("6_kyn2g")
+kind = 7
+text = "LOST CATS"
+
+[node name="PosterTour" type="Node2D" parent="Rooms/Rehearsal" unique_id=827995328]
+position = Vector2(560, 206)
+script = ExtResource("6_kyn2g")
+kind = 7
+min_base_level = 2
+text = "TOUR"
+
+[node name="PartyBoard" type="Area2D" parent="Rooms/Rehearsal" unique_id=1872499271]
+position = Vector2(318, 288)
+script = ExtResource("7_6ioop")
+
+[node name="Band" type="Node2D" parent="." unique_id=1097071013 instance=ExtResource("8_fhyqt")]
+script = ExtResource("9_mcj3j")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1866626290 instance=ExtResource("10_r26nw")]
+script = ExtResource("11_kfwlh")
+
+[node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=34814218 instance=ExtResource("12_nkyh7")]
+script = ExtResource("13_o7st5")
+
+[node name="DevHint" type="CanvasLayer" parent="." unique_id=1610739080]
+
+[node name="Hint" type="Label" parent="DevHint" unique_id=1687044921]
+offset_left = 8.0
+offset_top = 344.0
+offset_right = 8.0
+offset_bottom = 344.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+text = "E at the board: pick who goes out     E at the door: back to the city     1-5 / Tab: switch"

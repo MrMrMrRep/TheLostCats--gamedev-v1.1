@@ -20,6 +20,7 @@ const RESPAWN_GRACE := 1.0                  # i-frames after a respawn
 @export var start_spawn: NodePath           ## Marker2D or Door where the band starts
 @export var group_radius_tiles := 3.0       ## "together" for doors: this far horizontally
 @export var group_height_tiles := 1.0       ## ... and at most this far vertically
+@export var party_only := true              ## only the party chosen at the base comes in (off: the base itself)
 
 var current_room: Room                      # the active member's room
 var is_busy := false                        # dying or going through a door
@@ -40,6 +41,8 @@ static func of(node: Node) -> Level:
 
 func _ready() -> void:
 	add_to_group(&"level")
+	if party_only:
+		band.keep_only(Game.party)
 	for m in band.members:
 		m.health.died.connect(kill.bind(m, &"hurt"))
 	band.gather_filter = func(m: BandMember) -> bool: return room_of_member(m) == room_of_member(band.active)

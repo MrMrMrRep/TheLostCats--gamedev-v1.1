@@ -79,6 +79,20 @@ func switch_to(index: int, instant := false) -> void:
 	active_changed.emit(active, index)
 
 
+## Only `ids` come along (the party chosen at the base): the others leave the band.
+func keep_only(ids: Array) -> void:
+	var gone := members.filter(func(m: BandMember) -> bool: return m.profile and not ids.has(m.profile.id))
+	if gone.size() == members.size():
+		return                              # never an empty band
+	var keep_active := active if not gone.has(active) else null
+	for m in gone:
+		members.erase(m)
+		m.queue_free()
+	active_index = -1
+	active = null
+	switch_to(members.find(keep_active) if keep_active else 0, true)
+
+
 ## Put everyone in a row centred on `pos` (level start), standing still.
 func place_at(pos: Vector2, hp: Array = [], grace := 0.0) -> void:
 	place_group(members, pos, hp, grace)
