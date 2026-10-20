@@ -187,7 +187,8 @@ Speeds are in **pixels per second** (the band walks 85; a canal house is about
 | catch_up, jog_factor | 90, 1.9 | When someone is this far behind they jog, at this speed |
 | pause_every, pause_length | 5–12 s, 0.4–1.3 s | Little stops (a look around, a sip) |
 | fidget_after | 2.5–7 s | Standing still: they start smoking, drinking, playing |
-| bike_gap | 16 | Distance between bikes in the line |
+| ride_gap | 30 | On the bikes: distance between riders (a loose group, like walking) |
+| ride_sway, ride_catch_up, ride_sprint, ride_follow | 10, 120, 1.2, 1.4 | How loosely they ride, when they pedal hard to catch up, how firmly they keep their spot |
 
 ### traffic_config.tres: cars and bikes on the road
 How many vehicles per screen (motorway / town), speeds per kind of vehicle,

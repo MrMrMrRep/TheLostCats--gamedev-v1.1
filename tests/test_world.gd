@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 56
+const EXPECTED_CHECKS := 58
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -145,18 +145,25 @@ func _test_bikes() -> void:
 	await _tap("interact")
 	await _frames(2)
 	# Members with bike art ride on their own sprite; the others on the placeholder bike.
-	var all_ride: bool = map.band.members.all(func(m): return m.visible and \
-		(map._bikes[m].visible or m.sprite.sprite_frames.has_animation(&"bike_pedal")))
+	var all_ride: bool = map.band.members.all(func(m): return m.visible and m.sprite.sprite_frames.has_animation(&"bike_pedal"))
 	_check(map.vehicle == bikes and all_ride, "E at the bikes: the whole band rides")
 	Input.action_press("move_right")
 	await _frames(90)
 	var speed: float = bikes.velocity.x
 	await _frames(90)
 	var bike_zoom: float = map.zoom
+	var lx: float = map.leader.global_position.x
+	var gaps: Array = map.followers.map(func(f): return int(lx - f.global_position.x))
+	_check(gaps.all(func(g): return g > 5 and g < 220) and map.followers.all(func(f): return f.anim == &"bike_pedal" or f.anim == &"bike_roll"),
+		"riding: everyone on their own bike, a loose group behind the leader %s" % [gaps])
 	Input.action_release("move_right")
 	_check(absf(speed - bikes.top_speed()) < 5.0, "bikes ride at their top speed (%.0f px/s)" % speed)
 	_check(bike_zoom < 2.25, "on the bikes at speed: the wider city view (%.2f)" % bike_zoom)
-	await _frames(30)
+	await _frames(150)
+	var spread: Array = map.followers.map(func(f): return int(map.leader.global_position.x - f.global_position.x))
+	var sorted_gaps := spread.duplicate()
+	sorted_gaps.sort()
+	_check(sorted_gaps[0] > 8 and sorted_gaps[-1] - sorted_gaps[0] > 40, "stopped: they roll up and stop each at their own distance %s" % [spread])
 	await _tap("interact")
 	await _frames(2)
 	_check(map.vehicle == null and bikes.visible and absf(bikes.global_position.x - map.leader.global_position.x) < 2.0,

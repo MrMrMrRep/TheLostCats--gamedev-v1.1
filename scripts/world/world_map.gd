@@ -10,8 +10,6 @@ extends Node2D
 ## the view height follows, so the canal stays in shot.
 
 const GROUND_Y := 288.0
-const TRAIL_STEP := 2.0                     # px between recorded trail points
-const TRAIL_MAX := 400
 const INTERACT_COOLDOWN := 0.3
 const EDGE_MARGIN := 30.0                   # vehicles stop this far from a road block
 const WATER_LINE := GROUND_Y + 22.0         # top of the canal
@@ -50,9 +48,10 @@ var zoom := 3.0
 var radio: VanRadio
 var day: WorldDayCycle                      # the clock, the night tint and lights
 
-var _trail: Array[Vector2] = []
 var _fstate := {}                           # BandMember -> {v, gap, pause, walked, next_pause}
-var _bikes := {}                            # BandMember -> BikeSprite
+var _bikes := {}                            # BandMember -> BikeSprite (placeholder for members without bike art)
+var _lamps := {}                            # BandMember -> NightGlow (bike lights)
+var _ride_time := 0.0
 var _cooldown := 0.0
 var _highlighted: Interactable
 var _min_x := 0.0
@@ -104,17 +103,21 @@ func _ready() -> void:
 		m.speed_scale = band_cfg.walk_speed / m.profile.run_speed()
 		m.show_name_tag = false
 		m.name_tag.visible = false
+		BikeRiders.ensure(m)                # bike_pedal / bike_roll for everyone
 		var bike := BikeSprite.new()
 		bike.z_index = 1
 		bike.visible = false
 		m.add_child(bike)
 		_bikes[m] = bike
+		_lamps[m] = NightGlow.attach(m)     # bike lights at night
 		if m != leader:
 			followers.append(m)
 			m.set_physics_process(false)
 			var bc := band_cfg
 			_fstate[m] = {"v": 0.0, "gap": bc.walk_gap * followers.size() + randf_range(-bc.gap_jitter, bc.gap_jitter),
-				"pause": 0.0, "walked": 0.0, "next_pause": randf_range(bc.pause_every.x, bc.pause_every.y)}
+				"pause": 0.0, "walked": 0.0, "next_pause": randf_range(bc.pause_every.x, bc.pause_every.y),
+				"ride_gap": bc.ride_gap * followers.size() + randf_range(-bc.ride_jitter, bc.ride_jitter),
+				"phase": randf() * TAU, "sway": randf_range(0.15, 0.3)}
 			m.fidget_after = randf_range(bc.fidget_after.x, bc.fidget_after.y)
 	_min_x = map_min + EDGE_MARGIN
 	_max_x = map_width - EDGE_MARGIN
@@ -153,11 +156,11 @@ func _physics_process(delta: float) -> void:
 		leader.global_position.x = foot_limit # on foot: the motorway starts here
 		leader.velocity.x = maxf(leader.velocity.x, 0.0)
 		_foot_warning(leader)
-	_record_trail()
 	if vehicle and vehicle.kind == Vehicle.Kind.BIKES:
-		_update_followers()                 # riding: a tight line on the leader's track
+		_ride_followers(delta)              # riding: a loose group, each at their own pace
 	elif vehicle == null:
 		_walk_followers(delta)              # walking: each follows at their own pace
+	_update_bike_lights()
 	_update_focus(delta)
 	_update_zoom(delta)
 	_update_interact()
@@ -297,22 +300,14 @@ func at_parking(x: float) -> bool:
 func place_band(x: float, facing: float) -> void:
 	leader.respawn(Vector2(x, GROUND_Y), leader.health.hp)
 	leader.facing = facing
-	_trail.clear()
-	var back := x - facing * band_cfg.bike_gap * followers.size()
-	var steps := int(absf(x - back) / TRAIL_STEP)
-	for i in steps + 1:
-		_trail.append(Vector2(lerpf(back, x, float(i) / steps), GROUND_Y))
-	if vehicle and vehicle.kind == Vehicle.Kind.BIKES:
-		_update_followers()
-	else:
-		for m in followers:                 # walkers stand at their own distance
-			var st: Dictionary = _fstate[m]
-			st.v = 0.0
-			st.pause = 0.0
-			m.global_position = Vector2(clampf(x - facing * st.gap, _min_x, _max_x), GROUND_Y)
-			m.facing = facing
-			m.velocity = Vector2.ZERO
-			m.animate_as_follower(0.0)
+	for m in followers:                     # each stands at their own distance
+		var st: Dictionary = _fstate[m]
+		st.v = 0.0
+		st.pause = 0.0
+		m.global_position = Vector2(clampf(x - facing * st.gap, _min_x, _max_x), GROUND_Y)
+		m.facing = facing
+		m.velocity = Vector2.ZERO
+		m.animate_as_follower(0.0)
 	_idle_cam = 0.0
 	_update_focus(0.0, true)
 	band.camera.follow(_focus, true)
@@ -337,9 +332,12 @@ func board(v: Vehicle) -> void:
 	for m in band.members:
 		m.visible = riding
 		_bikes[m].visible = riding and not JTCBike.has_bike_art(m)
-	if riding:
-		place_band(v.global_position.x, leader.facing)
-		leader.set_physics_process(false)
+		if riding:
+			BikeRiders.mount(m)
+	if riding:                              # everyone gets on where they stand
+		leader.global_position = v.global_position
+		for m in followers:
+			_fstate[m].v = 0.0
 	if riding:
 		band.camera.follow(_focus)
 	else:
@@ -352,8 +350,6 @@ func board(v: Vehicle) -> void:
 
 
 func leave_vehicle() -> bool:
-	for m in band.members:
-		JTCBike.dismount(m)
 	if vehicle == null or _cooldown > 0.0:
 		return false
 	var v := vehicle
@@ -368,8 +364,19 @@ func leave_vehicle() -> bool:
 	for m in band.members:
 		m.visible = true
 		_bikes[m].visible = false
+		BikeRiders.unmount(m)
 	leader.set_physics_process(true)
-	place_band(v.global_position.x + (0.0 if v.kind == Vehicle.Kind.BIKES else -v.facing * 28.0), v.facing)
+	if v.kind == Vehicle.Kind.BIKES:        # everyone gets off where they are; the bikes park by the leader
+		leader.respawn(Vector2(v.global_position.x, GROUND_Y), leader.health.hp)
+		leader.facing = v.facing
+		for m in followers:
+			_fstate[m].v = 0.0
+			m.velocity = Vector2.ZERO
+			m.animate_as_follower(0.0)
+		_idle_cam = 0.0
+		band.camera.follow(_focus)
+	else:
+		place_band(v.global_position.x - v.facing * 28.0, v.facing)
 	band.camera.look_ahead = cam_cfg.walk_look_ahead
 	_cooldown = INTERACT_COOLDOWN
 	_update_vehicle_hint()
@@ -415,33 +422,61 @@ func _drive(delta: float) -> void:
 
 # --- Followers -------------------------------------------------------------
 
-func _record_trail() -> void:
-	var p := leader.global_position
-	if _trail.is_empty() or p.distance_to(_trail.back()) >= TRAIL_STEP:
-		_trail.append(p)
-		if _trail.size() > TRAIL_MAX:
-			_trail.pop_front()
+## Riding followers: like walking, each rides after the leader at their own
+## distance (which drifts in and out a little), pedals hard to catch up when
+## far behind, coasts and brakes like the leader's bikes, turns on their own.
+func _ride_followers(delta: float) -> void:
+	_ride_time += delta
+	var bc := band_cfg
+	var vc := veh_cfg
+	var top := vehicle.top_speed()
+	var lx := leader.global_position.x
+	var lv := vehicle.velocity.x
+	for m in followers:
+		var st: Dictionary = _fstate[m]
+		var gap: float = st.ride_gap + sin(_ride_time * st.sway + st.phase) * bc.ride_sway
+		var spot := lx - leader.facing * gap  # where they'd like to be
+		var off := spot - m.global_position.x
+		var want := 0.0
+		if absf(lx - m.global_position.x) > gap * 0.5 or absf(lv) > 5.0:
+			want = clampf(lv + off * bc.ride_follow, -top * bc.ride_sprint, top * bc.ride_sprint)
+			if absf(off) > bc.ride_catch_up:
+				want = signf(off) * top * bc.ride_sprint
+		if absf(want) < 4.0:
+			want = 0.0
+		var v: float = st.v
+		var rate := vc.bikes_rolling + vc.bikes_drag * absf(v)   # coasting
+		if want != 0.0 and signf(want) != signf(v) and absf(v) > 1.0:
+			rate = vc.bikes_brake                                    # turning around: brake first
+		elif absf(want) > absf(v):
+			rate = vc.bikes_pull * (1.0 - clampf(absf(v) / (top * bc.ride_sprint), 0.0, 0.9))
+		st.v = move_toward(v, want, rate * delta)
+		var x := clampf(m.global_position.x + st.v * delta, maxf(_min_x, foot_limit), _max_x)
+		if x != m.global_position.x + st.v * delta:
+			st.v = 0.0
+		m.global_position = Vector2(x, GROUND_Y)
+		m.velocity = Vector2(st.v, 0.0)
+		if absf(st.v) > 3.0:
+			m.facing = signf(st.v)
+		m.sprite.flip_h = m.facing < 0.0
+		_bikes[m].facing = m.facing
+		JTCBike.ride(m, st.v, top, absf(want) > absf(st.v) + 2.0)
 
 
-## Each follower stands bike_gap px further back along the leader's path.
-func _update_followers() -> void:
-	if _trail.is_empty():
-		return
-	var gap := band_cfg.bike_gap
-	var want := gap
-	var walked := 0.0
-	var i := 0
-	var k := _trail.size() - 1
-	while i < followers.size() and k > 0:
-		var seg := _trail[k].distance_to(_trail[k - 1])
-		if walked + seg >= want:
-			var t := (want - walked) / seg if seg > 0.0 else 0.0
-			_move_follower(followers[i], _trail[k].lerp(_trail[k - 1], t))
-			i += 1
-			want += gap
-		else:
-			walked += seg
-			k -= 1
+## Lamps on the bikes at night: a white light in front, a red one at the back.
+func _update_bike_lights() -> void:
+	var riding := vehicle != null and vehicle.kind == Vehicle.Kind.BIKES
+	for m in band.members:
+		var g: NightGlow = _lamps.get(m)
+		if g == null:
+			continue
+		g.clear()
+		if riding and WorldDayCycle.night_now > 0.0:
+			var f := m.facing
+			g.add_halo(Vector2(f * 15.0, -17.0), 3.0, 0.0, Color(1.0, 0.97, 0.85, 0.9))
+			g.add_halo(Vector2(f * 34.0, 2.0), 22.0, 0.0, Color(1.0, 0.95, 0.75, 0.25), 0.25)
+			g.add_halo(Vector2(-f * 15.0, -15.0), 2.5, 0.0, Color(1.0, 0.12, 0.1, 0.85))
+		g.queue_redraw()
 
 
 ## Walking followers behave like members following a lure: anyone further
@@ -481,22 +516,6 @@ func _walk_followers(delta: float) -> void:
 			m.facing = signf(st.v)
 		m.velocity = Vector2(st.v, 0.0)
 		m.animate_as_follower(st.v)
-
-
-func _move_follower(m: BandMember, p: Vector2) -> void:
-	var old := m.global_position
-	m.global_position = p
-	var d := p - old
-	if absf(d.x) > 0.05:
-		m.facing = signf(d.x)
-	m.sprite.flip_h = m.facing < 0.0
-	_bikes[m].facing = m.facing
-	if vehicle and vehicle.kind == Vehicle.Kind.BIKES:
-		JTCBike.ride(m, vehicle.velocity.x, vehicle.top_speed(), Input.get_axis("move_left", "move_right") != 0.0)
-	elif p.y < GROUND_Y - 1.0:
-		_set_anim(m, &"jump" if d.y < 0.0 else &"fall")
-	else:
-		_set_anim(m, &"run" if d.length() > 0.2 else &"idle")
 
 
 func _set_anim(m: BandMember, anim: StringName) -> void:

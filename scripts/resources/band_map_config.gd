@@ -20,7 +20,12 @@ const PATH := "res://resources/config/band_map_config.tres"
 @export var fidget_after := Vector2(2.5, 7.0)    ## seconds standing before someone smokes, drinks or plays
 
 @export_group("On the bikes")
-@export var bike_gap := 16.0                ## px between members riding in a line
+@export var ride_gap := 30.0                ## px: each rider keeps about this much more distance than the one before
+@export var ride_jitter := 6.0              ## px of random extra/less gap per rider
+@export var ride_sway := 10.0               ## px the gaps drift in and out while riding (a loose group)
+@export var ride_catch_up := 120.0          ## px further behind than their gap: they pedal hard to catch up
+@export var ride_sprint := 1.2              ## catching up: up to the bikes' top speed x this
+@export var ride_follow := 1.4              ## how firmly riders close the gap (speed per px off their spot)
 
 
 static func current() -> BandMapConfig:

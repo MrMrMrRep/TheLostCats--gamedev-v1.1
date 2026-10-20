@@ -61,8 +61,8 @@ func set_night(amount: float) -> void:
 
 
 ## A lit window (local rect), coming on at `threshold`.
-func add_window(r: Rect2, threshold: float) -> void:
-	rects.append([r, threshold, GLASS_ON])
+func add_window(r: Rect2, threshold: float, color := GLASS_ON) -> void:
+	rects.append([r, threshold, color])
 
 
 ## A lamp's halo around `centre`, plus a pool of light on the ground at `floor_y` (local).

@@ -41,8 +41,14 @@ var _mills: Array = []                      # local x of each windmill (sails)
 var _cars: Array = []                       # [x, speed, colour] on the highway
 
 
+const FAR_WINDOW := Color(0.85, 0.58, 0.28, 0.55)   # lit windows in the hazy distance
+
+var _glow: NightGlow                        # windows lit at night (game only)
+
+
 func _ready() -> void:
 	_plan()
+	_glow = NightGlow.attach(self)
 	queue_redraw()
 
 
@@ -103,6 +109,8 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
+	if _glow:
+		_glow.clear()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	match kind:
@@ -111,6 +119,8 @@ func _draw() -> void:
 		Kind.POLDER_FAR: _draw_polder_far(rng)
 		Kind.POLDER_NEAR: _draw_polder_near(rng)
 		Kind.FOREGROUND: _draw_foreground(rng)
+	if _glow:
+		_glow.queue_redraw()
 
 
 func _draw_skyline(rng: RandomNumberGenerator) -> void:
@@ -123,6 +133,12 @@ func _draw_skyline(rng: RandomNumberGenerator) -> void:
 		var h := rng.randf_range(18, 44)
 		draw_rect(Rect2(x, base - h, w, h + 60), p.HAZE)
 		draw_rect(Rect2(x + w / 4, base - h - 5, w / 2, 5), p.HAZE)
+		if _glow:                               # at night a few far windows light up
+			for k in 3:
+				var hx := NightGlow.spot_hash(x, k)
+				var hy := NightGlow.spot_hash(x + 7.0, k)
+				_glow.add_window(Rect2(floorf(x + 2 + hx * (w - 5)), floorf(base - h + 3 + hy * (h - 6)), 1, 2),
+					0.1 + NightGlow.spot_hash(x, k + 9.0) * 1.2, Color(FAR_WINDOW, 0.45))
 		x += w
 	var spires := int((end - _local(centre.x)) / 260.0) + 1
 	for i in spires:
@@ -186,6 +202,8 @@ func _draw_back_street(rng: RandomNumberGenerator) -> void:
 					var wy := base - h + 7 + r * 11
 					var lit := rng.randf() < 0.1
 					draw_rect(Rect2(wx, wy, 3, 5), (p.LIT if lit else p.GLASS).lerp(p.HAZE, 0.45))
+					if _glow:
+						_glow.add_window(Rect2(wx, wy, 3, 5), NightGlow.window_threshold(wx, wy, lit), FAR_WINDOW)
 					draw_rect(Rect2(wx - 0.5, wy + 5, 4, 1), p.TRIM.lerp(p.HAZE, 0.55))
 			if rng.randf() < 0.35:
 				WorldPalette.tree(self, x + w, base, 12, 0.35)
@@ -210,6 +228,8 @@ func _outskirt_building(rng: RandomNumberGenerator, x: float, base: float) -> fl
 			var wx := x + 5
 			while wx < x + w - 6:
 				draw_rect(Rect2(wx, y + 3, 4, 4), p.GLASS.lerp(p.HAZE, 0.45))
+				if _glow:
+					_glow.add_window(Rect2(wx, y + 3, 4, 4), NightGlow.window_threshold(wx, y, false), FAR_WINDOW)
 				wx += 9
 			y += 10
 		WorldPalette.tree(self, x + w + 6, base, 10, 0.35)

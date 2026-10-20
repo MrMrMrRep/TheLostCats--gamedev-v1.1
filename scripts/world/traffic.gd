@@ -181,8 +181,7 @@ func _lights(s: float) -> void:
 			var front := Vector2(c[0] + dir * half * s, y)
 			_glow.add_halo(front + Vector2(dir * 4.0, 0), 5.0, 0.0, Color(1.0, 0.95, 0.8, 0.8))
 			_glow.add_halo(front + Vector2(dir * 26.0, 6.0 - LIGHTS[kind].y * s * 0.6), 30.0, 0.0, Color(1.0, 0.92, 0.7, 0.3), 0.25)
-			if kind != Kind.BIKE:
-				_glow.add_halo(Vector2(c[0] - dir * half * s, y), 4.0, 0.0, Color(1.0, 0.15, 0.1, 0.7))
+			_glow.add_halo(Vector2(c[0] - dir * half * s, y), 2.5 if kind == Kind.BIKE else 4.0, 0.0, Color(1.0, 0.15, 0.1, 0.7))
 	_glow.queue_redraw()
 
 
