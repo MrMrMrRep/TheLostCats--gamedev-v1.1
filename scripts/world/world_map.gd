@@ -77,6 +77,7 @@ static func of(node: Node) -> WorldMap:
 
 func _ready() -> void:
 	add_to_group(&"world_map")
+	Audio.music(&"map_calm")
 	_read_markers()
 	zoom = cam_cfg.zoom_walk
 	band.locked = true                      # no switching or gather on the map
@@ -114,6 +115,7 @@ func _ready() -> void:
 		band.switch_to(band.members.find(party[0]), true)
 	leader = band.active
 	for m in party:
+		GameFeel.hook_member(m, self)
 		m.speed_scale = band_cfg.walk_speed / m.profile.run_speed()
 		m.show_name_tag = false
 		m.name_tag.visible = false

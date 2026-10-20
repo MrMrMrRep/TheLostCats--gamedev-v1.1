@@ -43,8 +43,11 @@ func _ready() -> void:
 	add_to_group(&"level")
 	if party_only:
 		band.keep_only(Game.party)
+	Audio.music(&"level_tense" if party_only else &"map_calm")   # the base is calm
 	for m in band.members:
 		m.health.died.connect(kill.bind(m, &"hurt"))
+		GameFeel.hook_member(m, self)
+	band.active_changed.connect(func(_m: BandMember, _i: int) -> void: Audio.sfx(&"switch"))
 	band.gather_filter = func(m: BandMember) -> bool: return room_of_member(m) == room_of_member(band.active)
 	band.same_room = func(a: BandMember, b: BandMember) -> bool: return room_of_member(a) == room_of_member(b)
 	band.active_changed.connect(_on_active_changed)
@@ -102,6 +105,7 @@ func kill(member: BandMember, cause: StringName = &"hazard") -> void:
 		return
 	is_busy = true
 	member_died.emit(member, cause)
+	Audio.sfx(&"death", 0.0)
 	get_tree().paused = true
 	member.play_death()
 	await get_tree().create_timer(DEATH_ANIM_TIME, true).timeout
@@ -188,6 +192,7 @@ func go_through(door: Door, member: BandMember) -> void:
 		return
 	var group := door_group(member)
 	var room := _room_of(target)
+	Audio.sfx(&"door")
 	is_busy = true
 	get_tree().paused = true
 	await SceneRouter.fade_out()

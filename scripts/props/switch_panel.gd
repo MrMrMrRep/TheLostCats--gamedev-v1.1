@@ -42,6 +42,7 @@ func activate() -> void:
 	if used:
 		return
 	used = true
+	Audio.sfx(&"hack" if kind == Kind.HACK_PANEL else &"lever")
 	for path in targets:
 		var t := get_node_or_null(path)
 		if t and t.has_method("trigger"):

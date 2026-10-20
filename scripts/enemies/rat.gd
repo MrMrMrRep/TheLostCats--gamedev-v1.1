@@ -87,6 +87,9 @@ func knockback(impulse: Vector2) -> void:
 
 
 func defeat() -> void:
+	if alive:
+		Audio.sfx(&"squeak")
+		GameFeel.hit_stop(get_tree())
 	alive = false
 	visible = false
 	set_deferred("process_mode", Node.PROCESS_MODE_DISABLED)

@@ -48,6 +48,8 @@ func break_by(kind: StringName) -> bool:
 	if is_broken or BREAKS_WITH[substance] != kind:
 		return false
 	is_broken = true
+	Audio.sfx(&"break")
+	GameFeel.shake(get_tree(), 3.0, 0.2)
 	_shape.set_deferred("disabled", true)
 	_burst()
 	visible = false

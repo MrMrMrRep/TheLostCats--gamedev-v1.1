@@ -80,6 +80,7 @@ func punch() -> void:
 		return
 	_punch_cooldown = PUNCH_COOLDOWN
 	member.play_action(&"attack")
+	Audio.sfx(&"punch")
 	var center: Vector2 = member.global_position + Vector2(member.facing * (PUNCH_SIZE.x / 2.0 + 4.0), -14)
 	for body in query_box(center, PUNCH_SIZE, MASK_WORLD_AND_ENEMY):
 		if body is Rat:
@@ -108,6 +109,9 @@ func reset() -> void:
 
 func _pound_impact() -> void:
 	pounding = false
+	Audio.sfx(&"pound")
+	GameFeel.shake(member.get_tree(), 5.0, 0.3)
+	GameFeel.dust(member.get_parent(), member.global_position, 1.8)
 	var feet: Vector2 = member.global_position
 	for body in query_box(feet + Vector2(0, 6), POUND_SIZE, MASK_WORLD_AND_ENEMY):
 		if body is Breakable:

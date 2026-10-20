@@ -72,6 +72,7 @@ func _process(delta: float) -> void:
 
 
 func _show_line() -> void:
+	Audio.sfx(&"talk", 0.15)
 	_shown = 0.0
 	_text_label.text = _lines[_index]
 	_text_label.visible_characters = 0

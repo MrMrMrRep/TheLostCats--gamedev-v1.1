@@ -262,3 +262,18 @@ map (after Joep's hack). The whole band hangs out here.
 - **Upgrades:** each piece has `min_base_level`. It only shows once the base
   is at that level (`Game.base_level`, 1 for now). Example: `PosterTour` is
   level 2. Later, upgrades can raise the base level.
+
+## 10. Music, sounds and game feel
+
+- **Music:** calm on the map, in the base and on the title screen
+  (`audio/music/map_calm.wav`), tense in levels (`level_tense.wav`). Both
+  loop.
+- **Sounds** in `audio/sfx/`: jump, land, hit, death, pickup, coin, door,
+  switch, bass, hack, lever, break, pound, punch, squeak, talk, sleep.
+- These are simple placeholder chiptunes made by `tools/make_audio.py`. To
+  use your own, put a `.wav` (or `.ogg`) with the **same name** in the same
+  folder.
+- **Game feel:** a puff of dust when you jump or land (bigger on hard
+  landings), a quick squash and stretch, a short freeze when you get hit or
+  hit a rat, and screen shake on the Germ's ground pound, breaking things and
+  getting hurt.

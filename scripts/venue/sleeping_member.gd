@@ -52,6 +52,7 @@ func _fall_asleep() -> void:
 		return                              # he didn't come along
 	_done = true
 	_asleep = true
+	Audio.sfx(&"sleep", 0.0)
 	_level.move_member(_member, _room, global_position)
 	_level.band.asleep[_member] = true
 	if _level.band.active == _member:      # you were him: now someone else

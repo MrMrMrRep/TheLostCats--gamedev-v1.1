@@ -10,6 +10,7 @@ var _menu: MenuList
 
 
 func _ready() -> void:
+	Audio.music(&"map_calm")
 	add_child(WorldSky.new())
 	var ground := ColorRect.new()                # a strip of street and canal
 	ground.color = WorldPalette.COBBLE

@@ -32,6 +32,7 @@ func collect(by: BandMember) -> void:
 	collected = true
 	Game.set_flag(_flag())
 	Game.add_coins(coins)
+	Audio.sfx(&"coin")
 	by.show_text("+%d coins" % coins, Color("ffd36b"))
 	_hide()
 

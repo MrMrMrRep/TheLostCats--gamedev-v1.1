@@ -16,6 +16,9 @@ extends Camera2D
 var target: Node2D
 var fixed_y := NAN                          # world map: keep the view at this height
 
+var _shake := 0.0                           # px, fading
+var _shake_time := 0.0
+var _shake_left := 0.0
 var _focus := Vector2.ZERO
 var _look := 0.0
 var _from := Vector2.ZERO
@@ -59,6 +62,25 @@ func snap() -> void:
 	position_smoothing_enabled = true
 	global_position = _focus
 	reset_smoothing()
+
+
+## Screen shake: `strength` px, fading out over `time` seconds.
+func shake(strength: float, time: float) -> void:
+	_shake = maxf(_shake, strength)
+	_shake_time = maxf(time, 0.01)
+	_shake_left = _shake_time
+
+
+func _process(delta: float) -> void:
+	if _shake_left <= 0.0:
+		if offset != Vector2.ZERO:
+			offset = Vector2.ZERO
+		return
+	_shake_left -= delta
+	var k := clampf(_shake_left / _shake_time, 0.0, 1.0)
+	offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake * k
+	if _shake_left <= 0.0:
+		_shake = 0.0
 
 
 func set_bounds(bounds: Rect2i) -> void:

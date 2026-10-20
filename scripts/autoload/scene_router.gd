@@ -31,6 +31,7 @@ func go_to(scene_path: String, spawn: StringName = &"") -> void:
 	is_transitioning = true
 	pending_spawn = spawn
 	transition_started.emit(scene_path)
+	Audio.sfx(&"door")
 	await _tween_fade(1.0)
 	var err := get_tree().change_scene_to_file(scene_path)
 	if err != OK:

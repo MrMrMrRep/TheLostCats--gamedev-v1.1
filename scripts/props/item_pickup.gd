@@ -46,6 +46,7 @@ func _physics_process(delta: float) -> void:
 			if body.inventory.is_full():
 				continue
 			if body.add_item(item):
+				Audio.sfx(&"pickup")
 				collected = true
 				visible = false
 				set_deferred("monitoring", false)

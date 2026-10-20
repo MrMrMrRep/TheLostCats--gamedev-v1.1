@@ -90,6 +90,7 @@ func bass_wave() -> void:
 		return
 	_wave_cooldown = WAVE_COOLDOWN
 	_wave_fx = WAVE_FX_TIME
+	Audio.sfx(&"bass", 0.0)
 	member.play_action(&"attack")
 	var center: Vector2 = member.global_position + Vector2(member.facing * (WAVE_SIZE.x / 2.0 + 4.0), -14)
 	for body in query_box(center, WAVE_SIZE, MASK_WORLD_AND_ENEMY):
