@@ -42,6 +42,7 @@ var veh_cfg: VehicleConfig:
 
 var leader: BandMember
 var followers: Array[BandMember] = []
+var party: Array[BandMember] = []           # the members out on the map (Game.party, chosen at the base)
 var vehicle: Vehicle                        # the one the band is using, or null on foot
 var talking := false
 var zoom := 3.0
@@ -98,8 +99,21 @@ func _ready() -> void:
 	cam.look_ahead = cam_cfg.walk_look_ahead
 	cam.sticky_look = true                  # stopping doesn't swing the view back
 	cam.set_bounds(Rect2i(int(map_min), -10000, int(map_width - map_min), 20000))
-	leader = band.active
 	for m in band.members:
+		if Game.in_party(m.profile.id):
+			party.append(m)
+		else:                               # stays at the base
+			m.visible = false
+			m.process_mode = Node.PROCESS_MODE_DISABLED
+			m.global_position = Vector2(-100000, GROUND_Y)
+	if party.is_empty():
+		party.append(band.members[0])
+		party[0].visible = true
+		party[0].process_mode = Node.PROCESS_MODE_INHERIT
+	if not party.has(band.active):
+		band.switch_to(band.members.find(party[0]), true)
+	leader = band.active
+	for m in party:
 		m.speed_scale = band_cfg.walk_speed / m.profile.run_speed()
 		m.show_name_tag = false
 		m.name_tag.visible = false
@@ -110,15 +124,12 @@ func _ready() -> void:
 		m.add_child(bike)
 		_bikes[m] = bike
 		_lamps[m] = NightGlow.attach(m)     # bike lights at night
-		if m != leader:
-			followers.append(m)
-			m.set_physics_process(false)
-			var bc := band_cfg
-			_fstate[m] = {"v": 0.0, "gap": bc.walk_gap * followers.size() + randf_range(-bc.gap_jitter, bc.gap_jitter),
-				"pause": 0.0, "walked": 0.0, "next_pause": randf_range(bc.pause_every.x, bc.pause_every.y),
-				"ride_gap": bc.ride_gap * followers.size() + randf_range(-bc.ride_jitter, bc.ride_jitter),
-				"phase": randf() * TAU, "sway": randf_range(0.15, 0.3)}
-			m.fidget_after = randf_range(bc.fidget_after.x, bc.fidget_after.y)
+		var bc := band_cfg
+		_fstate[m] = {"v": 0.0, "gap": 0.0, "pause": 0.0, "walked": 0.0,
+			"next_pause": randf_range(bc.pause_every.x, bc.pause_every.y), "ride_gap": 0.0,
+			"jitter": randf_range(-1.0, 1.0), "phase": randf() * TAU, "sway": randf_range(0.15, 0.3)}
+		m.fidget_after = randf_range(bc.fidget_after.x, bc.fidget_after.y)
+	_line_up(party.filter(func(m: BandMember) -> bool: return m != leader))
 	_min_x = map_min + EDGE_MARGIN
 	_max_x = map_width - EDGE_MARGIN
 	for b in find_children("*", "RoadBarrier", true, false):
@@ -151,6 +162,8 @@ func _physics_process(delta: float) -> void:
 		return
 	if vehicle:
 		_drive(delta)
+	else:
+		_switch_input()
 	_foot_note = maxf(_foot_note - delta, 0.0)
 	if vehicle == null and leader.global_position.x < foot_limit:
 		leader.global_position.x = foot_limit # on foot: the motorway starts here
@@ -329,7 +342,7 @@ func board(v: Vehicle) -> void:
 	leader.velocity = Vector2.ZERO
 	leader.set_physics_process(false)
 	var riding := v.kind == Vehicle.Kind.BIKES
-	for m in band.members:
+	for m in party:
 		m.visible = riding
 		_bikes[m].visible = riding and not JTCBike.has_bike_art(m)
 		if riding:
@@ -361,7 +374,7 @@ func leave_vehicle() -> bool:
 	radio.power(false)
 	v.velocity = Vector2.ZERO
 	v.save_position()
-	for m in band.members:
+	for m in party:
 		m.visible = true
 		_bikes[m].visible = false
 		BikeRiders.unmount(m)
@@ -422,6 +435,68 @@ func _drive(delta: float) -> void:
 
 # --- Followers -------------------------------------------------------------
 
+## The followers, nearest first, each a little further back than the one
+## before (their own distance on foot and on the bikes).
+func _line_up(others: Array) -> void:
+	others.sort_custom(func(a: BandMember, b: BandMember) -> bool:
+		return absf(a.global_position.x - leader.global_position.x) < absf(b.global_position.x - leader.global_position.x))
+	followers.clear()
+	var bc := band_cfg
+	for i in others.size():
+		var m: BandMember = others[i]
+		followers.append(m)
+		m.set_physics_process(false)
+		var st: Dictionary = _fstate[m]
+		st.gap = bc.walk_gap * (i + 1) + st.jitter * bc.gap_jitter
+		st.ride_gap = bc.ride_gap * (i + 1) + st.jitter * bc.ride_jitter
+
+
+## On foot: Tab / Q or 1-5 makes another member of the party the leader; the
+## others fall in behind them.
+func _switch_input() -> void:
+	if talking or _cooldown > 0.0:
+		return
+	var idx := band.members.find(leader)
+	var want := -1
+	if Input.is_action_just_pressed("switch_next"):
+		want = _next_in_party(idx, 1)
+	elif Input.is_action_just_pressed("switch_prev"):
+		want = _next_in_party(idx, -1)
+	for i in band.members.size():
+		if Input.is_action_just_pressed("select_%d" % (i + 1)) and party.has(band.members[i]):
+			want = i
+	if want >= 0 and band.members[want] != leader:
+		switch_leader(band.members[want])
+
+
+func _next_in_party(from: int, step: int) -> int:
+	var i := from
+	for k in band.members.size():
+		i = wrapi(i + step, 0, band.members.size())
+		if party.has(band.members[i]):
+			return i
+	return from
+
+
+## Make `m` (in the party) the one you control.
+func switch_leader(m: BandMember) -> void:
+	if m == leader or not party.has(m) or vehicle:
+		return
+	var old := leader
+	old.velocity = Vector2.ZERO
+	_fstate[old].v = 0.0
+	band.switch_to(band.members.find(m))
+	leader = m
+	leader.set_physics_process(true)
+	leader.velocity = Vector2.ZERO
+	_fstate[m].v = 0.0
+	_line_up(party.filter(func(x: BandMember) -> bool: return x != leader))
+	old.animate_as_follower(0.0)
+	band.camera.follow(_focus)
+	leader.show_text(leader.profile.display_name)
+	_cooldown = INTERACT_COOLDOWN
+
+
 ## Riding followers: like walking, each rides after the leader at their own
 ## distance (which drifts in and out a little), pedals hard to catch up when
 ## far behind, coasts and brakes like the leader's bikes, turns on their own.
@@ -466,7 +541,7 @@ func _ride_followers(delta: float) -> void:
 ## Lamps on the bikes at night: a white light in front, a red one at the back.
 func _update_bike_lights() -> void:
 	var riding := vehicle != null and vehicle.kind == Vehicle.Kind.BIKES
-	for m in band.members:
+	for m in party:
 		var g: NightGlow = _lamps.get(m)
 		if g == null:
 			continue
@@ -590,7 +665,7 @@ func hack_gate(gate: StorageGate) -> void:
 	leader.velocity = Vector2.ZERO
 	leader.set_active(false)
 	var hacker := leader
-	for m in band.members:
+	for m in party:
 		if m.profile and m.profile.id == &"joep":
 			hacker = m
 	gate.say("Keypad: ENTER CODE", 1.0)

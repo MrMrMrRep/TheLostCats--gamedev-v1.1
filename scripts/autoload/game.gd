@@ -10,6 +10,8 @@ const MEMBERS: Array[StringName] = [&"joep", &"jay", &"nikki", &"germ", &"geoff"
 
 var active_member: int = 0
 var coins: int = 0
+var party: Array[StringName] = MEMBERS.duplicate()   # who goes out on the world map (chosen at the base)
+var base_level := 1                         # the base (storage) upgrades: 1 = one room with a couch
 var time_of_day := -1.0                     # clock hour 0..24 on the world map (-1: not started, uses DayConfig.start_hour)
 var _flags: Dictionary = {}
 
@@ -31,6 +33,10 @@ func set_flag(flag: StringName, value: Variant = true) -> void:
 
 func get_flag(flag: StringName, default: Variant = false) -> Variant:
 	return _flags.get(flag, default)
+
+
+func in_party(id: StringName) -> bool:
+	return party.has(id)
 
 
 func add_coins(amount: int) -> void:

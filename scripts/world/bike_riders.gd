@@ -37,6 +37,19 @@ static func ensure(m: BandMember) -> void:
 	m.sprite.sprite_frames = frames
 
 
+## The parked bikes of `ids` (the party) in the rack, centred on `at`.
+static func draw_parked(ci: CanvasItem, at: Vector2, facing: float, ids: Array) -> void:
+	var n := ids.size()
+	for i in n:
+		var tex: Texture2D = JTCBike.PARKED.get(ids[i])
+		if tex == null:
+			continue
+		var x := (i - (n - 1) / 2.0) * JTCBike.PARKED_GAP
+		ci.draw_set_transform(at + Vector2(x, 0), 0.0, Vector2(JTCBike.SCALE * facing, JTCBike.SCALE))
+		ci.draw_texture(tex, -JTCBike.ORIGIN)
+	ci.draw_set_transform(Vector2.ZERO)
+
+
 ## On the bike: the bike clips are drawn at Joep's scale, whatever the member's sheet uses.
 static func mount(m: BandMember) -> void:
 	m.sprite.scale = Vector2.ONE * SCALE

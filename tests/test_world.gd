@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 58
+const EXPECTED_CHECKS := 62
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -39,6 +39,7 @@ func _run() -> void:
 	await _test_studio_door()
 	await _test_storage_gate()
 	await _test_venue_door()
+	await _test_switch_and_party()
 
 	if checks != EXPECTED_CHECKS:
 		print("  FAIL ran %d of %d checks (script error?)" % [checks, EXPECTED_CHECKS])
@@ -70,6 +71,39 @@ func _test_day_night() -> void:
 		await _frames(1)
 	_check(absf(game.time_of_day - 12.0) < 0.1, "+4: fade out, wake up at %s" % day.clock_text())
 	day.set_hour(8.0)
+
+
+func _test_switch_and_party() -> void:
+	map = await _reload_map()
+	var joep = map.leader
+	Input.action_press("select_2")
+	await _frames(2)
+	Input.action_release("select_2")
+	await _frames(2)
+	_check(map.leader.profile.id == &"jay" and map.followers.has(joep) and map.followers.size() == 4,
+		"2 on the map: Jay leads, Joep falls in behind (%s)" % map.leader.profile.id)
+	Input.action_press("move_right")
+	await _frames(90)
+	Input.action_release("move_right")
+	await _frames(60)
+	_check(joep.global_position.x < map.leader.global_position.x - 10.0, "the old leader follows the new one")
+	game.party.assign([&"joep", &"jay"])
+	map = await _reload_map()
+	var shown: Array = map.band.members.filter(func(m): return m.visible)
+	_check(shown.size() == 2 and map.party.size() == 2 and map.followers.size() == 1,
+		"only the party chosen at the base is on the map (%d)" % shown.size())
+	Input.action_press("select_4")                 # The Germ stayed at the base: no switch
+	await _frames(2)
+	Input.action_release("select_4")
+	await _frames(2)
+	_check(map.party.has(map.leader), "you can only switch to members in the party")
+	game.party.assign(game.MEMBERS)
+
+
+func _reload_map():
+	map.queue_free()
+	await _frames(2)
+	return await _load_map()
 
 
 func _test_zoom_walking() -> void:
