@@ -113,6 +113,20 @@ func kill(member: BandMember, cause: StringName = &"hazard") -> void:
 	respawned.emit()
 
 
+## Pause menu: put the active member's room back to how it was and everyone
+## in it at the room's checkpoint.
+func restart_room() -> void:
+	if is_busy:
+		return
+	is_busy = true
+	get_tree().paused = true
+	await SceneRouter.fade_out()
+	_respawn(room_of_member(band.active))
+	get_tree().paused = false
+	await SceneRouter.fade_in()
+	is_busy = false
+
+
 func _respawn(room: Room) -> void:
 	var cp: Dictionary = _checkpoints[room]
 	room.reset_state()
