@@ -81,6 +81,12 @@ func room_of_member(member: BandMember) -> Room:
 	return _member_room.get(member)
 
 
+## Put `member` in `room` at `pos` (a story moment, e.g. Geoff wandered off).
+func move_member(member: BandMember, room: Room, pos: Vector2) -> void:
+	_member_room[member] = room
+	member.respawn(pos, member.health.hp)
+
+
 func members_in(room: Room) -> Array[BandMember]:
 	var out: Array[BandMember] = []
 	for m in band.members:
@@ -217,6 +223,9 @@ func _room_of(node: Node) -> Room:
 ## Spawn requested by the scene we came from (SceneRouter.pending_spawn).
 func _spawn_from_router() -> Node2D:
 	if SceneRouter.pending_spawn == &"":
+		for arg in OS.get_cmdline_user_args():     # dev: start at a node, -- --spawn=Bouncer
+			if arg.begins_with("--spawn="):
+				return find_child(arg.trim_prefix("--spawn="), true, false) as Node2D
 		return null
 	var node := find_child(String(SceneRouter.pending_spawn), true, false) as Node2D
 	SceneRouter.pending_spawn = &""

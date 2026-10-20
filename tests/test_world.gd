@@ -350,7 +350,7 @@ func _test_venue_door() -> void:
 	router.transition_started.connect(func(p): target[0] = p, CONNECT_ONE_SHOT)
 	await _place_leader(door.global_position.x)
 	await _tap("interact")
-	_check(target[0] == "res://scenes/levels/level_test.tscn", "the venue door leads into the level")
+	_check(target[0] == "res://scenes/levels/venue_puzzle.tscn", "the venue door leads into the puzzle level")
 
 
 # --- Helpers ---------------------------------------------------------------

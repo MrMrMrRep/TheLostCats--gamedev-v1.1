@@ -27,6 +27,7 @@ var locked := false                        # no switching or gather (cutscenes, 
 var gather_filter := func(_m: BandMember) -> bool: return true   # Level: same room only
 var same_room := func(_a: BandMember, _b: BandMember) -> bool: return true  # Level sets it
 var following := {}                         # lured BandMember -> carrier BandMember
+var asleep := {}                            # BandMember -> true: can't be switched to, not lured (Geoff in the finale)
 
 var _gathering := {}                        # BandMember -> slot distance (px) from the leader
 var _gather_held := false
@@ -65,7 +66,7 @@ func _physics_process(_delta: float) -> void:
 
 func switch_to(index: int, instant := false) -> void:
 	index = wrapi(index, 0, members.size())
-	if index == active_index:
+	if index == active_index or asleep.has(members[index]):
 		return
 	if active:
 		active.set_active(false)
@@ -184,7 +185,7 @@ func _update_lures() -> void:
 			if item.lures == &"":
 				continue
 			var f := member_by_id(item.lures)
-			if f and f != carrier and not f.is_active and not f.is_dead and not _gathering.has(f) \
+			if f and f != carrier and not f.is_active and not f.is_dead and not _gathering.has(f) and not asleep.has(f) \
 					and same_room.call(f, carrier):
 				now[f] = carrier
 	for f: BandMember in following.keys():
