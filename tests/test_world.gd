@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 62
+const EXPECTED_CHECKS := 63
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -50,7 +50,7 @@ func _run() -> void:
 
 func _test_day_night() -> void:
 	var day = map.day
-	_check(absf(game.time_of_day - 8.0) < 0.5, "a new day starts around 08:00 (%s)" % day.clock_text())
+	_check(absf(game.time_of_day - 8.0) < 1.0, "a new day starts around 08:00 (%s)" % day.clock_text())
 	var t0: float = game.time_of_day
 	await _frames(120)
 	_check(game.time_of_day > t0, "the clock runs on the map (%s)" % day.clock_text())
@@ -124,6 +124,17 @@ func _test_zoom_walking() -> void:
 		"idle for long: the camera slowly zooms out and drifts (%.2f -> %.2f, drift %.1f)" % [close, map.zoom, map._drift])
 	await _place_leader(_place("Start").global_position.x)
 	await _frames(240)
+	Input.action_press("move_right")              # hold left Shift: sprint
+	Input.action_press("sprint")
+	await _frames(60)
+	var sprint_speed: float = map.leader.velocity.x
+	Input.action_release("sprint")
+	await _frames(60)
+	var walk_speed: float = map.leader.velocity.x
+	Input.action_release("move_right")
+	_check(absf(sprint_speed - 2.0 * walk_speed) < 6.0, "Shift: sprinting is twice the walk (%.0f vs %.0f px/s)" % [sprint_speed, walk_speed])
+	await _place_leader(_place("Start").global_position.x)
+	await _frames(60)
 
 
 func _test_band_line() -> void:

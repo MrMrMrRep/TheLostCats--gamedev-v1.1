@@ -11,6 +11,7 @@ const CONTROLS := [
 	["Use item", "R   (in the van: radio)"],
 	["Next item / give / drop", "T / F / V"],
 	["Switch member", "1-5, Tab, Q"],
+	["Sprint (world map)", "hold left Shift"],
 	["Gather the band (hold)", "G"],
 	["Pause", "Esc / P"],
 ]

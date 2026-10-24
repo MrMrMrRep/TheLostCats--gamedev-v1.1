@@ -13,6 +13,7 @@ const PATH := "res://resources/config/band_map_config.tres"
 @export var catch_up := 90.0                ## px further behind than their gap: they jog
 @export var jog_factor := 1.9               ## jogging speed = walk speed x this
 @export var follow_accel := 380.0           ## px/s² a follower speeds up / slows down
+@export var sprint_factor := 2.0            ## holding left Shift: everyone moves this many times faster
 
 @export_group("Little pauses")
 @export var pause_every := Vector2(5.0, 12.0)    ## seconds of walking between short stops (random in range)

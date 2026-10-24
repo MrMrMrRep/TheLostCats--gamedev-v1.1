@@ -1136,7 +1136,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
-text = "Move: arrows/WASD   Jump: Space   E: talk / enter / bikes / van   Tab / 1-5: switch member"
+text = "Move: arrows/WASD   Shift: sprint   Jump: Space   E: talk / enter / bikes / van   Tab / 1-5: switch"
 
 [node name="Zones" type="Node2D" parent="." unique_id=577906971]
 

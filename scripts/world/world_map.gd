@@ -53,6 +53,7 @@ var _fstate := {}                           # BandMember -> {v, gap, pause, walk
 var _bikes := {}                            # BandMember -> BikeSprite (placeholder for members without bike art)
 var _lamps := {}                            # BandMember -> NightGlow (bike lights)
 var _ride_time := 0.0
+var _pace := 1.0                            # 1 walking, BandMapConfig.sprint_factor while sprinting
 var _cooldown := 0.0
 var _highlighted: Interactable
 var _min_x := 0.0
@@ -78,6 +79,12 @@ static func of(node: Node) -> WorldMap:
 func _ready() -> void:
 	add_to_group(&"world_map")
 	Audio.music(&"map_calm")
+	if not InputMap.has_action(&"sprint"):  # hold left Shift to sprint on the map
+		InputMap.add_action(&"sprint")
+		var shift := InputEventKey.new()
+		shift.physical_keycode = KEY_SHIFT
+		shift.location = KEY_LOCATION_LEFT
+		InputMap.action_add_event(&"sprint", shift)
 	_read_markers()
 	zoom = cam_cfg.zoom_walk
 	band.locked = true                      # no switching or gather on the map
@@ -166,6 +173,7 @@ func _physics_process(delta: float) -> void:
 		_drive(delta)
 	else:
 		_switch_input()
+	_update_pace()
 	_foot_note = maxf(_foot_note - delta, 0.0)
 	if vehicle == null and leader.global_position.x < foot_limit:
 		leader.global_position.x = foot_limit # on foot: the motorway starts here
@@ -253,7 +261,7 @@ func _update_zoom(delta: float) -> void:
 			rate = c.scenic_rate                # the road trip: open up ever so slowly
 	else:
 		var speed := absf(vehicle.velocity.x) if vehicle else absf(leader.velocity.x)
-		var ref := vehicle.top_speed() if vehicle else band_cfg.walk_speed
+		var ref := vehicle.top_speed() if vehicle else band_cfg.walk_speed * _pace
 		var frac := clampf(speed / ref, 0.0, 1.0)
 		# The tempo picks up at once and calms down slowly, so a short stop
 		# doesn't make the view jump, and slowing down eases in over time.
@@ -437,6 +445,18 @@ func _drive(delta: float) -> void:
 
 # --- Followers -------------------------------------------------------------
 
+## On foot, holding left Shift: everyone moves sprint_factor times faster
+## (the leader by speed_scale, the followers by their walking pace).
+func _update_pace() -> void:
+	var bc := band_cfg
+	var want := bc.sprint_factor if vehicle == null and not talking and Input.is_action_pressed(&"sprint") else 1.0
+	if want == _pace:
+		return
+	_pace = want
+	for m in party:
+		m.speed_scale = bc.walk_speed * _pace / m.profile.run_speed()
+
+
 ## The followers, nearest first, each a little further back than the one
 ## before (their own distance on foot and on the bikes).
 func _line_up(others: Array) -> void:
@@ -576,7 +596,7 @@ func _walk_followers(delta: float) -> void:
 		var dist := absf(dx)
 		var want := 0.0
 		if dist > st.gap + 6.0:
-			want = signf(dx) * bc.walk_speed * (bc.jog_factor if dist > st.gap + bc.catch_up else 1.0)
+			want = signf(dx) * bc.walk_speed * _pace * (bc.jog_factor if dist > st.gap + bc.catch_up else 1.0)
 		if st.pause > 0.0:
 			st.pause -= delta
 			if dist < st.gap + bc.catch_up:

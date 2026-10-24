@@ -185,6 +185,7 @@ Speeds are in **pixels per second** (the band walks 85; a canal house is about
 | walk_speed | 85 | Walking speed on the map |
 | walk_gap | 26 | Distance between members |
 | catch_up, jog_factor | 90, 1.9 | When someone is this far behind they jog, at this speed |
+| sprint_factor | 2 | Holding left Shift on the map: everyone moves this many times faster |
 | pause_every, pause_length | 5–12 s, 0.4–1.3 s | Little stops (a look around, a sip) |
 | fidget_after | 2.5–7 s | Standing still: they start smoking, drinking, playing |
 | ride_gap | 30 | On the bikes: distance between riders (a loose group, like walking) |
