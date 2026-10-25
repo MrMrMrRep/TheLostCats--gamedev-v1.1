@@ -17,7 +17,7 @@ extends Node2D
 enum Lane { BACK, FRONT }
 enum Kind { CAR, VAN, TRUCK, BIKE, BUS }
 
-const LANE_Y := {Lane.BACK: 0.0, Lane.FRONT: 20.0}   # tyres on the road surface
+const LANE_Y := {Lane.BACK: 14.0, Lane.FRONT: 20.0}  # tyres on the road surface (in town: the cobbles, in front of the pavement)
 const LIVERIES := ["BAKKER BAS", "POST", "BLOEMEN", "KOERIER", "LOODGIETER", "VERHUIZER", "", "", ""]
 const TRUCK_LIVERIES := ["TRANSPORT", "VERSE MELK", "DE VRIES", "KAAS", "BIER", ""]
 const BACK_SCALE := 0.9
@@ -84,6 +84,11 @@ func _process(delta: float) -> void:
 		return
 	var view := _view()
 	var span := view.y - view.x
+	# In town the back lane runs on the cobbles, nearer than the pavement: it
+	# draws over the band and the pedestrians there; outside town it is the far
+	# carriageway, behind them.
+	if lane == Lane.BACK:
+		z_index = 1 if _in_town((view.x + view.y) / 2.0) else 0
 	for c in _cars:
 		c[0] += c[1] * c[2] * delta
 		c[5] += absf(c[2]) * delta

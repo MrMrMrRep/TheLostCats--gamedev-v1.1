@@ -153,6 +153,11 @@ func _ready() -> void:
 			_max_x = minf(_max_x, b.global_position.x - EDGE_MARGIN)
 	for v in vehicles():
 		v.restore_position()
+		if v.kind == Vehicle.Kind.VAN:      # on the road, in front of the band and the pavement
+			v.z_index = 1
+			if v.global_position.x >= road_from and v.global_position.x <= town.y:
+				v.global_position.y = GROUND_Y + veh_cfg.lane_town
+				_lane_y = veh_cfg.lane_town
 	var spawn := _spawn_from_router()
 	if spawn == null:
 		spawn = get_node(start_spawn)
@@ -428,7 +433,7 @@ func _drive(delta: float) -> void:
 	if vehicle.kind == Vehicle.Kind.VAN:
 		var vx := vehicle.global_position.x
 		var vc := veh_cfg
-		var lane := 0.0
+		var lane := vc.lane_town
 		if vx < road_from or vx > town.y:
 			lane = vc.lane_east if vehicle.facing > 0.0 else vc.lane_west
 		_lane_y = move_toward(_lane_y, lane, vc.lane_change * delta)

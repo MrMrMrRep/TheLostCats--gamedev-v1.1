@@ -12,7 +12,7 @@ extends Node2D
 
 enum Side { BACK, FRONT }
 
-const SIDE_Y := {Side.BACK: -1.0, Side.FRONT: 6.0}
+const SIDE_Y := {Side.BACK: 1.0, Side.FRONT: 5.0}   # both on the pavement (the band walks between, at 3)
 const SKIN := [WorldPalette.W3, WorldPalette.B4, WorldPalette.B3, WorldPalette.W1, WorldPalette.W0]
 const HAIR := [WorldPalette.T0, WorldPalette.W0, WorldPalette.W2, WorldPalette.B1, WorldPalette.G4, WorldPalette.T0]
 const SHIRTS := [WorldPalette.B2, WorldPalette.T1, WorldPalette.W5, WorldPalette.G0, WorldPalette.O2, WorldPalette.P0, WorldPalette.W0, WorldPalette.B3, WorldPalette.R2]
