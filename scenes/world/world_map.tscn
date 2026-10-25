@@ -276,23 +276,24 @@ seed_value = 5
 texture_repeat = 2
 position = Vector2(7866, 288)
 script = ExtResource("6_1co5k")
-houses = 3
+houses = 2
 seed_value = 73
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 2
 
 [node name="West9_Church" type="Node2D" parent="Buildings/OldTown" unique_id=863274191]
 texture_repeat = 2
-position = Vector2(8116, 288)
+position = Vector2(8030, 288)
 script = ExtResource("7_q6byn")
 kind = 4
 seed_value = 6
+span = 342.0
 
 [node name="West10_Houses" type="Node2D" parent="Buildings/OldTown" unique_id=1402578671]
 texture_repeat = 2
-position = Vector2(8266, 288)
+position = Vector2(8372, 288)
 script = ExtResource("6_1co5k")
-houses = 4
+houses = 2
 seed_value = 75
 shop_rate = 0.8
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
@@ -320,7 +321,7 @@ style = 1
 texture_repeat = 2
 position = Vector2(9056, 288)
 script = ExtResource("6_1co5k")
-houses = 4
+houses = 2
 seed_value = 79
 shop_rate = 0.8
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
@@ -328,16 +329,17 @@ style = 1
 
 [node name="West14_Church" type="Node2D" parent="Buildings/OldTown" unique_id=2064162413]
 texture_repeat = 2
-position = Vector2(9306, 288)
+position = Vector2(9188, 288)
 script = ExtResource("7_q6byn")
 kind = 4
 seed_value = 8
+span = 326.0
 
 [node name="West15_Houses" type="Node2D" parent="Buildings/OldTown" unique_id=1313049866]
 texture_repeat = 2
-position = Vector2(9456, 288)
+position = Vector2(9514, 288)
 script = ExtResource("6_1co5k")
-houses = 2
+houses = 1
 seed_value = 81
 shop_rate = 0.6
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")

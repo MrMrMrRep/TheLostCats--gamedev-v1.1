@@ -578,6 +578,22 @@ static func building(kind: int, width: float, sign_text: String, seed_value: int
 	return p.finish(bx)
 
 
+## What a building puts on the street in front of it (drawn after the street):
+## the church's little square (herringbone bricks, a street pump, a bench).
+static func building_front(kind: int, width: float, seed_value: int) -> V3Art:
+	var p := V3Painter.new()
+	var w := int(width * 2.0)
+	var bx := base_x(seed_value * 13 + kind * 977 + 3)
+	p.begin(bx - 8, w + 16)
+	p.H = GY + 40
+	p.img = Image.create(p.W, p.H, false, Image.FORMAT_RGBA8)
+	if kind == 4:
+		p._church_square(bx, bx + w)
+		p._bench_v3(bx + w / 4 - 18)
+		p._street_pump(bx + w * 3 / 4)
+	return p.finish(bx)
+
+
 func _building(x: int, w: int, kind: int, sign_text: String, seed_value: int) -> void:
 	var up := sign_text.to_upper()
 	match kind:
@@ -592,8 +608,11 @@ func _building(x: int, w: int, kind: int, sign_text: String, seed_value: int) ->
 		3:                                  # OUR_STORAGE: its car park (the gate stands in front), then the storage
 			_car_park(x, 260)
 			_band_storage(x + 260, w - 260)
-		4:                                  # CHURCH
-			_church(x, w)
+		4:                                  # CHURCH: free-standing in its slot, a walled graveyard behind
+			var cw := mini(w, 300)
+			if w >= cw + 120:
+				_graveyard(x, x + w)
+			_church(x + (w - cw) / 2, cw)
 		5:                                  # MARKET
 			_church_square(x, x + w)
 			var kinds := ["kaas", "bloem", "vis", "groente"]

@@ -75,7 +75,7 @@ func _bake_scene() -> int:
 			node = WorldStreetLife.new()
 		else:
 			continue
-		for key: String in ["houses", "seed_value", "sign_text", "shop_rate", "shop_signs", "style", "kind", "width", "open_width", "poort", "length", "keep_clear"]:
+		for key: String in ["houses", "seed_value", "sign_text", "shop_rate", "shop_signs", "style", "kind", "width", "open_width", "poort", "length", "keep_clear", "span"]:
 			if props.has(key):
 				node.set(key, str_to_var(props[key]))
 		if node is CityBlock:
@@ -88,6 +88,8 @@ func _bake_scene() -> int:
 				(node as SideOpening).bridge_art()
 		else:
 			(node as WorldBuilding).v3_art()
+			if (node as WorldBuilding).kind == WorldBuilding.Kind.CHURCH:
+				(node as WorldBuilding).front_art()
 		node.free()
 		count += 1
 	return count
