@@ -45,7 +45,7 @@ const P0 := Color("4e3f5c")
 const PALETTE := [T0, T1, T2, T3, T4, T5, T6, T7, W0, W1, W2, W3, W4, W5,
 	B0, B1, B2, B3, B4, O1, O2, O3, G0, G1, G2, G3, G4, R0, R1, R2, R3, P0]
 
-const SKY_TOP := T3
+const SKY_TOP := T4                         # (was T3; brighter, closer to the reference street scene)
 const SKY_MID := T5
 const SKY_LOW := T7
 const CLOUD := W5

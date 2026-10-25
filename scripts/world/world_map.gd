@@ -10,6 +10,7 @@ extends Node2D
 ## the view height follows, so the canal stays in shot.
 
 const GROUND_Y := 288.0
+const COLOR_GRADE := preload("res://scripts/world/color_grade.gd")
 const INTERACT_COOLDOWN := 0.3
 const FEET_DROP := 3.0                      # world px the band is drawn below the street line (they walk on the pavement)
 const EDGE_MARGIN := 30.0                   # vehicles stop this far from a road block
@@ -81,6 +82,7 @@ func _ready() -> void:
 	add_to_group(&"world_map")
 	var keep: Array[Node] = [band]
 	WorldPalette.snap_tree(self, keep)      # style v3: everything on the 32 colours (not the band)
+	COLOR_GRADE.attach(self)                # teal sky and haze towards a clear azure
 	Audio.music(&"map_calm")
 	if not InputMap.has_action(&"sprint"):  # hold left Shift to sprint on the map
 		InputMap.add_action(&"sprint")
