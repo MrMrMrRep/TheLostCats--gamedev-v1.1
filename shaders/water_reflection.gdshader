@@ -1,13 +1,18 @@
-// Canal / ditch water in the style v3 look (docs/art/style_v3_*, the mocks'
-// _reflect): a live mirror of the street side, squashed a little and swaying
-// in bands, painted on a few water colours by brightness (greens stay olive,
-// warm colours go brick, the rest teal), a dark line at the quay, and light
-// dashes on the ripples that drift slowly. At night bright warm lights
-// (windows, lamps) reflect as gold. WorldWater sets the waterline and the
-// screen-pixels-per-world-pixel scale every frame.
+// Canal / ditch water, Kingdom-style: a near-true mirror of the street side in
+// its own colours (darkened, and tinted toward the water colour more with
+// distance), rolling ripples (two travelling waves per row plus a small
+// vertical shimmer, stronger further out), thin light crests and dark troughs
+// that drift as dashes, the sky mirrored above the top of the screen, a dark
+// line at the quay. The mirror starts at the street line (skip_rows), so the
+// band, the shop fronts and the houses reflect right below the quay. At night warm lights stay bright gold in the water.
+// The result is snapped to the 32-colour world palette (the palette filter's
+// table) with a light ordered dither, so the tints don't band.
+// WorldWater sets the waterline, the pixel scale, the night and the table.
 shader_type canvas_item;
 
 uniform sampler2D screen_tex : hint_screen_texture, filter_nearest;
+uniform sampler2D lut : filter_nearest;     // V3Painter.palette_lut (1024x32)
+uniform bool use_lut = false;
 uniform vec4 water_color : source_color = vec4(0.208, 0.376, 0.424, 1.0);
 uniform vec4 deep_color : source_color = vec4(0.173, 0.255, 0.322, 1.0);
 uniform vec4 highlight : source_color = vec4(0.525, 0.757, 0.733, 1.0);
@@ -15,36 +20,35 @@ uniform float water_top_uv = 0.8;           // waterline, 0..1 of the screen hei
 uniform float px_per_world = 2.0;           // screen pixels per world pixel
 uniform float night = 0.0;                  // 0 by day .. 1 at night
 uniform float depth_rows = 90.0;            // world rows over which the water darkens
+uniform float tint_near = 0.22;             // how much water colour shows by the quay
+uniform float tint_far = 0.55;              // ... and far out
+uniform float squash = 0.94;                // mirror height (1 = exact)
+uniform float ripple = 1.0;                 // ripple strength
+uniform float skip_rows = 22.0;             // world rows between the waterline and the street (the mirror shows what stands on it)
 
 const vec3 T0 = vec3(0.114, 0.157, 0.220);
 const vec3 T1 = vec3(0.173, 0.255, 0.322);
-const vec3 T2 = vec3(0.208, 0.376, 0.424);
-const vec3 T3 = vec3(0.294, 0.506, 0.537);
-const vec3 T4 = vec3(0.392, 0.635, 0.651);
 const vec3 T6 = vec3(0.690, 0.863, 0.788);
-const vec3 G0 = vec3(0.169, 0.267, 0.204);
-const vec3 G1 = vec3(0.275, 0.400, 0.227);
-const vec3 B0 = vec3(0.369, 0.180, 0.212);
-const vec3 B1 = vec3(0.561, 0.247, 0.251);
-const vec3 B2 = vec3(0.741, 0.353, 0.294);
-const vec3 O1 = vec3(0.878, 0.541, 0.212);
 const vec3 O2 = vec3(0.949, 0.737, 0.345);
+const vec3 O3 = vec3(0.973, 0.863, 0.541);
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
-vec3 ramp(int i, int kind) {
-	if (kind == 1) {                        // greens
-		return i == 0 ? T0 : (i == 1 ? T1 : (i == 2 ? G0 : G1));
+float bayer4(vec2 p) {
+	ivec2 i = ivec2(mod(p, 4.0));
+	int m[16] = int[](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+	return (float(m[i.y * 4 + i.x]) + 0.5) / 16.0;
+}
+
+vec3 snap(vec3 c, vec2 cell) {
+	if (!use_lut) {
+		return c;
 	}
-	if (kind == 2) {                        // warm
-		return i == 0 ? T0 : (i <= 2 ? T1 : (i == 3 ? B0 : B1));
-	}
-	if (kind == 3) {                        // lights at night
-		return i <= 1 ? B1 : (i == 2 ? B2 : (i == 3 ? O1 : O2));
-	}
-	return i == 0 ? T0 : (i == 1 ? T1 : (i == 2 ? T2 : (i == 3 ? T3 : T4)));
+	vec3 d = c * 31.0 + (bayer4(cell) - 0.5) * 0.9;
+	ivec3 q = ivec3(clamp(floor(d + 0.5), vec3(0.0), vec3(31.0)));
+	return texelFetch(lut, ivec2(q.b * 32 + q.r, q.g), 0).rgb;
 }
 
 void fragment() {
@@ -53,48 +57,44 @@ void fragment() {
 	float row = floor(dy / px.y / px_per_world);                  // world rows below the line
 	float wx = floor(SCREEN_UV.x / px.x / px_per_world);          // world px across the screen
 	float depth = clamp(row / depth_rows, 0.0, 1.0);
-	float t = floor(TIME * 3.0);
-	// Sway in bands of two rows, more with depth.
-	float band = floor(row / 2.0);
-	float sway = floor(sin(band * 1.7 + t * 0.45) * (1.0 + depth * 3.0) + 0.5);
-	// Mirror, squashed to 0.9.
-	float src_row = floor(row * 0.9) + 1.0;
-	vec2 ruv = vec2((wx + sway + 0.5) * px_per_world * px.x, water_top_uv - src_row * px_per_world * px.y);
-	vec3 s = water_color.rgb;
-	if (ruv.y > 0.0) {
-		vec2 d = vec2(px_per_world * px.x * 0.5, 0.0);
-		s = (texture(screen_tex, ruv - d).rgb + texture(screen_tex, ruv + d).rgb) * 0.5;
-	}
-	float lum = dot(s, vec3(0.30, 0.59, 0.11));
-	int kind = 0;
-	if (s.g > s.r + 0.05 && s.g > s.b + 0.05) {
-		kind = 1;
-	} else if (s.r > s.b + 0.15 && s.r > s.g + 0.1) {
-		kind = 2;
-	}
-	if (night > 0.05 && lum > 0.5 && s.r > s.b + 0.2) {
-		kind = 3;
-	}
-	int idx = int(clamp(floor(lum * 5.0 - depth * 0.9 - 0.5), 0.0, 4.0));
-	vec3 c = ramp(idx, kind);
-	// Light dashes on the ripples, longer further out, drifting sideways.
-	float cell = 22.0;
-	float off = hash(vec2(row, 3.0)) * cell + floor(TIME * 2.0) * (mod(row, 2.0) * 2.0 - 1.0);
-	float seg = floor((wx + off) / cell);
-	float lx = mod(wx + off, cell);
+	float t = TIME;
+	// Rolling ripples: two waves travelling at different speeds, a fast small one.
+	float w1 = sin(row * 0.52 + t * 2.0);
+	float w2 = sin(row * 0.21 - t * 1.25 + 1.7);
+	float w3 = sin(row * 1.63 + t * 3.6);
+	float amp = (0.5 + depth * 3.0) * ripple;
+	float sway = floor((w1 * 0.6 + w2 * 0.4) * amp + w3 * 0.6 * depth * ripple + 0.5);
+	float shimmer = floor(sin(row * 0.87 + t * 2.6) * (0.4 + depth * 1.3) * ripple + 0.5);
+	float src_row = max(floor(row * squash) + 1.0 + shimmer, 1.0) + skip_rows;
+	vec2 ruv = vec2((wx + sway + 0.5) * px_per_world * px.x, water_top_uv - (src_row - 0.5) * px_per_world * px.y);
+	ruv.y = max(ruv.y, px.y * 0.5);                               // above the screen: the sky's top row
+	vec3 s = texture(screen_tex, ruv).rgb;
+	// Mirror in its own colours, darker and bluer with distance.
+	vec3 water = mix(water_color.rgb, deep_color.rgb, depth);
+	vec3 c = mix(s * 0.9, water, mix(tint_near, tint_far, depth));
+	// Crests catch the light, troughs go dark: dashes that drift along the rows.
+	float crest = cos(row * 0.52 + t * 2.0);
+	float dir = mod(row, 2.0) * 2.0 - 1.0;
+	float seg = floor((wx + t * (4.0 + depth * 6.0) * dir) / (8.0 + depth * 14.0));
 	float h = hash(vec2(seg, row));
-	float len = 1.5 + depth * 12.0;
-	if (row > 2.0 && h > 0.86 && lx < len) {
-		c = hash(vec2(row, seg)) < 0.55 ? T3 : T4;
-		if (h > 0.96 && lx > 1.0 && lx < len - 1.0) {
+	if (row > 2.0 && crest > 0.8 && h > 0.5) {
+		c = mix(c, highlight.rgb, 0.5);
+		if (h > 0.93) {
 			c = T6;
 		}
+	} else if (row > 2.0 && crest < -0.82 && h > 0.35) {
+		c = mix(c, deep_color.rgb, 0.5);
+	}
+	// At night warm lights (windows, lamps) stay gold and bright.
+	float lum = dot(s, vec3(0.30, 0.59, 0.11));
+	if (night > 0.05 && lum > 0.5 && s.r > s.b + 0.2) {
+		c = mix(c, lum > 0.7 ? O3 : O2, 0.75 * night);
 	}
 	// The dark line along the quay.
 	if (row < 1.0) {
 		c = T0;
 	} else if (row < 2.5) {
-		c = T1;
+		c = mix(c, T1, 0.6);
 	}
-	COLOR = vec4(c, 1.0);
+	COLOR = vec4(snap(c, vec2(wx, row)), 1.0);
 }

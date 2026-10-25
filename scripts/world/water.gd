@@ -15,6 +15,10 @@ const SHADER := preload("res://shaders/water_reflection.gdshader")
 	set(value):
 		deep_color = value
 		_apply()
+@export var street_gap := 22.0:             ## world px from the waterline up to the street (mirrored from there)
+	set(value):
+		street_gap = value
+		_apply()
 
 var _mat: ShaderMaterial
 
@@ -34,6 +38,10 @@ func _apply() -> void:
 		_mat.set_shader_parameter("water_color", water_color)
 		_mat.set_shader_parameter("deep_color", deep_color)
 		_mat.set_shader_parameter("highlight", WorldPalette.WATER_HI)
+		_mat.set_shader_parameter("skip_rows", street_gap)
+		if WorldPalette.V3 and not Engine.is_editor_hint():   # snap the mirror to the 32 colours
+			_mat.set_shader_parameter("lut", WorldPalette.snap_material().get_shader_parameter("lut"))
+			_mat.set_shader_parameter("use_lut", true)
 
 
 func _process(_delta: float) -> void:
