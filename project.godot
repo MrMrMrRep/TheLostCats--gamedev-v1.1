@@ -21,6 +21,7 @@ Game="*res://scripts/autoload/game.gd"
 SceneRouter="*res://scripts/autoload/scene_router.gd"
 Audio="*res://scripts/autoload/audio.gd"
 Pause="*res://scripts/ui/pause_overlay.gd"
+TouchPad="*res://scripts/ui/touch_gamepad.gd"
 
 [display]
 
