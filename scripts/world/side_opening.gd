@@ -32,6 +32,7 @@ const KINDS := ["canal", "street", "alley", "steeg"]
 		_changed()
 
 var _front: Node2D                          # the bridge: over the street and the canal
+var _glow: NightGlow                        # its bulbs at night
 
 
 func _ready() -> void:
@@ -54,6 +55,12 @@ func _changed() -> void:
 		_front = null
 	if _front:
 		_front.queue_redraw()
+		if not Engine.is_editor_hint() and _glow == null:
+			_glow = NightGlow.attach(_front)
+			if _glow:                       # the bulbs along the arches light up at night
+				for wnd: Array in bridge_art().windows:
+					var r: Rect2i = wnd[0]
+					_glow.add_lamp(Vector2(r.position) * 0.5 + Vector2(0.75, 0.75), 3.0, NAN, 0.02, Color(1.0, 0.8, 0.45, 0.7))
 
 
 func _draw() -> void:

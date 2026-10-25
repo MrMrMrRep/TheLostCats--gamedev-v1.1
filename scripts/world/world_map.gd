@@ -12,7 +12,7 @@ extends Node2D
 const GROUND_Y := 288.0
 const INTERACT_COOLDOWN := 0.3
 const EDGE_MARGIN := 30.0                   # vehicles stop this far from a road block
-const WATER_LINE := GROUND_Y + 22.0         # top of the canal
+const WATER_LINE := GROUND_Y + 36.0         # top of the canal (a brick quay wall shows above it)
 # Tuning lives in resources/config/ (edit in the inspector, see
 # docs/editing-the-world.md): the camera in map_camera_config.tres, the band's
 # walk in band_map_config.tres, the bikes and the van in vehicle_config.tres.

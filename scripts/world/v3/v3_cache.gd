@@ -8,7 +8,7 @@ extends RefCounted
 ## Bump VERSION when the painter changes, then run the bake tool again.
 
 const DIR := "res://assets/sprites/world/v3/"
-const VERSION := 5                          # 5: planes at the gate, polder sprites, v3 trees
+const VERSION := 6                          # 6: lower canal (quay wall), Amsterdam bridges
 
 static var save_to_disk := false            ## the bake tool turns this on
 static var used: Dictionary = {}            ## file names asked for this run (the bake tool prunes the rest)

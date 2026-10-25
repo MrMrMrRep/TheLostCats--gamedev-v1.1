@@ -11,7 +11,9 @@ extends "res://scripts/world/v3/v3_alleys.gd"
 ## The world nodes (CityBlock, WorldBuilding, CarArt...) ask V3Cache for their
 ## art, which calls the static painters below the first time.
 
-const CANVAS_BOTTOM := GY + 16              # canvases end a little below the street line
+const CANVAS_BOTTOM := GY + 16
+const QUAY_DROP := 28                       # the canal lies this much lower than the mocks' WATER: a brick quay wall shows
+const WL := WATER + QUAY_DROP               # the town canal's waterline (art px; WorldMap.WATER_LINE)              # canvases end a little below the street line
 
 const CANAL_SCHEMES := ["brick", "teal", "cream", "coral", "mustard", "teal", "brick", "cream", "slate", "tealdark", "darkbrick", "coral", "plum", "mustard"]
 const OLD_SCHEMES := ["brick", "cream", "brick", "mustard", "coral", "teal", "darkbrick", "cream", "slate"]
@@ -358,11 +360,123 @@ static func side_bridge(open_w: float, seed_value: int) -> V3Art:
 	var ow := int(open_w) * 2
 	var bx := base_x(seed_value + 977)
 	p.begin(bx - ow / 2 - 16, ow + 32)
-	p.H = WATER + 64
+	p.H = WL + 40
 	p.img = Image.create(p.W, p.H, false, Image.FORMAT_RGBA8)
-	p._bridge_deck(bx - ow / 2, ow)
-	p._bridge_arch(bx - ow / 2, ow)
+	p._amsterdam_bridge(bx - ow / 2, ow, seed_value)
 	return p.finish(bx)
+
+
+## A brick quay wall between the street and the lowered canal: dark bricks,
+## damp near the water, algae, now and then a mooring ring.
+func _quay_wall(y0: int, y1: int) -> void:
+	for yy in range(y0, y1):
+		for xx in range(OX, OX + W):
+			var course := yy / 4
+			var j := (xx + (course % 2) * 4) % 8
+			var c := B1
+			if yy % 4 == 3 or j == 0:
+				c = B0
+			elif _hash(posmod(xx, W) / 8, course) < 0.12:
+				c = W1
+			if yy > y1 - 9 and _bayer(xx, yy) < float(yy - (y1 - 9)) / 9.0:
+				c = G0 if _hash(posmod(xx, W) / 3, yy) < 0.5 else T1   # damp and algae at the water
+			_put_px(xx, yy, c)
+	_rect(OX, y0, W, 1, T0)
+	for mx in range(OX - posmod(OX, 240) + 90, OX + W, 240):
+		WDisc.ring(self, mx, y0 + 10, 3, T0)
+		_rect(mx - 1, y0 + 5, 3, 3, R1)
+	_rect(OX, y1 - 1, W, 1, T0)
+
+
+## An Amsterdam canal bridge after the photo: low wide brick arches with a
+## stone ring and a string of light bulbs, stone piers with mooring posts, the
+## iron railing on top; below the waterline its own mirror image (arches
+## become ellipses, bulbs gold streaks), fading into the canal.
+func _amsterdam_bridge(x0: int, w: int, seed_value: int) -> void:
+	_bridge_deck(x0, w)
+	var top := WATER - 8
+	var n := clampi(roundi(w / 92.0), 1, 3)
+	var span := w - 16
+	var aw := span / n
+	# Weathered brick face with pale patches.
+	for yy in range(top, WL):
+		for xx in range(x0, x0 + w):
+			var course := yy / 4
+			var j := (xx + (course % 2) * 4) % 8
+			var c := B2
+			if yy % 4 == 3 or j == 0:
+				c = B1
+			elif _hash(xx / 8, course) < 0.14:
+				c = B3
+			if _hash(xx / 11, yy / 7 + seed_value) < 0.16 and c != B1:
+				c = W2                                   # whitewash wearing off
+			_px(xx, yy, c)
+	_rect(x0, top, w, 3, W3)                          # stone string course
+	_rect(x0, top, w, 1, W5)
+	_rect(x0, top + 3, w, 1, B0)
+	var bulbs := []
+	for i in n:
+		var cx := x0 + 8 + aw * i + aw / 2
+		var rx := aw / 2 - 6
+		var ry := WL - (top + 7)
+		for yy in range(WL - ry, WL):
+			var k := float(WL - yy) / ry
+			var half := int(rx * sqrt(maxf(1.0 - k * k, 0.0)))
+			for xx in range(cx - half, cx + half):
+				var c := T0 if yy < WL - ry / 2 else T1
+				if yy > WL - 4:
+					c = T2                                # light on the water inside
+				_px(xx, yy, c)
+		# Stone ring (voussoirs) with bulbs along it.
+		for a in range(0, 181, 3):
+			var ang := deg_to_rad(float(a))
+			for d in 3:
+				var q := Vector2(cx + cos(ang) * (rx + d), WL - sin(ang) * (ry + d))
+				_px(int(q.x), int(q.y), W4 if (a / 9) % 2 == 0 else W3)
+			if a % 12 == 6 and a > 4 and a < 176:
+				var b := Vector2(cx + cos(ang) * (rx + 4), WL - sin(ang) * (ry + 4))
+				_px(int(b.x), int(b.y), O3)
+				_px(int(b.x), int(b.y) - 1, O2)
+				bulbs.append(Vector2i(int(b.x), int(b.y)))
+		_bevel(cx - 3, WL - ry - 7, 6, 6, W4, W5, W3)    # keystone
+	# Piers between and beside the arches: stone feet, a mooring post.
+	for i in n + 1:
+		var px_ := x0 + 8 + aw * i
+		_bevel(px_ - 5, WL - 10, 10, 10, W3, W4, W2)
+		if i > 0 and i < n:
+			_rect(px_ + 7, WL - 16, 3, 22, W0)
+			_rect(px_ + 7, WL - 16, 1, 22, W1)
+	# The mirror below the waterline: rows read back from above, darkened,
+	# rippled, fading out into the canal.
+	for r in range(0, 38):
+		var sy := WL - 1 - r
+		var dx := 1 if (r / 3) % 2 == 0 else -1
+		for xx in range(x0, x0 + w):
+			var c := _get_px(clampi(xx + dx, x0, x0 + w - 1), sy)
+			if c.a < 0.5:
+				continue
+			var o := T1
+			if c == O3 or c == O2:
+				o = O2
+			elif c == T0 or c == T1 or c == T2:
+				o = T0
+			elif c == W3 or c == W4 or c == W5:
+				o = T3
+			elif c == B2 or c == B3 or c == W2:
+				o = B1 if r < 20 else B0
+			elif c == B1 or c == B0:
+				o = B0
+			if r % 5 == 4 and o != O2:
+				o = T2 if o == T0 else T1                 # ripple lines
+			if r > 24 and _bayer(xx, WL + r) < float(r - 24) / 14.0:
+				continue                                  # fades into the canal
+			_px(xx, WL + r, o)
+	for b: Vector2i in bulbs:                         # bulbs stretch into gold streaks
+		var ry2 := WL + (WL - b.y)
+		_rect(b.x, ry2 - 2, 1, 5, O2)
+		_px(b.x, ry2, O3)
+	for b: Vector2i in bulbs:
+		_note_window(b.x - 1, b.y - 1, 3, 3, true)
 
 
 ## Canal houses filling `w` art px from `x` (beside an opening).
@@ -734,11 +848,12 @@ static func street_tile(width: int) -> V3Art:
 	var p := V3Painter.new()
 	p.OX = 0
 	p.W = width
-	p.H = WATER + 2
+	p.H = WL + 2
 	p.img = Image.create(p.W, p.H, false, Image.FORMAT_RGBA8)
 	p._street_strip()
+	p._quay_wall(WATER, WL)
 	var art := V3Art.new()
-	var region := p.img.get_region(Rect2i(0, GY, p.W, WATER - GY))
+	var region := p.img.get_region(Rect2i(0, GY, p.W, WL - GY))
 	art.png = region.save_png_to_buffer()
 	art.origin = Vector2i(0, 0)
 	return art

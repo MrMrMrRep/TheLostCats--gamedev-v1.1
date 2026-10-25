@@ -12,7 +12,7 @@ extends Node2D
 @export var town := Vector2(1100, 3640)
 
 const STREET_H := 14.0
-const EDGE_H := 22.0                        # town: street + curb + quay down to the water
+const EDGE_H := 36.0                        # town: street + curb + quay wall down to the water
 const ROAD_H := 27.0                        # outside town: carriageway + hard shoulder
 const VERGE_H := 11.0                       # grass verge from the guardrail down to the ditch
 const ROAD_WATER := ROAD_H + VERGE_H        # outside town the ditch starts this far down

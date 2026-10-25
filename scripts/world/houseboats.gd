@@ -9,7 +9,7 @@ extends Node2D
 ## boats for one node: local x of each.) Origin = the boat's left end on the
 ## street line.
 
-const WATER_Y := 22.0                       # world px below the street line
+const WATER_Y := 36.0                       # world px below the street line (the canal)
 
 @export var spots: Array[float] = []:      ## several boats from this node (local x each); empty = one boat here
 	set(value):

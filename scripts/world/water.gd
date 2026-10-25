@@ -15,7 +15,7 @@ const SHADER := preload("res://shaders/water_reflection.gdshader")
 	set(value):
 		deep_color = value
 		_apply()
-@export var street_gap := 22.0:             ## world px from the waterline up to the street (mirrored from there)
+@export var street_gap := 36.0:             ## world px from the waterline up to the street (mirrored from there)
 	set(value):
 		street_gap = value
 		_apply()

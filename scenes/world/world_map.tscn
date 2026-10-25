@@ -1,6 +1,5 @@
 [gd_scene format=4 uid="uid://di6ojfs6lhly5"]
 
-[ext_resource type="Script" path="res://scripts/world/side_opening.gd" id="90_sideop"]
 [ext_resource type="Script" uid="uid://ctp0srj4lajoj" path="res://scripts/world/world_map.gd" id="1_3ywfa"]
 [ext_resource type="Script" uid="uid://dev54mp3hbgwy" path="res://scripts/world/sky.gd" id="2_ao3qg"]
 [ext_resource type="Script" uid="uid://limx42g745pm" path="res://scripts/world/parallax_layer.gd" id="3_x5aeg"]
@@ -39,9 +38,11 @@
 [ext_resource type="PackedScene" uid="uid://1hjoq3evq167" path="res://scenes/ui/debug_overlay.tscn" id="37_h1t5q"]
 [ext_resource type="Script" uid="uid://b627am7gjrq0l" path="res://scripts/world/world_zone.gd" id="38_ao3qg"]
 [ext_resource type="Script" uid="uid://buh4jk6e7dhc7" path="res://scripts/world/world_marker.gd" id="39_x5aeg"]
+[ext_resource type="Script" uid="uid://bmhu5sltisqoo" path="res://scripts/world/side_opening.gd" id="90_sideop"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_das13"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ao3qg"]
 shader = ExtResource("27_078hn")
+shader_parameter/use_lut = false
 shader_parameter/water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
 shader_parameter/deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
 shader_parameter/highlight = Color(0.5254902, 0.75686276, 0.73333335, 1)
@@ -49,9 +50,15 @@ shader_parameter/water_top_uv = 0.8
 shader_parameter/px_per_world = 2.0
 shader_parameter/night = 0.0
 shader_parameter/depth_rows = 90.0
+shader_parameter/tint_near = 0.42
+shader_parameter/tint_far = 0.72
+shader_parameter/squash = 0.94
+shader_parameter/ripple = 1.0
+shader_parameter/skip_rows = 36.0
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_ka37c"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_x5aeg"]
 shader = ExtResource("27_078hn")
+shader_parameter/use_lut = false
 shader_parameter/water_color = Color(0.20784314, 0.3764706, 0.42352942, 1)
 shader_parameter/deep_color = Color(0.17254902, 0.25490198, 0.32156864, 1)
 shader_parameter/highlight = Color(0.5254902, 0.75686276, 0.73333335, 1)
@@ -59,16 +66,27 @@ shader_parameter/water_top_uv = 0.8
 shader_parameter/px_per_world = 2.0
 shader_parameter/night = 0.0
 shader_parameter/depth_rows = 90.0
+shader_parameter/tint_near = 0.42
+shader_parameter/tint_far = 0.72
+shader_parameter/squash = 0.94
+shader_parameter/ripple = 1.0
+shader_parameter/skip_rows = 36.0
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_sloqf"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ink1j"]
 shader = ExtResource("27_078hn")
+shader_parameter/use_lut = false
 shader_parameter/water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
-shader_parameter/deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
+shader_parameter/deep_color = Color(0.17254902, 0.25490198, 0.32156864, 1)
 shader_parameter/highlight = Color(0.5254902, 0.75686276, 0.73333335, 1)
 shader_parameter/water_top_uv = 0.8
 shader_parameter/px_per_world = 2.0
 shader_parameter/night = 0.0
 shader_parameter/depth_rows = 90.0
+shader_parameter/tint_near = 0.42
+shader_parameter/tint_far = 0.72
+shader_parameter/squash = 0.94
+shader_parameter/ripple = 1.0
+shader_parameter/skip_rows = 36.0
 
 [node name="WorldMap" type="Node2D" unique_id=1907990674]
 script = ExtResource("1_3ywfa")
@@ -148,49 +166,36 @@ quiet = Vector2(18300, 21800)
 [node name="Bridge1" type="Node2D" parent="Bridges" unique_id=68092989]
 position = Vector2(10200, 288)
 script = ExtResource("90_sideop")
-kind = 0
-width = 290.0
 open_width = 124.0
 seed_value = 11
 
 [node name="Bridge2" type="Node2D" parent="Bridges" unique_id=876549002]
 position = Vector2(10900, 288)
 script = ExtResource("90_sideop")
-kind = 0
-width = 290.0
 open_width = 110.0
 seed_value = 23
 
 [node name="Bridge3" type="Node2D" parent="Bridges" unique_id=574452183]
 position = Vector2(12500, 288)
 script = ExtResource("90_sideop")
-kind = 0
-width = 290.0
 open_width = 132.0
 seed_value = 37
 
 [node name="Bridge4" type="Node2D" parent="Bridges" unique_id=1813853080]
 position = Vector2(13200, 288)
 script = ExtResource("90_sideop")
-kind = 0
-width = 290.0
 open_width = 116.0
 seed_value = 41
 
 [node name="Bridge5" type="Node2D" parent="Bridges" unique_id=971111081]
 position = Vector2(13900, 288)
 script = ExtResource("90_sideop")
-kind = 0
-width = 290.0
 open_width = 128.0
 seed_value = 53
 
 [node name="Bridge6" type="Node2D" parent="Bridges" unique_id=554565311]
 position = Vector2(14900, 288)
 script = ExtResource("90_sideop")
-kind = 0
-width = 290.0
-open_width = 120.0
 seed_value = 67
 
 [node name="SideStreet1" type="Node2D" parent="Bridges" unique_id=1327535044]
@@ -924,9 +929,12 @@ map_width = 21600.0
 map_min = -4000.0
 
 [node name="Water" type="Node2D" parent="." unique_id=985293818]
+modulate = Color(1, 1, 1, 0.45882353)
+self_modulate = Color(1, 1, 1, 0.34117648)
+metadata/transparant = Color(0, 0, 0, 0.16862746)
 
 [node name="DitchWest" type="ColorRect" parent="Water" unique_id=675744894]
-material = SubResource("ShaderMaterial_das13")
+material = SubResource("ShaderMaterial_ao3qg")
 offset_left = -4400.0
 offset_top = 326.0
 offset_right = 3800.0
@@ -938,9 +946,10 @@ water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
 deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
 
 [node name="Canal" type="ColorRect" parent="Water" unique_id=77260768]
-material = SubResource("ShaderMaterial_ka37c")
+modulate = Color(1, 1, 1, 0.10980392)
+material = SubResource("ShaderMaterial_x5aeg")
 offset_left = 7083.0
-offset_top = 310.0
+offset_top = 324.0
 offset_right = 18240.0
 offset_bottom = 830.0
 mouse_filter = 2
@@ -948,7 +957,7 @@ color = Color(0.20784314, 0.3764706, 0.42352942, 1)
 script = ExtResource("28_12evo")
 
 [node name="DitchEast" type="ColorRect" parent="Water" unique_id=1656000291]
-material = SubResource("ShaderMaterial_sloqf")
+material = SubResource("ShaderMaterial_ink1j")
 offset_left = 18240.0
 offset_top = 326.0
 offset_right = 22000.0
@@ -957,7 +966,6 @@ mouse_filter = 2
 color = Color(0.24705882, 0.4509804, 0.5882353, 1)
 script = ExtResource("28_12evo")
 water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
-deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
 
 [node name="Houseboats" type="Node2D" parent="." unique_id=1100060556]
 
@@ -1008,6 +1016,7 @@ script = ExtResource("30_5u2n8")
 position = Vector2(7223, 288)
 script = ExtResource("31_wfxop")
 length = 977.0
+water_y = 36.0
 
 [node name="WaterLife9" type="Node2D" parent="." unique_id=1067604261]
 position = Vector2(-4000, 288)
