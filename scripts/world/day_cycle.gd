@@ -12,6 +12,7 @@ extends Node
 signal hour_changed(hour: float)
 
 static var night_now := 0.0                 # 0 by day .. 1 at night (new glows read it)
+static var tint_now := Color.WHITE          # the street's tint right now (the unshaded water copies it)
 
 var paused := false                         # e.g. during a conversation
 var sleeping := false                       # fading through a sleep()
@@ -97,6 +98,7 @@ func apply() -> void:
 	var h := Game.time_of_day
 	var tint := cfg.tint(h)
 	_tint.color = tint
+	tint_now = tint
 	var night := cfg.night(h)
 	if _sky:
 		_sky.set_time(h, cfg.sky(h), night, tint.lerp(Color.WHITE, 0.1))

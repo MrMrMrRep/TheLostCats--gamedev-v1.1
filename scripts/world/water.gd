@@ -54,3 +54,4 @@ func _process(_delta: float) -> void:
 	_mat.set_shader_parameter("world_left", (to_world * Vector2.ZERO).x + global_position.x)
 	_mat.set_shader_parameter("px_per_world", maxf(final.get_scale().y * canvas.get_scale().y, 0.25))
 	_mat.set_shader_parameter("night", WorldDayCycle.night_now)
+	_mat.set_shader_parameter("world_tint", WorldDayCycle.tint_now)
