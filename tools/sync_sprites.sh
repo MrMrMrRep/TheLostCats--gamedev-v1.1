@@ -6,7 +6,7 @@
 set -e
 SRC="${LOST_CATS_ASSETS:-$(cd "$(dirname "$0")/../.." && pwd)/the-lost-cats--assets}/sprites"
 DST="$(cd "$(dirname "$0")/.." && pwd)"
-MEMBERS="${*:-keys_joep bass_jay}"
+MEMBERS="${*:-keys_joep bass_jay guitar_nikki drums_germ singer_geoff}"
 
 [ -d "$SRC" ] || { echo "asset repo not found: $SRC (set LOST_CATS_ASSETS)"; exit 1; }
 for m in $MEMBERS; do
