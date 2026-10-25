@@ -46,3 +46,4 @@ func _process(_delta: float) -> void:
 	var screen_h := float(get_window().size.y) if get_window() else 360.0
 	_mat.set_shader_parameter("water_top_uv", top_on_screen / screen_h)
 	_mat.set_shader_parameter("px_per_world", maxf(final.get_scale().y * canvas.get_scale().y, 0.25))
+	_mat.set_shader_parameter("night", WorldDayCycle.night_now)

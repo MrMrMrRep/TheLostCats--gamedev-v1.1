@@ -61,10 +61,10 @@ func _reeds(x: float, rng: RandomNumberGenerator) -> void:
 	for k in rng.randi_range(6, 12):
 		var rx := x + k * 2.5
 		var h := rng.randf_range(8, 16)
-		var c := Color("6f8f3a") if k % 3 else Color("a89a5a")
+		var c := WorldPalette.G2 if k % 3 else WorldPalette.W2
 		draw_line(Vector2(rx, water_y + 1), Vector2(rx + rng.randf_range(-2, 2), water_y + 1 - h), c, 1.0)
 		if k % 4 == 0:                                        # bulrush heads
-			draw_rect(Rect2(rx - 1, water_y - h - 1, 2, 4), Color("5a3a22"))
+			draw_rect(Rect2(rx - 1, water_y - h - 1, 2, 4), WorldPalette.W0)
 	draw_rect(Rect2(x - 2, water_y + 2, 34, 3), Color(0.3, 0.4, 0.2, 0.25))
 
 
@@ -73,62 +73,62 @@ func _ducks(x: float, rng: RandomNumberGenerator, t: float) -> void:
 		var dx := x + k * 9
 		var y := water_y + 3 + _bob(t, dx)
 		var drake := k % 2 == 0
-		draw_rect(Rect2(dx, y - 3, 6, 3), Color("8a6a4a") if not drake else Color("9a9a90"))
-		draw_rect(Rect2(dx + 5, y - 6, 3, 3), Color("2f6f3a") if drake else Color("7a5a3a"))
-		draw_rect(Rect2(dx + 8, y - 5, 1, 1), Color("e0b23a"))
-		_reflect(Rect2(dx, y - 6, 8, 6), Color("8a6a4a"))
+		draw_rect(Rect2(dx, y - 3, 6, 3), WorldPalette.W1 if not drake else WorldPalette.W2)
+		draw_rect(Rect2(dx + 5, y - 6, 3, 3), WorldPalette.G1 if drake else WorldPalette.W1)
+		draw_rect(Rect2(dx + 8, y - 5, 1, 1), WorldPalette.O2)
+		_reflect(Rect2(dx, y - 6, 8, 6), WorldPalette.W1)
 
 
 func _swan(x: float, t: float) -> void:
 	var y := water_y + 3 + _bob(t, x)
-	draw_rect(Rect2(x, y - 5, 12, 5), Color("f6f4ee"))
-	draw_rect(Rect2(x + 9, y - 13, 2, 9), Color("f6f4ee"))
-	draw_rect(Rect2(x + 9, y - 14, 4, 2), Color("f6f4ee"))
-	draw_rect(Rect2(x + 13, y - 13, 2, 1), Color("e07a2e"))
-	_reflect(Rect2(x, y - 14, 14, 14), Color("f6f4ee"))
+	draw_rect(Rect2(x, y - 5, 12, 5), WorldPalette.W5)
+	draw_rect(Rect2(x + 9, y - 13, 2, 9), WorldPalette.W5)
+	draw_rect(Rect2(x + 9, y - 14, 4, 2), WorldPalette.W5)
+	draw_rect(Rect2(x + 13, y - 13, 2, 1), WorldPalette.B3)
+	_reflect(Rect2(x, y - 14, 14, 14), WorldPalette.W5)
 
 
 func _posts(x: float, rng: RandomNumberGenerator) -> void:
 	for k in rng.randi_range(1, 3):                           # mooring posts (dukdalven)
 		var px := x + k * 7
 		var h := rng.randf_range(10, 16)
-		draw_rect(Rect2(px, water_y + 2 - h, 3, h + 2), Color("4a3426"))
-		draw_rect(Rect2(px, water_y + 2 - h, 3, 2), Color("6a5440"))
-		_reflect(Rect2(px, water_y + 2 - h, 3, h), Color("4a3426"))
+		draw_rect(Rect2(px, water_y + 2 - h, 3, h + 2), WorldPalette.W0)
+		draw_rect(Rect2(px, water_y + 2 - h, 3, 2), WorldPalette.W1)
+		_reflect(Rect2(px, water_y + 2 - h, 3, h), WorldPalette.W0)
 
 
 func _rowboat(x: float, t: float) -> void:
 	var y := water_y + 4 + _bob(t, x)
-	draw_rect(Rect2(x, y - 4, 22, 4), Color("2f6f4a"))
-	draw_rect(Rect2(x + 2, y - 1, 18, 2), Color("1f4a32"))
-	draw_rect(Rect2(x + 9, y - 13, 4, 9), Color("c94a3d"))   # rower
-	draw_rect(Rect2(x + 9, y - 17, 4, 4), Color("e8b896"))
+	draw_rect(Rect2(x, y - 4, 22, 4), WorldPalette.G1)
+	draw_rect(Rect2(x + 2, y - 1, 18, 2), WorldPalette.G0)
+	draw_rect(Rect2(x + 9, y - 13, 4, 9), WorldPalette.B2)   # rower
+	draw_rect(Rect2(x + 9, y - 17, 4, 4), WorldPalette.W3)
 	var oar := sin(t * 2.5 + x) * 4.0
-	draw_line(Vector2(x + 11, y - 9), Vector2(x + 11 + 12, y + 1 + oar * 0.3), Color("8a6a4a"), 1.0)
-	_reflect(Rect2(x, y - 17, 22, 17), Color("2f6f4a"))
+	draw_line(Vector2(x + 11, y - 9), Vector2(x + 11 + 12, y + 1 + oar * 0.3), WorldPalette.W1, 1.0)
+	_reflect(Rect2(x, y - 17, 22, 17), WorldPalette.G1)
 
 
 func _buoy(x: float, t: float) -> void:
 	var y := water_y + 3 + _bob(t, x) * 2.0
-	draw_rect(Rect2(x, y - 8, 6, 8), Color("c94a3d"))
-	draw_rect(Rect2(x, y - 5, 6, 2), Color("f2f2f2"))
-	draw_rect(Rect2(x + 2, y - 11, 2, 3), Color("2a2a2e"))
-	_reflect(Rect2(x, y - 11, 6, 11), Color("c94a3d"))
+	draw_rect(Rect2(x, y - 8, 6, 8), WorldPalette.B2)
+	draw_rect(Rect2(x, y - 5, 6, 2), WorldPalette.W5)
+	draw_rect(Rect2(x + 2, y - 11, 2, 3), WorldPalette.T0)
+	_reflect(Rect2(x, y - 11, 6, 11), WorldPalette.B2)
 
 
 ## The lock: chamber walls, two gates with balance beams, a boat light.
 func _lock(x: float) -> void:
-	var stone := Color("6f6a72")
+	var stone := WorldPalette.R1
 	draw_rect(Rect2(x - 70, water_y - 2, 140, 4), stone)                 # chamber edge
 	for gx in [x - 60.0, x + 60.0]:
-		draw_rect(Rect2(gx - 4, water_y - 14, 8, 22), Color("4a3426"))    # gate
-		draw_rect(Rect2(gx - 4, water_y - 14, 8, 2), Color("6a5440"))
+		draw_rect(Rect2(gx - 4, water_y - 14, 8, 22), WorldPalette.W0)    # gate
+		draw_rect(Rect2(gx - 4, water_y - 14, 8, 2), WorldPalette.W1)
 		for k in 4:                                                     # balance beam, striped
-			draw_rect(Rect2(gx - 30 + k * 7, water_y - 18, 7, 3), Color("f2f2f2") if k % 2 == 0 else Color("1d1a22"))
-		draw_rect(Rect2(gx - 1, water_y - 18, 3, 4), Color("1d1a22"))
-		_reflect(Rect2(gx - 30, water_y - 18, 34, 26), Color("4a3426"))
-	draw_rect(Rect2(x - 1, water_y - 30, 2, 28), Color("3a3a40"))       # boat light
-	draw_rect(Rect2(x - 3, water_y - 38, 6, 9), Color("1d1a22"))
-	draw_rect(Rect2(x - 2, water_y - 37, 4, 3), Color("e04a3a"))
-	draw_rect(Rect2(x - 2, water_y - 33, 4, 3), Color("2a3a2a"))
+			draw_rect(Rect2(gx - 30 + k * 7, water_y - 18, 7, 3), WorldPalette.W5 if k % 2 == 0 else WorldPalette.T0)
+		draw_rect(Rect2(gx - 1, water_y - 18, 3, 4), WorldPalette.T0)
+		_reflect(Rect2(gx - 30, water_y - 18, 34, 26), WorldPalette.W0)
+	draw_rect(Rect2(x - 1, water_y - 30, 2, 28), WorldPalette.W0)       # boat light
+	draw_rect(Rect2(x - 3, water_y - 38, 6, 9), WorldPalette.T0)
+	draw_rect(Rect2(x - 2, water_y - 37, 4, 3), WorldPalette.B2)
+	draw_rect(Rect2(x - 2, water_y - 33, 4, 3), WorldPalette.G0)
 	draw_rect(Rect2(x - 60, water_y + 3, 120, 1), Color(1, 1, 1, 0.2))   # a slight step in level

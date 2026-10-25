@@ -12,7 +12,7 @@ extends Node2D
 
 enum Part { BACK, FRONT }
 
-const CONCRETE := Color("b9b6b0")
+const CONCRETE := WorldPalette.R3
 const DECK_BOTTOM := -64.0
 const DECK_H := 20.0
 
@@ -59,10 +59,10 @@ func _back(half: float) -> void:
 
 
 func _speed_sign(x: float, text: String) -> void:
-	draw_rect(Rect2(x - 1, -40, 2, 40), Color("8a8f99"))
-	WorldPalette.disc(self, x, -46, 8, Color("c94a3d"))
-	WorldPalette.disc(self, x, -46, 6, Color("f2f2f2"))
-	draw_string(ThemeDB.fallback_font, Vector2(x - 8, -43), text, HORIZONTAL_ALIGNMENT_CENTER, 16, 7, Color("1d1a22"))
+	draw_rect(Rect2(x - 1, -40, 2, 40), WorldPalette.R2)
+	WorldPalette.disc(self, x, -46, 8, WorldPalette.B2)
+	WorldPalette.disc(self, x, -46, 6, WorldPalette.W5)
+	draw_string(ThemeDB.fallback_font, Vector2(x - 8, -43), text, HORIZONTAL_ALIGNMENT_CENTER, 16, 7, WorldPalette.T0)
 
 
 func _front(half: float) -> void:
@@ -79,16 +79,16 @@ func _front(half: float) -> void:
 	for x in range(int(-half - 16), int(half + 20), 24):               # panel joints
 		draw_rect(Rect2(x, DECK_BOTTOM - DECK_H + 2, 1, DECK_H - 5), CONCRETE.darkened(0.12))
 	draw_rect(Rect2(-half - 20, DECK_BOTTOM - DECK_H - 8, width + 40, 8), CONCRETE.darkened(0.04))
-	draw_rect(Rect2(-half - 20, DECK_BOTTOM - DECK_H - 11, width + 40, 2), Color("8a8f99"))
+	draw_rect(Rect2(-half - 20, DECK_BOTTOM - DECK_H - 11, width + 40, 2), WorldPalette.R2)
 	for x in range(int(-half - 18), int(half + 20), 8):
-		draw_rect(Rect2(x, DECK_BOTTOM - DECK_H - 11, 1, 3), Color("8a8f99"))
+		draw_rect(Rect2(x, DECK_BOTTOM - DECK_H - 11, 1, 3), WorldPalette.R2)
 	# A drip stain and a bit of graffiti, the way overpasses look.
 	draw_rect(Rect2(-half + 40, DECK_BOTTOM - DECK_H + 4, 2, 14), CONCRETE.darkened(0.2))
-	draw_string(ThemeDB.fallback_font, Vector2(-14, DECK_BOTTOM - 6), "LOST CATS", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, Color("c94a3d"))
+	draw_string(ThemeDB.fallback_font, Vector2(-14, DECK_BOTTOM - 6), "LOST CATS", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, WorldPalette.B2)
 	# Gantry sign on the deck edge.
-	draw_rect(Rect2(-36, DECK_BOTTOM - DECK_H - 34, 72, 22), Color("2a5bd7"))
+	draw_rect(Rect2(-36, DECK_BOTTOM - DECK_H - 34, 72, 22), WorldPalette.T2)
 	draw_rect(Rect2(-36, DECK_BOTTOM - DECK_H - 34, 72, 1), p.WHITE)
 	draw_string(ThemeDB.fallback_font, Vector2(-36, DECK_BOTTOM - DECK_H - 25), "A10  RING", HORIZONTAL_ALIGNMENT_CENTER, 72, 8, p.WHITE)
 	draw_string(ThemeDB.fallback_font, Vector2(-36, DECK_BOTTOM - DECK_H - 16), "CENTRUM  ->" if city_side > 0 else "<-  CENTRUM", HORIZONTAL_ALIGNMENT_CENTER, 72, 7, p.WHITE)
-	draw_rect(Rect2(-30, DECK_BOTTOM - DECK_H - 12, 2, 4), Color("8a8f99"))
-	draw_rect(Rect2(28, DECK_BOTTOM - DECK_H - 12, 2, 4), Color("8a8f99"))
+	draw_rect(Rect2(-30, DECK_BOTTOM - DECK_H - 12, 2, 4), WorldPalette.R2)
+	draw_rect(Rect2(28, DECK_BOTTOM - DECK_H - 12, 2, 4), WorldPalette.R2)

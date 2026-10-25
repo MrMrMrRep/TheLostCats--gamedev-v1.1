@@ -7,7 +7,7 @@ extends Node2D
 ## guard rail, lamps, a blue sign and cars that come down it and merge.
 
 const HORIZON_Y := -40.0                    # the far end sits on the horizon
-const CAR_COLOURS := [Color("c94a3d"), Color("5b7fa6"), Color("fbf8f2"), Color("2a2830"), Color("e0b23a"), Color("8a8f99")]
+const CAR_COLOURS := [WorldPalette.B2, WorldPalette.T3, WorldPalette.W5, WorldPalette.T0, WorldPalette.O2, WorldPalette.R2]
 
 @export var length := 1100.0:
 	set(value):
@@ -84,7 +84,7 @@ func _draw() -> void:
 	var sy: float = ramp(1.0 - 170.0 / length)[0].y
 	draw_rect(Rect2(sx, sy - 34, 2, 34), p.IRON)
 	draw_rect(Rect2(sx + 40, sy - 34, 2, 34), p.IRON)
-	draw_rect(Rect2(sx - 6, sy - 48, 54, 16), Color("2a5bd7"))
+	draw_rect(Rect2(sx - 6, sy - 48, 54, 16), WorldPalette.T2)
 	draw_rect(Rect2(sx - 6, sy - 48, 54, 1), p.WHITE)
 	draw_string(ThemeDB.fallback_font, Vector2(sx - 6, sy - 37), sign_text, HORIZONTAL_ALIGNMENT_CENTER, 54, 7, p.WHITE)
 	# Cars coming down.

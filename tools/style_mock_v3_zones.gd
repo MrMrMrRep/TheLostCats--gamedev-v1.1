@@ -2492,7 +2492,7 @@ func _lamp_modern(x: int) -> void:
 
 func _graveyard(x0: int, x1: int) -> void:
 	# Old trees and leaning headstones behind a low brick wall with a gate.
-	for t in [[262, 0.95], [350, 0.8], [940, 1.0], [1010, 0.85]]:
+	for t in [[x0 + 34, 0.95], [x0 + 122, 0.8], [x1 - 112, 1.0], [x1 - 42, 0.85]]:
 		_tree(int(t[0]), float(t[1]))
 	rng.seed = 77
 	for k in 22:
@@ -2528,7 +2528,7 @@ func _graveyard(x0: int, x1: int) -> void:
 			for k in int(_hash(xx, 3) * 14.0):
 				_px(xx + int(_hash(xx, k) * 3.0), wt + k, G1 if k % 3 else G2)
 	# Gate: brick piers with stone balls, an open iron gate onto the path.
-	var gx := 290
+	var gx := x0 + 62
 	for px_ in [gx, gx + 52]:
 		_bevel(px_, GY - 56, 12, 56, B2, B3, B0)
 		_bevel(px_ - 2, GY - 60, 16, 4, W3, W5, W2)

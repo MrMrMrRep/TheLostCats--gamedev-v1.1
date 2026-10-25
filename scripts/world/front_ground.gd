@@ -47,17 +47,17 @@ func _draw() -> void:
 
 
 func _viaduct(L: float, t: float, rng: RandomNumberGenerator) -> void:
-	var concrete := Color("b4b0a8")
-	var brick := Color("8c4a3a")
+	var concrete := WorldPalette.R3
+	var brick := WorldPalette.B1
 	var below := t + 30.0
 	# Far below, in the shade: a hazy backdrop of trees and a path.
-	draw_rect(Rect2(0, below, L, DEPTH * 2.0), Color("2a3036"))
+	draw_rect(Rect2(0, below, L, DEPTH * 2.0), WorldPalette.T0)
 	var x := 0.0
 	while x < L:
 		var r := rng.randf_range(18, 34)
-		draw_circle(Vector2(x, below + 120 + rng.randf_range(-10, 10)), r, Color("34483a"))
+		draw_circle(Vector2(x, below + 120 + rng.randf_range(-10, 10)), r, WorldPalette.G0)
 		x += rng.randf_range(20, 40)
-	draw_rect(Rect2(0, below + 150, L, 12), Color("4a4f52"))
+	draw_rect(Rect2(0, below + 150, L, 12), WorldPalette.R0)
 	# Brick piers with arches between them.
 	var span := 180.0
 	var px := fmod(rng.randf_range(0, 60), span) - span
@@ -86,12 +86,12 @@ func _viaduct(L: float, t: float, rng: RandomNumberGenerator) -> void:
 			draw_rect(Rect2(jx + rng.randf_range(10, 60), t + 22, 3, rng.randf_range(6, 20)), concrete.darkened(0.18))
 		jx += 96
 	# Railing along the edge, in front of the road.
-	draw_rect(Rect2(0, t - 18, L, 3), Color("8a8f99"))
-	draw_rect(Rect2(0, t - 18, L, 1), Color("c9ccd2"))
-	draw_rect(Rect2(0, t - 8, L, 2), Color("8a8f99"))
+	draw_rect(Rect2(0, t - 18, L, 3), WorldPalette.R2)
+	draw_rect(Rect2(0, t - 18, L, 1), WorldPalette.W3)
+	draw_rect(Rect2(0, t - 8, L, 2), WorldPalette.R2)
 	var rx := 0.0
 	while rx < L:
-		draw_rect(Rect2(rx, t - 18, 2, 18), Color("6c7078"))
+		draw_rect(Rect2(rx, t - 18, 2, 18), WorldPalette.R1)
 		rx += 16
 	# A bit of green clinging on: shrubs in front of some piers.
 	var gx := rng.randf_range(0, 100)
@@ -112,9 +112,9 @@ func _grass(L: float, t: float, rng: RandomNumberGenerator) -> void:
 	var x := 0.0
 	while x < L:
 		var h := rng.randf_range(6, 16)
-		draw_line(Vector2(x, t + 6), Vector2(x + rng.randf_range(-3, 3), t + 6 - h), Color("6f8f3a"), 1.0)
+		draw_line(Vector2(x, t + 6), Vector2(x + rng.randf_range(-3, 3), t + 6 - h), WorldPalette.G2, 1.0)
 		if rng.randf() < 0.18:
-			draw_rect(Rect2(x - 1, t + 4 - h, 3, 3), [Color("f2c14a"), Color("e8e0f0"), Color("e04a5a"), Color("b07ad8")][rng.randi_range(0, 3)])
+			draw_rect(Rect2(x - 1, t + 4 - h, 3, 3), [WorldPalette.O2, WorldPalette.W4, WorldPalette.B2, WorldPalette.W2][rng.randi_range(0, 3)])
 		x += rng.randf_range(3, 7)
 	# Bushes further down the slope.
 	var bx := rng.randf_range(0, 80)

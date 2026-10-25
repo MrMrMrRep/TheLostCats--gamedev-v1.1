@@ -86,7 +86,7 @@ func _plan() -> void:
 			x += rng.randf_range(60, 110)
 		for i in 6:
 			_cars.append([rng.randf_range(x0, x1), rng.randf_range(18, 40) * (1 if i % 2 == 0 else -1),
-				[WorldPalette.WHITE, WorldPalette.ORANGE, Color("5b7fa6"), Color("c94a3d")][i % 4]])
+				[WorldPalette.WHITE, WorldPalette.ORANGE, WorldPalette.T3, WorldPalette.B2][i % 4]])
 	elif kind == Kind.POLDER_NEAR:
 		var x := x0
 		while x < x1:
@@ -220,7 +220,7 @@ func _outskirt_building(rng: RandomNumberGenerator, x: float, base: float) -> fl
 	if rng.randf() < 0.45:                  # gallery flat
 		var w := rng.randf_range(70, 110)
 		var h := rng.randf_range(50, 70)
-		var c := Color("c9b9a6").lerp(p.HAZE, 0.45)
+		var c := WorldPalette.W3.lerp(p.HAZE, 0.45)
 		draw_rect(Rect2(x, base - h, w, h + 14), c)
 		var y := base - h + 6
 		while y < base - 4:
@@ -236,7 +236,7 @@ func _outskirt_building(rng: RandomNumberGenerator, x: float, base: float) -> fl
 		return w + 18
 	var w := rng.randf_range(60, 100)       # warehouse with a shed roof
 	var h := rng.randf_range(24, 36)
-	var c: Color = [Color("8a8f99"), Color("6f8f9a"), Color("a08a6a")][rng.randi_range(0, 2)].lerp(p.HAZE, 0.45)
+	var c: Color = [WorldPalette.R2, WorldPalette.R2, WorldPalette.W2][rng.randi_range(0, 2)].lerp(p.HAZE, 0.45)
 	draw_rect(Rect2(x, base - h, w, h + 14), c)
 	for k in int(w / 6):
 		draw_rect(Rect2(x + k * 6, base - h, 1, h), c.darkened(0.1))
@@ -312,8 +312,8 @@ func _farm(x: float, base: float) -> void:
 
 
 func _cow(x: float, y: float, dark: bool) -> void:
-	var body := Color("2a2a2e") if dark else Color("f2f0ea")
-	var spot := Color("f2f0ea") if dark else Color("2a2a2e")
+	var body := WorldPalette.T0 if dark else WorldPalette.W5
+	var spot := WorldPalette.W5 if dark else WorldPalette.T0
 	draw_rect(Rect2(x, y, 12, 6), body)
 	draw_rect(Rect2(x + 3, y + 1, 3, 3), spot)
 	draw_rect(Rect2(x + 11, y - 2, 4, 4), body)
@@ -350,7 +350,7 @@ func _draw_foreground(rng: RandomNumberGenerator) -> void:
 		var size := rng.randf_range(80, 120)
 		var base := STREET_Y + 150.0
 		var lean := rng.randf_range(-8, 8)
-		var trunk := Color("2e2620")
+		var trunk := WorldPalette.T0
 		draw_line(Vector2(x, base), Vector2(x + lean, base - size * 2.0), trunk, 10.0)
 		draw_line(Vector2(x + lean, base - size * 1.4), Vector2(x + lean - size * 0.4, base - size * 2.1), trunk, 5.0)
 		var cy := base - size * 2.3

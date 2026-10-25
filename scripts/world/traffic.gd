@@ -21,7 +21,7 @@ const LANE_Y := {Lane.BACK: 0.0, Lane.FRONT: 20.0}   # tyres on the road surface
 const LIVERIES := ["BAKKER BAS", "POST", "BLOEMEN", "KOERIER", "LOODGIETER", "VERHUIZER", "", "", ""]
 const TRUCK_LIVERIES := ["TRANSPORT", "VERSE MELK", "DE VRIES", "KAAS", "BIER", ""]
 const BACK_SCALE := 0.9
-const COLOURS := [Color("c94a3d"), Color("5b7fa6"), Color("f2efe8"), Color("2a2a2e"), Color("e0b23a"), Color("6f8f5a"), Color("8a8f99"), Color("3a4a6a")]
+const COLOURS := [WorldPalette.B2, WorldPalette.T3, WorldPalette.W5, WorldPalette.T0, WorldPalette.O2, WorldPalette.G2, WorldPalette.R2, WorldPalette.R0]
 const FADE := 40.0
 # Per kind: half length and light height (art px): CAR (length from CarArt), VAN, TRUCK, BIKE, BUS.
 const LIGHTS := [Vector2(60, -26), Vector2(76, -28), Vector2(150, -40), Vector2(22, -34), Vector2(170, -30)]                          # front-lane cars fade out where the road becomes the quay
@@ -189,13 +189,24 @@ func _vehicle(pos: Vector2, dir: float, s: float, kind: int, col: Color, alpha: 
 	if back:
 		col = col.lerp(WorldPalette.HAZE, 0.12)
 	draw_set_transform(pos, 0.0, Vector2(dir * s, s))
+	if WorldPalette.V3 and kind != Kind.CAR and kind != Kind.BIKE:
+		match kind:
+			Kind.VAN:
+				CarArt.v3_vehicle(self, "van", ["white", "cream", "silver", "teal", "red"][absi(seed) % 5], alpha)
+				var text: String = LIVERIES[absi(seed) % LIVERIES.size()]
+				_livery(pos, dir, s, text, -70.0, -40.0, 104.0, 11, Color(WorldPalette.T0, alpha))
+			Kind.TRUCK:
+				CarArt.v3_vehicle(self, "truck", "", alpha)
+			Kind.BUS:
+				CarArt.v3_vehicle(self, "bus", "teal" if absi(seed) % 3 else "red", alpha)
+		return
 	match kind:
 		Kind.CAR: CarArt.car(self, CarArt.style_for(seed), col, alpha, phase, seed)
 		Kind.VAN:
 			CarArt.shadow(self, 150, alpha)
 			_van(Color(col, alpha), alpha, phase, "")
 			var text: String = LIVERIES[absi(seed) % LIVERIES.size()]
-			var ink := Color.WHITE if col.get_luminance() < 0.6 else Color("1d1a22")
+			var ink := Color.WHITE if col.get_luminance() < 0.6 else WorldPalette.T0
 			_livery(pos, dir, s, text, -70.0, -40.0, 104.0, 11, Color(ink, alpha))
 		Kind.TRUCK:
 			CarArt.shadow(self, 300, alpha)
@@ -222,7 +233,7 @@ func _livery(pos: Vector2, dir: float, s: float, text: String, x0: float, y: flo
 
 
 func _glass(alpha: float) -> Color:
-	return Color(Color("3a4a62"), alpha)
+	return Color(WorldPalette.R0, alpha)
 
 
 func _van(c: Color, alpha: float, phase: float, livery: String) -> void:
@@ -233,20 +244,20 @@ func _van(c: Color, alpha: float, phase: float, livery: String) -> void:
 	draw_rect(Rect2(44, -58, 28, 18), _glass(alpha))
 	draw_rect(Rect2(40, -60, 3, 46), c.darkened(0.25))
 	draw_rect(Rect2(-75, -36, 115, 4), c.darkened(0.15))
-	draw_rect(Rect2(68, -30, 6, 5), Color(Color("f6e8b0"), alpha))
-	draw_rect(Rect2(-75, -30, 4, 6), Color(Color("d83a2a"), alpha))
-	draw_rect(Rect2(-76, -15, 152, 3), Color(Color("3a3a40"), alpha))
+	draw_rect(Rect2(68, -30, 6, 5), Color(WorldPalette.W4, alpha))
+	draw_rect(Rect2(-75, -30, 4, 6), Color(WorldPalette.B2, alpha))
+	draw_rect(Rect2(-76, -15, 152, 3), Color(WorldPalette.W0, alpha))
 	draw_rect(Rect2(-6, -60, 2, 44), c.darkened(0.25))                  # sliding door
 	if livery != "":
 		draw_string(ThemeDB.fallback_font, Vector2(-70, -40), livery, HORIZONTAL_ALIGNMENT_CENTER, 104, 11,
-			Color(Color.WHITE if c.get_luminance() < 0.6 else Color("1d1a22"), alpha))
+			Color(Color.WHITE if c.get_luminance() < 0.6 else WorldPalette.T0, alpha))
 	CarArt.wheel(self, -48, 11, alpha, phase)
 	CarArt.wheel(self, 50, 11, alpha, phase)
 
 
 func _truck(c: Color, alpha: float, phase: float, livery: String) -> void:
 	var o := Color(PixelArt.OUTLINE, alpha)
-	var box := Color(Color("eeeae2"), alpha)
+	var box := Color(WorldPalette.W4, alpha)
 	draw_rect(Rect2(-150, -84, 214, 70), o)                   # box (300 x 84 art)
 	draw_rect(Rect2(-149, -83, 212, 68), box)
 	draw_rect(Rect2(-149, -83, 212, 6), c)
@@ -256,8 +267,8 @@ func _truck(c: Color, alpha: float, phase: float, livery: String) -> void:
 	draw_rect(Rect2(68, -66, 80, 52), o)                      # cab
 	draw_rect(Rect2(69, -65, 78, 50), c)
 	draw_rect(Rect2(110, -60, 34, 22), _glass(alpha))
-	draw_rect(Rect2(142, -28, 6, 6), Color(Color("f6e8b0"), alpha))
-	draw_rect(Rect2(-150, -16, 300, 4), Color(Color("3a3a40"), alpha))
+	draw_rect(Rect2(142, -28, 6, 6), Color(WorldPalette.W4, alpha))
+	draw_rect(Rect2(-150, -16, 300, 4), Color(WorldPalette.W0, alpha))
 	if livery != "":
 		draw_string(ThemeDB.fallback_font, Vector2(-140, -50), livery, HORIZONTAL_ALIGNMENT_CENTER, 190, 16, c)
 	CarArt.wheel(self, -120, 12, alpha, phase)
@@ -267,8 +278,8 @@ func _truck(c: Color, alpha: float, phase: float, livery: String) -> void:
 
 func _bus(alpha: float, phase: float) -> void:
 	var o := Color(PixelArt.OUTLINE, alpha)
-	var body := Color(Color("f2f2f2"), alpha)
-	var stripe := Color(Color("2a4ea0"), alpha)
+	var body := Color(WorldPalette.W5, alpha)
+	var stripe := Color(WorldPalette.T1, alpha)
 	draw_rect(Rect2(-170, -80, 340, 66), o)                   # city bus (170 x 40 world)
 	draw_rect(Rect2(-169, -79, 338, 64), body)
 	draw_rect(Rect2(-169, -30, 338, 6), stripe)
@@ -279,7 +290,7 @@ func _bus(alpha: float, phase: float) -> void:
 	draw_rect(Rect2(150, -72, 18, 40), _glass(alpha))
 	draw_rect(Rect2(-60, -70, 22, 52), stripe.darkened(0.2))  # doors
 	draw_rect(Rect2(60, -70, 22, 52), stripe.darkened(0.2))
-	draw_rect(Rect2(110, -79, 50, 6), Color(Color("f2c14a"), alpha))
+	draw_rect(Rect2(110, -79, 50, 6), Color(WorldPalette.O2, alpha))
 	CarArt.wheel(self, -120, 12, alpha, phase)
 	CarArt.wheel(self, 110, 12, alpha, phase)
 
@@ -296,13 +307,13 @@ func _bike(c: Color, alpha: float, phase: float) -> void:
 	draw_line(Vector2(12, -30), Vector2(17, -10), frame, 2.0)
 	# rider (same build as a pedestrian, sitting)
 	var leg := sin(phase * 0.25) * 5.0
-	var skin := Color(Color("e8b896"), alpha)
+	var skin := Color(WorldPalette.W3, alpha)
 	var shirt := Color(c, alpha)
-	draw_line(Vector2(-2, -28), Vector2(leg, -12), Color(Color("2a3040"), alpha), 4.0)
-	draw_line(Vector2(-2, -28), Vector2(-leg, -12), Color(Color("3a4050"), alpha), 4.0)
+	draw_line(Vector2(-2, -28), Vector2(leg, -12), Color(WorldPalette.T0, alpha), 4.0)
+	draw_line(Vector2(-2, -28), Vector2(-leg, -12), Color(WorldPalette.R0, alpha), 4.0)
 	draw_rect(Rect2(-6, -50, 12, 22), o)
 	draw_rect(Rect2(-5, -49, 10, 20), shirt)
 	draw_line(Vector2(2, -46), Vector2(12, -32), shirt.darkened(0.15), 3.0)       # arm to the bars
 	draw_rect(Rect2(-5, -60, 10, 10), o)
 	draw_rect(Rect2(-4, -59, 8, 8), skin)
-	draw_rect(Rect2(-5, -61, 10, 4), Color(Color("3a2a22"), alpha))
+	draw_rect(Rect2(-5, -61, 10, 4), Color(WorldPalette.W0, alpha))

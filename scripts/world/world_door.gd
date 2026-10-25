@@ -26,6 +26,6 @@ func interact(_member: BandMember, map: Node) -> void:
 
 func _draw() -> void:
 	var h := 38.0
-	draw_rect(Rect2(-width / 2, -h, width, h), Color("2a1f1a"))
-	draw_rect(Rect2(-width / 2, -h, width, h), Color("8a6a4a"), false, 2.0)
-	draw_circle(Vector2(width / 2 - 5, -h / 2), 1.5, Color("ffd36b"))
+	draw_rect(Rect2(-width / 2, -h, width, h), WorldPalette.T0)
+	draw_rect(Rect2(-width / 2, -h, width, h), WorldPalette.W1, false, 2.0)
+	draw_circle(Vector2(width / 2 - 5, -h / 2), 1.5, WorldPalette.O3)

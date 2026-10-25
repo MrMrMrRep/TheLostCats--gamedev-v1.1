@@ -142,10 +142,10 @@ func _backdrop(half: float, rng: RandomNumberGenerator) -> void:
 ## but crisp enough to read: the focal point of this view.
 func _pontsteiger() -> void:
 	var haze := 0.38
-	var wall := Color("cdc6b6").lerp(WorldPalette.HAZE, haze)
-	var shade := Color("a8a294").lerp(WorldPalette.HAZE, haze)
-	var win := Color("4a5266").lerp(WorldPalette.HAZE, haze * 0.8)
-	var lit := Color("f2d48a").lerp(WorldPalette.HAZE, haze * 0.6)
+	var wall := WorldPalette.W3.lerp(WorldPalette.HAZE, haze)
+	var shade := WorldPalette.R3.lerp(WorldPalette.HAZE, haze)
+	var win := WorldPalette.R0.lerp(WorldPalette.HAZE, haze * 0.8)
+	var lit := WorldPalette.O3.lerp(WorldPalette.HAZE, haze * 0.6)
 	# Drawn small (0.34): it stands far back, at the end of the canal.
 	draw_set_transform(Vector2(0, EYE_Y + 1.0), 0.0, Vector2(0.34, 0.34))
 	var base := 0.0
@@ -210,7 +210,7 @@ func _house(it: Dictionary, half: float) -> void:
 	# Front face (toward us): only its top shows where it rises above the nearer house.
 	_quad(P(X, 0, d0), P(X + s * 70, 0, d0), P(X + s * 70, -h, d0), P(X, -h, d0), _haze(front, d0))
 	# Roof edge running back from the facade, and a gable notch now and then.
-	var roof := _haze(Color("3b2522") if rng.randf() < 0.6 else Color("4a5160"), mid)
+	var roof := _haze(WorldPalette.T0 if rng.randf() < 0.6 else WorldPalette.R0, mid)
 	_quad(P(X, -h, d0), P(X, -h, d1), P(X + s * 26, -h - 20, d1), P(X + s * 26, -h - 20, d0), roof)
 	if rng.randf() < 0.5:
 		_quad(P(X, -h, d0), P(X, -h - 16, d0 + 8), P(X, -h - 16, d1 - 8), P(X, -h, d1), _haze(face, mid))
@@ -221,20 +221,20 @@ func _house(it: Dictionary, half: float) -> void:
 	if mid > DEPTH * 0.75:
 		return
 	# Windows in perspective, storey by storey.
-	var glass := Color("26304a")
+	var glass := WorldPalette.T0
 	var y := -58.0
 	while y > -h + 18:
 		var wd := d0 + 7.0
 		while wd + 11.0 < d1 - 5.0:
-			var gl := Color("f2c66a") if rng.randf() < 0.12 else glass
+			var gl := WorldPalette.O2 if rng.randf() < 0.12 else glass
 			_quad(P(X, y, wd - 1), P(X, y, wd + 12), P(X, y - 20, wd + 12), P(X, y - 20, wd - 1), _haze(p.TRIM, wd))
 			_quad(P(X, y - 2, wd + 1), P(X, y - 2, wd + 10), P(X, y - 18, wd + 10), P(X, y - 18, wd + 1), _haze(gl, wd))
 			wd += 21.0
 		y -= 38.0
 	# Ground floor: a door, or a shop window with an awning.
 	if it.shop:
-		var ac: Color = [p.ORANGE, Color("c94a3d"), Color("2f6f4a")][rng.randi_range(0, 2)]
-		_quad(P(X, -6, d0 + 6), P(X, -6, d1 - 6), P(X, -30, d1 - 6), P(X, -30, d0 + 6), _haze(Color("5a4630"), mid))
+		var ac: Color = [p.ORANGE, WorldPalette.B2, WorldPalette.G1][rng.randi_range(0, 2)]
+		_quad(P(X, -6, d0 + 6), P(X, -6, d1 - 6), P(X, -30, d1 - 6), P(X, -30, d0 + 6), _haze(WorldPalette.P0, mid))
 		_quad(P(X, -32, d0 + 4), P(X, -32, d1 - 4), P(X - s * 10, -26, d1 - 4), P(X - s * 10, -26, d0 + 4), _haze(ac, mid))
 	else:
 		var dd := d0 + (d1 - d0) * 0.3
@@ -247,7 +247,7 @@ func _tree(x: float, d: float, salt: int) -> void:
 	var z := 1.0 + d / FOCAL
 	var base := P(x, 0, d)
 	var top := P(x, -46, d)
-	draw_line(base, top, _haze(Color("5a4232"), d), maxf(1.0, 3.0 / z))
+	draw_line(base, top, _haze(WorldPalette.P0, d), maxf(1.0, 3.0 / z))
 	var r := 26.0 / z
 	var c := top + Vector2(0, -r * 0.4)
 	var leaves := PixelArt.leaves()
@@ -259,9 +259,9 @@ func _tree(x: float, d: float, salt: int) -> void:
 
 func _lamp(x: float, d: float) -> void:
 	var z := 1.0 + d / FOCAL
-	draw_line(P(x, 0, d), P(x, -44, d), _haze(Color("23302a"), d), maxf(1.0, 2.0 / z))
+	draw_line(P(x, 0, d), P(x, -44, d), _haze(WorldPalette.T0, d), maxf(1.0, 2.0 / z))
 	var l := P(x, -46, d)
-	draw_rect(Rect2(l - Vector2(2, 3) / z, Vector2(5, 6) / z), _haze(Color("f6d98a"), d))
+	draw_rect(Rect2(l - Vector2(2, 3) / z, Vector2(5, 6) / z), _haze(WorldPalette.O3, d))
 
 
 func _person(x: float, d: float, salt: int, cycling := false) -> void:
@@ -272,7 +272,7 @@ func _person(x: float, d: float, salt: int, cycling := false) -> void:
 	var hgt := 27.0 / z
 	var w := maxf(1.0, 6.0 / z)
 	var shirt: Color = WorldPedestrians.SHIRTS[rng.randi_range(0, 8)]
-	draw_rect(Rect2(feet.x - w / 2, feet.y - hgt * 0.45, w, hgt * 0.45), _haze(Color("2a3040"), d))
+	draw_rect(Rect2(feet.x - w / 2, feet.y - hgt * 0.45, w, hgt * 0.45), _haze(WorldPalette.T0, d))
 	draw_rect(Rect2(feet.x - w / 2, feet.y - hgt * 0.85, w, hgt * 0.42), _haze(shirt, d))
 	draw_rect(Rect2(feet.x - w * 0.4, feet.y - hgt, w * 0.8, hgt * 0.17), _haze(WorldPedestrians.SKIN[rng.randi_range(0, 4)], d))
 	if cycling:
@@ -283,7 +283,7 @@ func _person(x: float, d: float, salt: int, cycling := false) -> void:
 ## A brick bridge across the side canal further down: deck, parapet, arches.
 func _far_bridge(half: float, edge: float, d: float) -> void:
 	var p := WorldPalette
-	var brick := _haze(Color("8a4a3a"), d)
+	var brick := _haze(WorldPalette.B1, d)
 	var tl := P(-half, -16, d)
 	var br := P(half, WATER_Y, d)
 	draw_rect(Rect2(tl, br - tl), brick)

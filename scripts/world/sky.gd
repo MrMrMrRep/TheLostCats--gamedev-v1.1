@@ -1,8 +1,9 @@
 class_name WorldSky
 extends CanvasLayer
-## Screen-space sky behind everything: dithered gradient, the sun, the moon
-## and stars at night, and two cloud layers that drift slowly and shift a
-## little with the camera (parallax). Independent of the camera zoom, so it
+## Screen-space sky behind everything, in the style v3 look: a gradient of
+## palette colours with ordered-dither seams and light streaks, the banded sun,
+## the moon and stars at night, and two layers of shaded clouds that drift
+## slowly and shift a little with the camera (parallax). Independent of the camera zoom, so it
 ## always fills the screen. The day/night cycle (WorldDayCycle) sets its
 ## colours and the time via set_time(); without it, it's a sunny morning.
 
@@ -70,41 +71,92 @@ func _process(_delta: float) -> void:
 class _Gradient:
 	extends Control
 
+	# Row of each colour stop on the screen (the mocks' sky, scaled to 360 rows).
+	const ROWS := [0, 34, 104, 178, 238, 274, 304]
+	const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
+	const STREAKS := [[40, 186, 160, 0], [300, 196, 110, 1], [520, 178, 200, 0], [760, 200, 140, 1],
+		[120, 222, 150, 2], [420, 230, 190, 0], [680, 220, 100, 2], [900, 236, 130, 0]]
+
 	var top := WorldPalette.SKY_TOP
 	var mid := WorldPalette.SKY_MID
 	var low := WorldPalette.SKY_LOW
+	var _stops: Array = []
+	var _tex: ImageTexture
 
-	## Redraws only when a colour visibly changed (the gradient is a lot of rects).
+	## Rebuilds the picture only when a colour stop lands on another palette colour.
 	func set_colours(c: Array[Color]) -> void:
-		var d := 0.0
-		for i in 3:
-			var old: Color = [top, mid, low][i]
-			d = maxf(d, absf(old.r - c[i].r) + absf(old.g - c[i].g) + absf(old.b - c[i].b))
-		if d < 0.012:
-			return
 		top = c[0]
 		mid = c[1]
 		low = c[2]
-		queue_redraw()
+		var stops := _make_stops()
+		if stops != _stops:
+			_stops = stops
+			_bake()
+			queue_redraw()
 
 	func _ready() -> void:
 		size = WorldSky.VIEW
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if _stops.is_empty():
+			_stops = _make_stops()
+			_bake()
+
+	## Seven palette colours from the three of the hour: top -> mid -> low, then
+	## (by day) the warm haze over the roofs.
+	func _make_stops() -> Array:
+		var out := []
+		for i in 5:
+			var t := i / 4.0
+			var c := top.lerp(mid, t * 2.0) if t < 0.5 else mid.lerp(low, (t - 0.5) * 2.0)
+			out.append(WorldPalette.nearest(c))
+		var warm := clampf((low.get_luminance() - 0.35) / 0.45, 0.0, 1.0)
+		out.append(WorldPalette.nearest(low.lerp(WorldPalette.W4, 0.9 * warm)))
+		out.append(WorldPalette.nearest(low.lerp(WorldPalette.B4, 0.85 * warm)))
+		return out
+
+	func _bake() -> void:
+		var w := int(WorldSky.VIEW.x)
+		var h := int(WorldSky.VIEW.y)
+		var img := Image.create(w, h, false, Image.FORMAT_RGBA8)
+		for i in _stops.size():
+			var y0: int = ROWS[i]
+			var y1: int = ROWS[i + 1] if i + 1 < ROWS.size() else h
+			img.fill_rect(Rect2i(0, y0, w, y1 - y0), _stops[i])
+		for i in range(1, _stops.size()):            # dithered seams, 12 rows each
+			if _stops[i] == _stops[i - 1]:
+				continue
+			for d in range(-6, 6):
+				var y: int = ROWS[i] + d
+				if y < 0 or y >= h:
+					continue
+				var lim := (d + 6.5) / 13.0
+				for x in w:
+					var b: float = (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16.0
+					img.set_pixel(x, y, _stops[i] if b < lim else _stops[i - 1])
+		var warm: bool = _stops[5] != _stops[4]
+		if warm:                                     # long thin light streaks low in the sky
+			var cols := [WorldPalette.W4, WorldPalette.T7, WorldPalette.W5]
+			for st: Array in STREAKS:
+				var c: Color = cols[st[3]]
+				img.fill_rect(Rect2i(st[0], st[1], st[2], 2), c)
+				img.fill_rect(Rect2i(st[0] + 12, st[1] + 2, st[2] - 30, 1), c)
+				img.fill_rect(Rect2i(st[0] - 6, st[1] + 1, 6, 1), c)
+		if _tex == null:
+			_tex = ImageTexture.create_from_image(img)
+		else:
+			_tex.update(img)
 
 	func _draw() -> void:
-		var p := WorldPalette
-		for y in int(WorldSky.VIEW.y):
-			var t := float(y) / (WorldSky.VIEW.y * 0.8)
-			var c := top.lerp(mid, clampf(t * 1.6, 0.0, 1.0)) if t < 0.6 \
-				else mid.lerp(low, clampf((t - 0.55) * 2.2, 0.0, 1.0))
-			draw_rect(Rect2(0, y, WorldSky.VIEW.x, 1), c)
-			if int(t * 24) % 2 == 0:            # light 2x2 dither on alternate bands
-				var dc := c.lerp(low, 0.12)
-				for x in range(y % 2, int(WorldSky.VIEW.x), 2):
-					draw_rect(Rect2(x, y, 1, 1), dc)
+		if _tex:
+			# Repeat sideways if the screen is wider than the picture.
+			var w := maxf(get_viewport_rect().size.x, WorldSky.VIEW.x)
+			var x := 0.0
+			while x < w:
+				draw_texture(_tex, Vector2(x, 0))
+				x += WorldSky.VIEW.x
 
 
-## The sun (warmer and bigger near the horizon) or the moon, with a soft halo.
+## The sun (banded, with a dithered halo; warmer near the horizon) or the moon.
 class _Disc:
 	extends Node2D
 
@@ -113,20 +165,16 @@ class _Disc:
 		set(value):
 			if absf(value - warm) > 0.02:
 				warm = value
-				queue_redraw()
+				modulate = Color.WHITE.lerp(Color(1.0, 0.72, 0.5), warm * 0.8)
 
 	func _draw() -> void:
-		var p := WorldPalette
 		if moon:
-			WorldPalette.disc(self, 0, 0, 16, Color(0.85, 0.88, 1.0, 0.12))
-			WorldPalette.disc(self, 0, 0, 11, Color("e8ecf4"))
-			draw_rect(Rect2(-4, -2, 3, 3), Color("c8ccd8"))
-			draw_rect(Rect2(2, 3, 2, 2), Color("c8ccd8"))
+			WorldPalette.disc(self, 0, 0, 16, Color(WorldPalette.T6, 0.12))
+			WorldPalette.disc(self, 0, 0, 11, WorldPalette.W4)
+			draw_rect(Rect2(-4, -2, 3, 3), WorldPalette.W3)
+			draw_rect(Rect2(2, 3, 2, 2), WorldPalette.W3)
 			return
-		var sun := p.SUN.lerp(Color("ff8a3a"), warm * 0.8)
-		WorldPalette.disc(self, 0, 0, 22, Color(sun, 0.25))
-		WorldPalette.disc(self, 0, 0, 19, Color(sun, 0.45))
-		WorldPalette.disc(self, 0, 0, 16, sun)
+		V3Cache.art("sky_sun", func() -> V3Art: return V3Painter.sun_sprite(22)).draw(self, Vector2.ZERO, 1.0)
 
 
 ## Stars, fading in with the night.
@@ -179,11 +227,7 @@ class _CloudBand:
 				_cloud(c.x + rep * PERIOD, c.y, c.z)
 
 	func _cloud(cx: float, cy: float, s: float) -> void:
-		var p := WorldPalette
-		var puffs := [[0, 0, 14], [16, -6, 16], [34, -2, 13], [50, 2, 10], [-14, 4, 9], [24, 6, 12]]
-		for q in puffs:
-			WorldPalette.disc(self, cx + q[0] * s, cy + q[1] * s + 3, int(q[2] * s), p.CLOUD_DARK)
-		for q in puffs:
-			WorldPalette.disc(self, cx + q[0] * s, cy + q[1] * s + 1, int(q[2] * s), p.CLOUD_SHADE)
-		for q in puffs:
-			WorldPalette.disc(self, cx + q[0] * s - 1, cy + q[1] * s - 1, int(q[2] * s) - 2, p.CLOUD)
+		# Shaded v3 clouds in four sizes (baked once).
+		var k := clampi(int(round((s - 0.5) / 0.25)), 0, 3)
+		var art := V3Cache.art("sky_cloud%d" % k, func() -> V3Art: return V3Painter.cloud_sprite(0.9 + k * 0.35))
+		art.draw(self, Vector2(roundf(cx), roundf(cy)), 1.0)

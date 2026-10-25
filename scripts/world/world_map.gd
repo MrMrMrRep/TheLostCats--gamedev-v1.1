@@ -78,6 +78,8 @@ static func of(node: Node) -> WorldMap:
 
 func _ready() -> void:
 	add_to_group(&"world_map")
+	var keep: Array[Node] = [band]
+	WorldPalette.snap_tree(self, keep)      # style v3: everything on the 32 colours (not the band)
 	Audio.music(&"map_calm")
 	if not InputMap.has_action(&"sprint"):  # hold left Shift to sprint on the map
 		InputMap.add_action(&"sprint")
@@ -155,6 +157,7 @@ func _ready() -> void:
 	_apply_zoom()
 	place_band(spawn.global_position.x, 1.0)
 	_update_vehicle_hint()
+	MapCapture.from_args(self)              # dev: -- --capture=3:11800,... (screenshots, then quit)
 
 
 func _physics_process(delta: float) -> void:

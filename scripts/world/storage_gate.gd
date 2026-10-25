@@ -48,8 +48,8 @@ func _draw() -> void:
 	# Posts and the keypad on the right post.
 	draw_rect(Rect2(-half - 4, -34, 4, 34), p.IRON)
 	draw_rect(Rect2(half, -34, 4, 34), p.IRON)
-	draw_rect(Rect2(half + 5, -24, 5, 7), Color("2c2a33"))
-	draw_rect(Rect2(half + 6, -23, 3, 2), Color("6fe08a") if is_open() else Color("e05a4a"))
+	draw_rect(Rect2(half + 5, -24, 5, 7), WorldPalette.T0)
+	draw_rect(Rect2(half + 6, -23, 3, 2), WorldPalette.T5 if is_open() else WorldPalette.B2)
 	# Gate leaf: slides to the left behind the fence.
 	var x0 := -half - _slide * width
 	var x1 := x0 + width

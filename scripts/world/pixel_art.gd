@@ -6,7 +6,7 @@ extends RefCounted
 ## The node that tiles them needs texture_repeat = ENABLED.
 
 const ART := 0.5                            # world px per art px
-const OUTLINE := Color("1d1a22")
+const OUTLINE := WorldPalette.T0
 
 static var _brick: ImageTexture
 static var _slate: ImageTexture
@@ -84,7 +84,7 @@ static func cobble() -> ImageTexture:
 ## crown of leaf clusters in three tones with a dark rim, light from the left.
 static func tree(ci: CanvasItem, x: float, base: float, size: float, rng: RandomNumberGenerator, haze := 0.0) -> void:
 	var h := leaves()
-	var trunk := Color("5a4232").lerp(WorldPalette.HAZE, haze)
+	var trunk := WorldPalette.P0.lerp(WorldPalette.HAZE, haze)
 	var th := size * 1.1
 	ci.draw_rect(Rect2(x - 3, base - th, 6, th), trunk)
 	ci.draw_rect(Rect2(x + 1, base - th, 2, th), trunk.darkened(0.3))
@@ -111,11 +111,11 @@ static func tree(ci: CanvasItem, x: float, base: float, size: float, rng: Random
 		var p := Vector2(x + rng.randf_range(-size, size), cy + rng.randf_range(-size * 0.7, size * 0.6))
 		ci.draw_rect(Rect2(p, Vector2(2, 2)), h[rng.randi_range(0, 2)].darkened(0.15).lerp(WorldPalette.HAZE, haze))
 	# iron tree guard and the pit
-	ci.draw_rect(Rect2(x - 9, base - 2, 18, 2), Color("3a3330"))
+	ci.draw_rect(Rect2(x - 9, base - 2, 18, 2), WorldPalette.W0)
 	for k in 4:
 		ci.draw_rect(Rect2(x - 8 + k * 5, base - 16, 1, 14), OUTLINE)
 	ci.draw_rect(Rect2(x - 9, base - 16, 18, 1), OUTLINE)
 
 
 static func leaves() -> Array:
-	return [Color("3f6b34"), Color("5d8c3e"), Color("8dbc52")]
+	return [WorldPalette.G1, WorldPalette.G2, WorldPalette.G3]
