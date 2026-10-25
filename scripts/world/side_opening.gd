@@ -65,7 +65,29 @@ func _changed() -> void:
 
 func _draw() -> void:
 	if WorldPalette.V3:
-		v3_art().draw(self)
+		var refined := refined_art()
+		(refined if refined else v3_art()).draw(self)
+
+
+const REFINED_DIR := "res://assets/sprites/world/openings/"
+
+
+## A hand-refined version of this opening (the painted art touched up, e.g.
+## with SpriteCook: far end closed, wall tops with gables), saved as
+## REFINED_DIR/<node name>.res with the same origin as the painted art.
+## When there is none, the painted art is used.
+func refined_art() -> V3Art:
+	if _refined_checked:
+		return _refined
+	_refined_checked = true
+	var path := REFINED_DIR + String(name) + ".res"
+	if ResourceLoader.exists(path):
+		_refined = load(path) as V3Art   # kept: its texture must outlive the draw call
+	return _refined
+
+
+var _refined: V3Art
+var _refined_checked := false
 
 
 func _draw_front() -> void:
