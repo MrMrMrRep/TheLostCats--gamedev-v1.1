@@ -24,7 +24,7 @@ uniform float px_per_world = 2.0;           // screen pixels per world pixel
 uniform float night = 0.0;                  // 0 by day .. 1 at night
 uniform vec4 world_tint : source_color = vec4(1.0);   // the night tint, for the water's own colours
 uniform float night_clear = 0.3;            // at night this much less water colour over the mirror (lights show)
-uniform float streak = 0.8;                 // strength of the light columns at night
+uniform float streak = 0.3;                 // strength of the light columns at night
 uniform float streak_reach = 44.0;          // world rows above the mirrored part a light can come from
 uniform float depth_rows = 90.0;            // world rows over which the water darkens
 uniform float tint_near = 0.62;             // how much water colour shows by the quay
@@ -100,7 +100,7 @@ void fragment() {
 	// At night warm lights (windows, lamps) stay gold and bright.
 	float lum = dot(s, vec3(0.30, 0.59, 0.11));
 	float warm = smoothstep(0.45, 0.6, lum) * smoothstep(0.12, 0.25, s.r - s.b);
-	c = mix(c, lum > 0.7 ? O3 : O2, 0.75 * night * warm);
+	c = mix(c, lum > 0.7 ? O3 : O2, 0.35 * night * warm);
 	// Light columns (Kingdom style): a lamp or lit window anywhere up the
 	// street above this spot throws a gold streak down the water, broken up by
 	// the ripples. Looks further up than the mirror itself, so lamp heads and
@@ -120,7 +120,7 @@ void fragment() {
 		float dash = hash(vec2(floor((wxf + t * 1.5 * dir) / 3.0), floor(row / 2.0)));
 		float broken = wave * mix(0.35, 1.0, step(0.3, dash));
 		float fade = 1.0 - depth * 0.6;
-		c = mix(c, mix(O2, O3, 0.4), clamp(best * broken * fade * streak * night, 0.0, 0.75));
+		c = mix(c, mix(O2, O3, 0.4), clamp(best * broken * fade * streak * night, 0.0, 0.3));
 	}
 	// The dark line along the quay.
 	if (row < 1.0) {
