@@ -17,7 +17,7 @@ extends Node2D
 enum Lane { BACK, FRONT }
 enum Kind { CAR, VAN, TRUCK, BIKE, BUS }
 
-const LANE_Y := {Lane.BACK: 14.0, Lane.FRONT: 20.0}  # tyres on the road surface (in town: the cobbles, in front of the pavement)
+const LANE_Y := {Lane.BACK: 18.0, Lane.FRONT: 20.0}  # tyres on the road surface (in town: the canal edge of the cobbles, so roofs stay below the band's knees)
 const LIVERIES := ["BAKKER BAS", "POST", "BLOEMEN", "KOERIER", "LOODGIETER", "VERHUIZER", "", "", ""]
 const TRUCK_LIVERIES := ["TRANSPORT", "VERSE MELK", "DE VRIES", "KAAS", "BIER", ""]
 const BACK_SCALE := 0.9

@@ -4,5 +4,10 @@
 
 [resource]
 script = ExtResource("1_c13b4")
-zoom_walk = 2.5
-zoom_walk_moving = 2.1
+zoom_walk = 1.5
+zoom_walk_moving = 1.333
+zoom_bike_slow = 1.4
+zoom_bike = 1.2
+zoom_van_slow = 1.333
+zoom_van = 1.1
+zoom_idle = 1.1

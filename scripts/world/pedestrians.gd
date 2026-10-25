@@ -5,7 +5,8 @@ extends Node2D
 ## like Joep; kids ~19), drawn at the band sprites' density. Kept around the
 ## camera only. Two sides of the street, for depth:
 ##   BACK   the pavement by the facades: behind the band, 0.94 size, a touch hazy
-##   FRONT  the quay side: in front of the band (they walk past/through us)
+##   FRONT  the quay side: in front of the band (they walk past/through us);
+##          kept few (PeopleConfig.front_share) so the band stays readable
 ## How busy each district is comes from the Zone nodes (WorldZone, "people
 ## per screen"); speeds etc. from resources/config/people_config.tres. Never in
 ## the countryside. Origin = street line.
@@ -36,7 +37,8 @@ func _ready() -> void:
 func density_at(x: float) -> float:
 	for b in busy:
 		if x >= b.x and x <= b.y:
-			return b.z * PeopleConfig.current().busy_scale
+			var cfg := PeopleConfig.current()
+			return b.z * cfg.busy_scale * (cfg.front_share if side == Side.FRONT else 1.0)
 	return 0.0
 
 
