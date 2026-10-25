@@ -68,6 +68,9 @@ func _text(t: String, pos: Vector2, size: int, color: Color) -> Label:
 
 func _on_chosen(i: int) -> void:
 	match i:
-		0: SceneRouter.go_to(MAP, &"")
+		0:                                  # the tour starts with Joep alone (the others join at the base)
+			Game.party.assign([&"joep"])
+			Game.active_member = 0
+			SceneRouter.go_to(MAP, &"")
 		1: SceneRouter.go_to(BASE, &"BaseEntry")
 		_: get_tree().quit()
