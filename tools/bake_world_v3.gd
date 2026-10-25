@@ -70,13 +70,17 @@ func _bake_scene() -> int:
 			node = WorldBuilding.new()
 		elif path.ends_with("side_opening.gd"):
 			node = SideOpening.new()
+		elif path.ends_with("street_life.gd"):
+			node = WorldStreetLife.new()
 		else:
 			continue
-		for key: String in ["houses", "seed_value", "sign_text", "shop_rate", "shop_signs", "style", "kind", "width", "open_width", "poort"]:
+		for key: String in ["houses", "seed_value", "sign_text", "shop_rate", "shop_signs", "style", "kind", "width", "open_width", "poort", "length", "keep_clear"]:
 			if props.has(key):
 				node.set(key, str_to_var(props[key]))
 		if node is CityBlock:
 			(node as CityBlock).v3_art()
+		elif node is WorldStreetLife:
+			(node as WorldStreetLife).v3_art()
 		elif node is SideOpening:
 			(node as SideOpening).v3_art()
 			if (node as SideOpening).kind == SideOpening.Kind.CANAL:

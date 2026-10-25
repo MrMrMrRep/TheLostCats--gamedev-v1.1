@@ -13,8 +13,8 @@ extends "res://scripts/world/v3/v3_alleys.gd"
 
 const CANVAS_BOTTOM := GY + 16              # canvases end a little below the street line
 
-const CANAL_SCHEMES := ["brick", "darkbrick", "teal", "tealdark", "slate", "cream", "coral", "mustard", "plum"]
-const OLD_SCHEMES := ["brick", "darkbrick", "brick", "cream", "mustard", "slate", "coral", "darkbrick"]
+const CANAL_SCHEMES := ["brick", "teal", "cream", "coral", "mustard", "teal", "brick", "cream", "slate", "tealdark", "darkbrick", "coral", "plum", "mustard"]
+const OLD_SCHEMES := ["brick", "cream", "brick", "mustard", "coral", "teal", "darkbrick", "cream", "slate"]
 const RING_SCHEMES := ["brick", "cream", "teal", "darkbrick", "coral", "brick"]
 const FASCIAS := [T1, G0, G1, B0]
 const AWNINGS := [[B2, W5], [T2, W5], [G1, W4], [T3, W5], [B1, W4], [O1, W5]]
@@ -68,6 +68,86 @@ static func city_block(rows: Array, style: int, sign_text: String, shop_signs: P
 	p.begin(bx - 64, total + 128)
 	p._block(bx, rows, style, sign_text, shop_signs, seed_value)
 	return p.finish(bx)
+
+
+## Street furniture along one stretch (WorldStreetLife.plan()): elms, canal
+## lamps, Amsterdammertjes, bikes in racks, benches, bins, planters, signs.
+## Origin = the stretch's left end on the street line.
+static func street_life(items: Array, length: float, seed_value: int) -> V3Art:
+	var p := V3Painter.new()
+	var bx := base_x(seed_value + 4211)
+	p.begin(bx - 100, int(length) * 2 + 200)
+	var r := RandomNumberGenerator.new()
+	r.seed = seed_value * 7 + 1
+	for it: Array in items:                 # trees behind everything else
+		if it[0] == "tree":
+			p._tree(bx + int(it[1]), float(it[2]))
+	for it: Array in items:
+		var x := bx + int(it[1])
+		match it[0]:
+			"lamp": p._lamp(x)
+			"tall_lamp": p._motorway_lamp(x, GY + 4)
+			"bollards":
+				for k in int(it[2]):
+					p._bollard(x + k * 16)
+			"rack":
+				p._rack(x)
+				for k in int(it[2]):
+					p._bike(x - 6 + k * 30, [T0, B1, T2, G1, W4][r.randi_range(0, 4)], r.randf() < 0.4)
+			"bench": p._bench_v3(x)
+			"bin": p._bin(x)
+			"planter": p._planter_v3(x)
+			"meter": p._meter_v3(x)
+			"sign": p._sign_v3(x)
+			"flags": p._flags(x)
+	return p.finish(bx)
+
+
+func _bench_v3(x: int) -> void:
+	var b := GY + 8
+	for k in [b - 30, b - 24]:                   # back rest
+		_rect(x, k, 34, 4, W1)
+		_rect(x, k, 34, 1, W2)
+	_rect(x - 2, b - 15, 38, 4, W1)              # seat
+	_rect(x - 2, b - 15, 38, 1, W2)
+	_rect(x - 2, b - 12, 38, 1, W0)
+	for lx in [x + 2, x + 30]:                   # cast-iron sides
+		_rect(lx, b - 32, 2, 32, T0)
+		_rect(lx - 2, b - 2, 6, 2, T0)
+		_rect(lx - 2, b - 16, 6, 2, T0)
+
+
+func _planter_v3(x: int) -> void:
+	var b := GY + 8
+	_rect(x, b - 16, 26, 16, W1)
+	_rect(x, b - 16, 26, 2, W2)
+	for k in range(x + 3, x + 24, 6):
+		_rect(k, b - 13, 1, 13, W0)
+	_leaves(x + 8, b - 22, 9)
+	_leaves(x + 18, b - 24, 10)
+	for i in 5:
+		_rect(x + 4 + i * 4, b - 30 + (i % 2) * 3, 2, 2, [B3, O2, W5][i % 3])
+
+
+func _meter_v3(x: int) -> void:
+	var b := GY + 8
+	_rect(x, b - 30, 3, 30, R1)
+	_rect(x, b - 30, 1, 30, R2)
+	_bevel(x - 4, b - 44, 11, 14, R2, R3, R0)
+	_rect(x - 2, b - 41, 7, 4, T1)
+	_rect(x - 1, b - 40, 2, 2, O3)
+
+
+func _sign_v3(x: int) -> void:
+	# A "no motor vehicles" sign on a pole (the canal streets are for bikes).
+	var b := GY + 8
+	_rect(x, b - 70, 3, 70, R2)
+	_rect(x, b - 70, 1, 70, R3)
+	WDisc.draw(self, x + 1, b - 78, 9, B2)
+	WDisc.draw(self, x + 1, b - 78, 6, W5)
+	_rect(x - 3, b - 80, 9, 3, T1)
+	_rect(x - 6, b - 64, 15, 7, W5)
+	_rect(x - 5, b - 63, 13, 5, T2)
 
 
 ## An opening in the house row (SideOpening): a side canal, a wide side
