@@ -19,6 +19,7 @@ const STICK_HOME := Vector2(80, 290)
 const STICK_AREA := Rect2(0, 60, 300, 300)   # where a touch grabs the stick
 const HIT_SLACK := 6.0             # extra px around a button that still counts
 const MOUSE_FINGER := 99
+const TITLE_SCENE := "res://scenes/ui/title.tscn"   # no pad here: the menu is tapped directly
 
 # [action, label, centre, radius] on the 640x360 base screen. Buttons on the
 # right half stay the same distance from the right edge on wider screens.
@@ -51,6 +52,7 @@ var _stick_finger := -1
 var _stick_origin := STICK_HOME
 var _stick_vec := Vector2.ZERO
 var _held := {}                     # action -> true, for actions we pressed
+var _on_title := false
 
 
 func _ready() -> void:
@@ -71,6 +73,16 @@ static func is_touch_device() -> bool:
 	if OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios"):
 		return true
 	return OS.has_feature("web") and DisplayServer.is_touchscreen_available()
+
+
+func _process(_delta: float) -> void:
+	var scene := get_tree().current_scene
+	var title := scene != null and scene.scene_file_path == TITLE_SCENE
+	if title != _on_title:
+		_on_title = title
+		if title:
+			_release_all()
+		visible = enabled and not title
 
 
 func _notification(what: int) -> void:
@@ -103,6 +115,8 @@ func _on_touch(finger: int, pos: Vector2, pressed: bool) -> void:
 	if pressed:
 		if not enabled:
 			_set_enabled(true)
+		if _on_title:
+			return                          # let the tap reach the menu
 		var b := _button_at(pos)
 		if b >= 0:
 			_fingers[finger] = b
@@ -198,7 +212,7 @@ func _release_all() -> void:
 
 func _set_enabled(on: bool) -> void:
 	enabled = on
-	visible = on
+	visible = on and not _on_title
 	if not on:
 		_release_all()
 
