@@ -414,38 +414,43 @@ func _amsterdam_bridge(x0: int, w: int, seed_value: int) -> void:
 	_rect(x0, top, w, 3, W3)                          # stone string course
 	_rect(x0, top, w, 1, W5)
 	_rect(x0, top + 3, w, 1, B0)
+	# The arches stand half under water: each is twice as tall as what shows,
+	# springing well below the waterline; only the part above the water is
+	# painted (the canal hides the rest).
 	var bulbs := []
+	var hv := WL - (top + 7)                          # visible height of an arch
+	var ys := WL + hv                                 # springing line, under water
 	for i in n:
 		var cx := x0 + 8 + aw * i + aw / 2
-		var rx := aw / 2 - 6
-		var ry := WL - (top + 7)
-		for yy in range(WL - ry, WL):
-			var k := float(WL - yy) / ry
+		var rx := aw / 2 - 4
+		var ry := hv * 2
+		for yy in range(top + 7, WL):
+			var k := float(ys - yy) / ry
 			var half := int(rx * sqrt(maxf(1.0 - k * k, 0.0)))
 			for xx in range(cx - half, cx + half):
-				var c := T0 if yy < WL - ry / 2 else T1
+				var c := T0 if yy < WL - hv / 2 else T1
 				if yy > WL - 4:
 					c = T2                                # light on the water inside
 				_px(xx, yy, c)
-		# Stone ring (voussoirs) with bulbs along it.
-		for a in range(0, 181, 3):
+		# Stone ring (voussoirs) with bulbs along the part above water.
+		for a in range(0, 181, 2):
 			var ang := deg_to_rad(float(a))
 			for d in 3:
-				var q := Vector2(cx + cos(ang) * (rx + d), WL - sin(ang) * (ry + d))
-				_px(int(q.x), int(q.y), W4 if (a / 9) % 2 == 0 else W3)
-			if a % 12 == 6 and a > 4 and a < 176:
-				var b := Vector2(cx + cos(ang) * (rx + 4), WL - sin(ang) * (ry + 4))
-				_px(int(b.x), int(b.y), O3)
-				_px(int(b.x), int(b.y) - 1, O2)
-				bulbs.append(Vector2i(int(b.x), int(b.y)))
-		_bevel(cx - 3, WL - ry - 7, 6, 6, W4, W5, W3)    # keystone
-	# Piers between and beside the arches: stone feet, a mooring post.
-	for i in n + 1:
+				var q := Vector2(cx + cos(ang) * (rx + d), ys - sin(ang) * (ry + d))
+				if q.y < WL:
+					_px(int(q.x), int(q.y), W4 if (a / 6) % 2 == 0 else W3)
+			if a % 8 == 4:
+				var b := Vector2(cx + cos(ang) * (rx + 4), ys - sin(ang) * (ry + 4))
+				if b.y < WL - 2:
+					_px(int(b.x), int(b.y), O3)
+					_px(int(b.x), int(b.y) - 1, O2)
+					bulbs.append(Vector2i(int(b.x), int(b.y)))
+		_bevel(cx - 3, ys - ry - 7, 6, 6, W4, W5, W3)    # keystone
+	# Mooring posts by the piers, standing in the water.
+	for i in range(1, n):
 		var px_ := x0 + 8 + aw * i
-		_bevel(px_ - 5, WL - 10, 10, 10, W3, W4, W2)
-		if i > 0 and i < n:
-			_rect(px_ + 7, WL - 16, 3, 22, W0)
-			_rect(px_ + 7, WL - 16, 1, 22, W1)
+		_rect(px_ - 1, WL - 14, 3, 14, W0)
+		_rect(px_ - 1, WL - 14, 1, 14, W1)
 	# The mirror below the waterline: rows read back from above, darkened,
 	# rippled, fading out into the canal.
 	for r in range(0, 38):
@@ -468,13 +473,14 @@ func _amsterdam_bridge(x0: int, w: int, seed_value: int) -> void:
 				o = B0
 			if r % 5 == 4 and o != O2:
 				o = T2 if o == T0 else T1                 # ripple lines
-			if r > 24 and _bayer(xx, WL + r) < float(r - 24) / 14.0:
+			if r > 6 and _bayer(xx, WL + r) < float(r - 6) / 22.0:
 				continue                                  # fades into the canal
+			o.a = 0.8 if o == O2 else 0.5                 # the real water shows through
 			_px(xx, WL + r, o)
 	for b: Vector2i in bulbs:                         # bulbs stretch into gold streaks
 		var ry2 := WL + (WL - b.y)
-		_rect(b.x, ry2 - 2, 1, 5, O2)
-		_px(b.x, ry2, O3)
+		_rect(b.x, ry2 - 2, 1, 5, Color(O2, 0.8))
+		_px(b.x, ry2, Color(O3, 0.9))
 	for b: Vector2i in bulbs:
 		_note_window(b.x - 1, b.y - 1, 3, 3, true)
 

@@ -39,9 +39,6 @@ func _apply() -> void:
 		_mat.set_shader_parameter("deep_color", deep_color)
 		_mat.set_shader_parameter("highlight", WorldPalette.WATER_HI)
 		_mat.set_shader_parameter("skip_rows", street_gap)
-		if WorldPalette.V3 and not Engine.is_editor_hint():   # snap the mirror to the 32 colours
-			_mat.set_shader_parameter("lut", WorldPalette.snap_material().get_shader_parameter("lut"))
-			_mat.set_shader_parameter("use_lut", true)
 
 
 func _process(_delta: float) -> void:
@@ -53,5 +50,7 @@ func _process(_delta: float) -> void:
 	var top_on_screen := (final * canvas * Vector2.ZERO).y
 	var screen_h := float(get_window().size.y) if get_window() else 360.0
 	_mat.set_shader_parameter("water_top_uv", top_on_screen / screen_h)
+	var to_world := (final * canvas).affine_inverse()      # window -> this rect's local px
+	_mat.set_shader_parameter("world_left", (to_world * Vector2.ZERO).x + global_position.x)
 	_mat.set_shader_parameter("px_per_world", maxf(final.get_scale().y * canvas.get_scale().y, 0.25))
 	_mat.set_shader_parameter("night", WorldDayCycle.night_now)

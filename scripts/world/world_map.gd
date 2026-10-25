@@ -11,6 +11,7 @@ extends Node2D
 
 const GROUND_Y := 288.0
 const INTERACT_COOLDOWN := 0.3
+const FEET_DROP := 3.0                      # world px the band is drawn below the street line (they walk on the pavement)
 const EDGE_MARGIN := 30.0                   # vehicles stop this far from a road block
 const WATER_LINE := GROUND_Y + 36.0         # top of the canal (a brick quay wall shows above it)
 # Tuning lives in resources/config/ (edit in the inspector, see
@@ -129,9 +130,11 @@ func _ready() -> void:
 		m.show_name_tag = false
 		m.name_tag.visible = false
 		BikeRiders.ensure(m)                # bike_pedal / bike_roll for everyone
+		m.sprite.position.y += FEET_DROP    # feet on the pavement, not on its back edge
 		var bike := BikeSprite.new()
 		bike.z_index = 1
 		bike.visible = false
+		bike.position.y += FEET_DROP
 		m.add_child(bike)
 		_bikes[m] = bike
 		_lamps[m] = NightGlow.attach(m)     # bike lights at night
