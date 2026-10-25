@@ -13,7 +13,7 @@ func _run() -> void:
 	var img := Image.load_from_file(OS.get_environment("PNG"))
 	var art := V3Art.new()
 	art.png = img.save_png_to_buffer()
-	art.origin = base.origin
+	art.origin = base.origin - Vector2i(0, int(OS.get_environment("SHIFT")) if OS.get_environment("SHIFT") != "" else 0)
 	art.windows = base.windows
 	var dir := "res://assets/sprites/world/openings/"
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(dir))

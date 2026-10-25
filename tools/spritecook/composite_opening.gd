@@ -42,7 +42,17 @@ func _run() -> void:
 	var half := int(OS.get_environment("OPEN")) / 2
 	var far := OS.get_environment("FAR").split(",")
 	var fr := Rect2i(int(far[0]), int(far[1]), int(far[2]) - int(far[0]), int(far[3]) - int(far[1]))
+	# The refinement can reach above the art's top (roofs over a low wall):
+	# grow the canvas upwards; SHIFT (written next to OUT) moves the origin.
+	var shift := maxi(0, -cy)
+	var base := Image.create(full.get_width(), full.get_height() + shift, false, Image.FORMAT_RGBA8)
+	base.blit_rect(full, Rect2i(Vector2i.ZERO, full.get_size()), Vector2i(0, shift))
+	full = base
+	cy += shift
 	var out := full.duplicate()
+	var f := FileAccess.open(OS.get_environment("OUT") + ".shift", FileAccess.WRITE)
+	f.store_string(str(shift))
+	f.close()
 	# Grow the canvas upwards if the refinement reaches above the art's top.
 	for y in side:
 		for x in side:
@@ -62,6 +72,14 @@ func _run() -> void:
 					out.set_pixel(ax, ay, Color(0, 0, 0, 0))
 				else:
 					out.set_pixel(ax, ay, Color(c, 1.0))
+	# TOPCLEAR=x0,x1 (crop px): wipe the original art above the crop in these
+	# columns (e.g. a tower the refinement replaced).
+	if OS.get_environment("TOPCLEAR") != "":
+		var tc := OS.get_environment("TOPCLEAR").split(",")
+		for y in range(0, cy):
+			for x in range(int(tc[0]), int(tc[1])):
+				if cx + x >= 0 and cx + x < out.get_width():
+					out.set_pixel(cx + x, y, Color(0, 0, 0, 0))
 	out.save_png(OS.get_environment("OUT"))
-	print("composited ", OS.get_environment("OUT"))
+	print("composited ", OS.get_environment("OUT"), " shift ", shift)
 	quit()

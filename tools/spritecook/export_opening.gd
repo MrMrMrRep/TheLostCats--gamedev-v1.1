@@ -22,7 +22,12 @@ func _run() -> void:
 	var oy := -int(art.origin.y) - side              # bottom = street line
 	var crop := Image.create(side, side, false, Image.FORMAT_RGBA8)
 	crop.fill(Color("8ec5e6"))
-	var region := img.get_region(Rect2i(ox, oy, side, side))
+	var region := Image.create(side, side, false, Image.FORMAT_RGBA8)   # handles art shorter than the crop
+	region.blit_rect(img, Rect2i(ox, oy, side, side), Vector2i.ZERO)
+	if oy < 0:
+		region.fill_rect(Rect2i(0, 0, side, 0), Color(0, 0, 0, 0))
+		region = Image.create(side, side, false, Image.FORMAT_RGBA8)
+		region.blit_rect(img, Rect2i(ox, 0, side, img.get_height()), Vector2i(0, -oy))
 	crop.blend_rect(region, Rect2i(0, 0, side, side), Vector2i.ZERO)
 	crop.save_png(out + "/" + nm + "_crop.png")
 	var mask := region.duplicate()               # keep alpha of the original crop

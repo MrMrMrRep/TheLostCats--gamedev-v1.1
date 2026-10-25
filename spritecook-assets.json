@@ -1,4 +1,74 @@
 {
-  "bridge1_source_crop": {"asset_id": "2f1647ce-dd1b-484c-86f2-f6dd606dc1b1", "label": "Bridge 1 far end (source crop)"},
-  "bridge1_refined": {"asset_id": "732c28e2-c7e6-44a0-a1e8-50db337e58c5", "label": "Bridge 1 refined (used)", "sha12": "23c039edd1d6"}
+  "bridge1_source_crop": {
+    "asset_id": "2f1647ce-dd1b-484c-86f2-f6dd606dc1b1",
+    "label": "Bridge 1 far end (source crop)"
+  },
+  "bridge1_refined": {
+    "asset_id": "732c28e2-c7e6-44a0-a1e8-50db337e58c5",
+    "label": "Bridge 1 refined (used)",
+    "sha12": "23c039edd1d6"
+  },
+  "bridge2_source_crop": {
+    "asset_id": "d1eafa13-ab4f-4c51-b242-b7cbd08400ed",
+    "label": "Bridge2 far end (source crop)"
+  },
+  "bridge2_refined": {
+    "asset_id": "3a4ab016-77ad-4801-8877-c09dfa191864",
+    "label": "Bridge2 refined (used)",
+    "sha12": "f1d05744c8d6"
+  },
+  "bridge3_source_crop": {
+    "asset_id": "03853216-b5f7-462c-8075-e822bb8fcba2",
+    "label": "Bridge3 far end (source crop)"
+  },
+  "bridge3_refined": {
+    "asset_id": "52eb06db-e339-4a33-bd8e-6490a0abe2e5",
+    "label": "Bridge3 refined (used)",
+    "sha12": "2b2ddcd3e590"
+  },
+  "bridge4_source_crop": {
+    "asset_id": "ca652e15-2751-4116-ac51-43fbfa29a65b",
+    "label": "Bridge4 far end (source crop)"
+  },
+  "bridge4_refined": {
+    "asset_id": "eaeef6aa-b9c7-48be-89e2-27e6c6e6e276",
+    "label": "Bridge4 refined (used)",
+    "sha12": "55f8be64b92b"
+  },
+  "bridge5_source_crop": {
+    "asset_id": "b55aef2f-e92e-4a2e-ad8d-3588518f1501",
+    "label": "Bridge5 far end (source crop)"
+  },
+  "bridge5_refined": {
+    "asset_id": "1c1ce8b7-6b7b-4eef-a03d-a7e52e1f0ae4",
+    "label": "Bridge5 refined (used)",
+    "sha12": "262f016210c5"
+  },
+  "bridge6_source_crop": {
+    "asset_id": "983c8959-4397-4e49-abdf-7d624ae27307",
+    "label": "Bridge6 far end (source crop)"
+  },
+  "bridge6_refined": {
+    "asset_id": "9eb85f5e-cf1c-4882-858c-b1c9b2bdfbb3",
+    "label": "Bridge6 refined (used)",
+    "sha12": "8013d6ef27d0"
+  },
+  "sidestreet1_source_crop": {
+    "asset_id": "c5ea80c3-7281-4e07-8757-6ac327b74acc",
+    "label": "SideStreet1 far end (source crop)"
+  },
+  "sidestreet1_refined": {
+    "asset_id": "91d50153-139f-4ce7-a838-d5c2f58d861d",
+    "label": "SideStreet1 refined (used)",
+    "sha12": "0d807b15dde0"
+  },
+  "sidestreet2_source_crop": {
+    "asset_id": "9e13991e-7958-47fe-b333-0943f705f3b2",
+    "label": "SideStreet2 far end (source crop)"
+  },
+  "sidestreet2_refined": {
+    "asset_id": "0963a04f-bacd-410e-987c-30bb498d1b8f",
+    "label": "SideStreet2 refined (used)",
+    "sha12": "b9cb8cd43952"
+  }
 }
