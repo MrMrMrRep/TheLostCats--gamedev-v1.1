@@ -21,7 +21,7 @@ const FRAMES := {
 	"polder": [["zoom1", 0, 0, 1400, 720, 1], ["zoom2", 420, GY - 256, 640, 360, 2]],
 	"hotels": [["zoom2", 560, GY - 256, 640, 360, 2], ["zoom3", 620, GY - 152, 427, 240, 3]],
 	"park": [["zoom2", 120, GY - 256, 640, 360, 2], ["zoom3", 700, GY - 152, 427, 240, 3]],
-	"oldtown": [["zoom2", 360, GY - 256, 640, 360, 2], ["zoom3", 900, GY - 152, 427, 240, 3]],
+	"oldtown": [["zoom2", 330, GY - 256, 640, 360, 2], ["zoom3", 200, GY - 152, 427, 240, 3]],
 	"flats": [["zoom2", 300, GY - 256, 640, 360, 2], ["zoom3", 40, GY - 152, 427, 240, 3]],
 	"industry": [["zoom2", 260, GY - 256, 640, 360, 2], ["zoom3", 960, GY - 152, 427, 240, 3]],
 	"airport": [["zoom2", 560, GY - 256, 640, 360, 2], ["zoom3", 40, GY - 152, 427, 240, 3]],
@@ -49,7 +49,7 @@ func _paste_band(zone: String) -> void:
 	var spots := {"polder": [],
 		"hotels": [[1000, "keys_joep/keys_joep_sheet"], [1056, "bass_jay/bass_jay_sheet"]],
 		"park": [[860, "keys_joep/keys_joep_sheet"], [916, "bass_jay/bass_jay_sheet"]],
-		"oldtown": [[1090, "keys_joep/keys_joep_sheet"], [1146, "bass_jay/bass_jay_sheet"]],
+		"oldtown": [[420, "keys_joep/keys_joep_sheet"], [476, "bass_jay/bass_jay_sheet"]],
 		"flats": [[220, "keys_joep/keys_joep_sheet"], [276, "bass_jay/bass_jay_sheet"]],
 		"industry": [[1140, "keys_joep/keys_joep_sheet"], [1196, "bass_jay/bass_jay_sheet"]],
 		"airport": [[300, "keys_joep/keys_joep_sheet"], [356, "bass_jay/bass_jay_sheet"]]}
@@ -551,7 +551,8 @@ func _zone_industry() -> void:
 	_modern_street()
 	_quay()
 	_reflect()
-	_car(560, B3)
+	_vehicle(500, WATER - 9, "van", "white")
+	_vehicle(820, WATER - 9, "hatch", "coral")
 	_tree_small(300, GY + 4, 1.0)
 	_tree_small(914, GY + 4, 0.9)
 	for cx in [662, 676]:
@@ -859,38 +860,340 @@ func _container(x: int, b: int, c: Color) -> void:
 # =============================================================================
 
 func _zone_airport() -> void:
+	# v3.1: the plane stands in full view on the apron in front of the terminal,
+	# a jet climbs out, a glass airport hotel, a low fence so nothing hides.
 	_sky()
-	_sun(1180, 110, 26)
+	_sun(220, 120, 26)
 	_streaks()
-	_cloud(500, 130, 2.0)
-	_cloud(1000, 200, 1.4)
-	_plane_flying(820, 236)
-	_skyline_mid()
-	# Apron behind the fence: tower, terminal, a parked plane, service cars.
-	_rect(0, GY - 70, W, 70, R2)
-	for x in range(0, W, 40):
-		_rect(x, GY - 70, 1, 70, R1)
-	_rect(0, GY - 46, W, 2, O2)
-	_tower_ctl(1150)
-	_terminal(420, 680)
-	_plane_parked(560, GY - 26)
-	_tug(1020, GY - 30)
-	_hotel(0, 260)
-	# Fence along the road.
-	for k in range(270, W, 30):
-		_rect(k, GY - 70, 3, 70, R1)
-	for yy in range(GY - 70, GY, 12):
-		for k in range(270, W, 12):
-			_px(k + (yy / 12 % 2) * 6, yy, R1)
-	_rect(270, GY - 40, W - 270, 1, R1)
-	_rect(270, GY - 72, W - 270, 2, R0)
+	_cloud(560, 150, 2.0)
+	_cloud(1250, 230, 1.3)
+	_skyline_far()
+	_airliner(760, 250, 300, 11.0, false)          # climbing out
+	_apron()
+	_terminal2(300, 820)
+	_tower2(1250)
+	_jet_bridge(860, 1000)
+	_airliner(380, GY - 118, 560, 0.0, true)       # at the gate
+	_tug(1180, GY - 32)
+	_airport_hotel(0, 286)
+	_airport_fence(286)
 	_modern_street()
 	_quay()
 	_reflect()
-	_bus_stop(470)
-	_car(700, T3)
-	_car(960, W2)
-	_flags(820)
+	_bus_stop(500)
+	_flags(300)
+	_vehicle(-40, WATER - 9, "taxi", "yellow")
+	_vehicle(110, WATER - 9, "taxi", "yellow")
+	_vehicle(640, WATER - 9, "bus", "teal")
+	_vehicle(1000, WATER - 9, "mpv", "black")
+	_vehicle(1160, WATER - 9, "sedan", "silver")
+
+
+func _airliner(x: int, y: int, L: int, climb: float, gear: bool) -> void:
+	# A twin-jet in TL livery, drawn analytically along its own axis (u forward,
+	# v up), so it can be rotated to climb. (x, y) = tail end of the centre line.
+	var a := deg_to_rad(climb)
+	var ca := cos(a)
+	var sa := sin(a)
+	var R := 0.055
+	var fin := PackedVector2Array([Vector2(0.15, R * 0.6), Vector2(0.06, R + 0.17), Vector2(0.015, R + 0.17), Vector2(0.03, R * 0.6)])
+	var stab := PackedVector2Array([Vector2(0.13, 0.005), Vector2(0.03, 0.035), Vector2(0.005, 0.035), Vector2(0.04, -0.005)])
+	var wing := PackedVector2Array([Vector2(0.60, -0.025), Vector2(0.34, -0.105), Vector2(0.29, -0.105), Vector2(0.44, -0.025)])
+	var m := {}
+	for py in range(y - int(L * (0.26 + sa)), y + int(L * 0.16)):
+		for pxx in range(x - 20, x + L + 20):
+			var dx := float(pxx - x)
+			var dy := float(y - py)
+			var t := (dx * ca + dy * sa) / L
+			var n := (-dx * sa + dy * ca) / L
+			if t < -0.05 or t > 1.05:
+				continue
+			var p := Vector2(t, n)
+			var c := Color(0, 0, 0, 0)
+			# Fuselage (with an upswept tail cone and a rounded nose).
+			var lo := -R
+			var hi := R
+			var inside := false
+			if t >= 0.0 and t < 0.12:
+				lo = -R + (0.12 - t) / 0.12 * R * 1.3
+				inside = n >= lo and n <= hi
+			elif t >= 0.12 and t <= 0.86:
+				inside = absf(n) <= R
+			elif t > 0.86 and t <= 1.0:
+				var e := (t - 0.86) / 0.14
+				var nc := -0.012 * e
+				inside = pow(e, 2.0) + pow((n - nc) / R, 2.0) <= 1.0
+			if inside:
+				var k := (n - lo) / (hi - lo)               # 0 belly .. 1 crown
+				c = W5
+				if k < 0.12:
+					c = R2
+				elif k < 0.32:
+					c = R3
+				elif k < 0.42:
+					c = O1
+				elif k < 0.52:
+					c = T2
+				elif k > 0.9:
+					c = W5
+				if k > 0.6 and k < 0.72 and t > 0.16 and t < 0.84 and (pxx / 5) % 2 == 0:
+					c = T1                                  # cabin windows
+				if t > 0.925 and t < 0.975 and k > 0.6 and k < 0.8:
+					c = T0                                  # cockpit
+				for dt: float in [0.2, 0.83]:
+					if absf(t - dt) < 0.012 and k > 0.35 and k < 0.85 and absf(t - dt) > 0.008:
+						c = R2                              # door outlines
+			if Geometry2D.is_point_in_polygon(p, fin):
+				c = T2
+				if n > R + 0.15:
+					c = T3
+				if Vector2(t - 0.075, n - R - 0.085).length() < 0.03:
+					c = O2                                  # the cat logo disc
+				if Vector2(t - 0.07, n - R - 0.09).length() < 0.012:
+					c = W5
+			if Geometry2D.is_point_in_polygon(p, stab):
+				c = R3
+			if Geometry2D.is_point_in_polygon(p, wing):
+				c = R2 if n < -0.06 else R3
+			var ep := Vector2((t - 0.5) / 0.075, (n + 0.085) / 0.03)
+			if ep.length() <= 1.0:
+				c = R3 if ep.y > 0.0 else R2               # engine nacelle
+				if ep.x > 0.82:
+					c = T0                                  # intake
+				if ep.x < -0.85:
+					c = R1
+			if gear:
+				for gt: float in [0.44, 0.87]:
+					if absf(t - gt) < 0.006 and n < -R and n > -0.115:
+						c = R1
+			if c.a > 0.0:
+				m[Vector2i(pxx, py)] = c
+	for k: Vector2i in m.keys():
+		for o in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			if not m.has(k + o):
+				_px(k.x + o.x, k.y + o.y, T0)
+	for k: Vector2i in m.keys():
+		_px(k.x, k.y, m[k])
+	if gear:
+		for gt: float in [0.43, 0.45, 0.87]:
+			var gx := x + int(gt * L)
+			var gy := y + int(0.118 * L)
+			WDisc.draw(self, gx, gy, int(L * 0.012), T0)
+			WDisc.draw(self, gx, gy, maxi(int(L * 0.005), 1), R2)
+	else:
+		# Contrail-ish exhaust haze behind a climbing jet.
+		for i in 160:
+			var tx := x - i
+			var ty := y + int(i * sa / ca) + 8
+			if _bayer(tx, ty) < 0.6 - i * 0.0035:
+				_px(tx, ty, W5)
+				_px(tx, ty + 1, T7)
+
+
+func _apron() -> void:
+	var top := GY - 64
+	for yy in range(top, GY):
+		for xx in W:
+			var c := R2
+			if _hash(xx / 3, yy / 2) < 0.08:
+				c = R1
+			img.set_pixel(xx, yy, c)
+	_rect(0, top, W, 1, R3)
+	for xx in range(0, W, 46):                       # slab joints
+		_rect(xx, top, 1, 64, R1)
+	_rect(0, GY - 40, W, 2, O2)                      # taxi line
+	for xx in range(300, 1200, 6):
+		_px(xx, GY - 41, O3)
+	for xx in range(10, W, 70):                      # blue edge lights
+		_rect(xx, top + 2, 3, 3, T4)
+		_px(xx, top + 2, T6)
+
+
+func _terminal2(x: int, w: int) -> void:
+	# Glass hall under a wave roof, steel tree-columns, people and a departures board.
+	var b := GY - 64
+	var h := 150
+	for yy in range(b - h, b):
+		for xx in range(x, x + w):
+			var t := float(yy - (b - h)) / h
+			var c := T3 if t < 0.25 else (T2 if t < 0.6 else T1)
+			if (xx - x) % 30 == 0:
+				c = R3
+			elif (yy - (b - h)) % 37 == 0:
+				c = R2
+			img.set_pixel(xx, yy, c)
+	_rect(x, b - 54, w, 4, R3)                       # mezzanine floor
+	_rect(x, b - 54, w, 1, W5)
+	for k in 36:                                      # sky reflections
+		var sx := x + int(_hash(k, 1) * w)
+		for i in 14:
+			_px(sx + i, b - 70 - i * 4, T5)
+	for cx in range(x + 60, x + w - 20, 120):        # tree columns
+		_rect(cx, b - h + 20, 4, h - 20, R3)
+		_line(cx + 2, b - h + 30, cx - 22, b - h + 6, R3)
+		_line(cx + 2, b - h + 30, cx + 26, b - h + 6, R3)
+	for i in 26:                                      # travellers on the mezzanine
+		var hx := x + 20 + int(_hash(i, 3) * (w - 40))
+		_rect(hx, b - 68, 4, 12, [T0, B1, O1, T0, G0][i % 5])
+		_rect(hx + 1, b - 72, 3, 4, B4 if i % 3 else W2)
+	var bx := x + w / 2 - 70                          # departures board
+	_rect(bx, b - h + 24, 140, 46, T0)
+	_rect(bx + 2, b - h + 26, 136, 42, T1)
+	for r in 5:
+		_rect(bx + 6, b - h + 30 + r * 8, 40, 3, O3)
+		_rect(bx + 52, b - h + 30 + r * 8, 50, 3, O2 if r % 2 else O3)
+		_rect(bx + 110, b - h + 30 + r * 8, 22, 3, [G3, O3, G3, B3, G3][r])
+	# Wave roof with an underside shadow and a bright lip.
+	for xx in range(x - 40, x + w + 40):
+		var ry := b - h - 12 - int(sin((xx - x) * 0.007) * 20.0)
+		_rect(xx, ry, 1, 3, W5)
+		_rect(xx, ry + 3, 1, 9, W4)
+		_px(xx, ry + 12, W2)
+		_rect(xx, ry + 13, 1, 3, T0)
+	# Standing letters on the roof.
+	var name := "LUCHTHAVEN"
+	var lx := x + w / 2 - name.length() * 9
+	for i in name.length():
+		var gx := lx + i * 18
+		_rect(gx - 1, b - h - 66, 14, 2, R1)
+		_rect(gx + 5, b - h - 64, 2, 30, R1)
+		for k in 2:
+			for dy in 2:
+				_text5(gx + k, b - h - 78 + dy, name[i], T0 if (k == 1 and dy == 1) else W5)
+	_rect(x, b - 2, w, 2, T0)
+
+
+func _tower2(x: int) -> void:
+	var b := GY - 64
+	_bevel(x - 60, b - 50, 120, 50, R3, W5, R2)       # base building
+	for k in range(x - 52, x + 52, 14):
+		_rect(k, b - 40, 10, 14, T1)
+		_rect(k, b - 40, 10, 2, T3)
+	var top := b - 370
+	_rect(x - 16, top, 32, 320, R3)
+	_rect(x - 16, top, 8, 320, W5)
+	_rect(x + 9, top, 7, 320, R2)
+	_rect(x - 16, top, 1, 320, T0)
+	_rect(x + 15, top, 1, 320, T0)
+	for yy in range(top + 20, b - 60, 34):
+		_rect(x - 3, yy, 6, 16, T1)
+		_rect(x - 3, yy, 6, 2, T3)
+	# Cab: an inverted cone with green-tinted glass.
+	for yy in 18:
+		var half := 34 + yy * 2
+		_rect(x - half, top - 18 + yy, half * 2, 1, R3 if yy % 6 else W5)
+		_px(x - half, top - 18 + yy, T0)
+		_px(x + half - 1, top - 18 + yy, T0)
+	for yy in 34:
+		var half := 72 - yy / 3
+		for xx in range(-half, half):
+			var c := T2
+			if yy < 3:
+				c = T3
+			if (xx + 200) % 14 == 0:
+				c = R2
+			if xx > half - 16:
+				c = T1
+			_px(x + xx, top - 52 + yy, c)
+		_px(x - half - 1, top - 52 + yy, T0)
+		_px(x + half, top - 52 + yy, T0)
+	for i in 16:
+		_px(x - 50 + i, top - 24 - i * 2, T5)
+		_px(x - 49 + i, top - 24 - i * 2, T4)
+	_rect(x - 64, top - 60, 128, 8, R3)
+	_rect(x - 64, top - 60, 128, 1, W5)
+	_rect(x - 64, top - 53, 128, 1, T0)
+	_rect(x - 2, top - 100, 3, 40, R1)               # antennas + beacon
+	_rect(x + 30, top - 84, 2, 24, R1)
+	WDisc.draw(self, x - 30, top - 66, 6, W5)
+	WDisc.ring(self, x - 30, top - 66, 6, R1)
+	WDisc.draw(self, x, top - 102, 2, B3)
+	_px(x - 1, top - 103, B4)
+
+
+func _jet_bridge(x0: int, x1: int) -> void:
+	# From the terminal out to the front door of the parked plane.
+	var y := GY - 150
+	for xx in range(x0, x1):
+		var yy := y + (xx - x0) / 14
+		_rect(xx, yy, 1, 26, R3)
+		_px(xx, yy, W5)
+		_rect(xx, yy + 24, 1, 2, R1)
+		if (xx - x0) % 16 < 10:
+			_rect(xx, yy + 6, 1, 8, T1)
+	_rect(x1 - 30, y + 30, 8, GY - 64 - y - 30, R1)  # drive column
+	_rect(x1 - 38, GY - 70, 24, 6, T0)
+	WDisc.draw(self, x1 - 32, GY - 66, 4, T0)
+
+
+func _airport_hotel(x: int, w: int) -> void:
+	# Glass hotel tower with white fins, a lit crown and a canopy.
+	var top := GY - 470
+	for yy in range(top, GY - 90):
+		for xx in range(x, x + w):
+			var c := T1
+			var f := (yy - top) % 26
+			if f < 2:
+				c = R3
+			elif (xx - x) % 22 < 1:
+				c = T0
+			elif f < 6:
+				c = T2
+			if _hash((xx - x) / 22, (yy - top) / 26) < 0.16 and f >= 2:
+				c = O2 if f > 4 else O3
+			img.set_pixel(xx, yy, c)
+	for fx in range(x + 10, x + w, 44):               # vertical fins
+		_rect(fx, top - 6, 6, GY - 90 - top + 6, W5)
+		_rect(fx + 4, top - 6, 2, GY - 90 - top + 6, R3)
+	for k in 30:                                      # glare
+		var sx := x + int(_hash(k, 9) * w)
+		for i in 10:
+			_px(sx + i, top + 40 + int(_hash(9, k) * 300) - i * 3, T4)
+	_rect(x, top - 10, w, 6, R3)
+	_rect(x, top - 10, w, 1, W5)
+	_rect(x + w - 1, top - 10, 1, GY - top + 10, T0)
+	# Crown sign.
+	_rect(x + 40, top - 52, w - 80, 36, T0)
+	_rect(x + 42, top - 50, w - 84, 32, B1)
+	for k in range(x + 46, x + w - 44, 6):
+		_px(k, top - 48, O3)
+		_px(k, top - 21, O3)
+	var word := "HOTEL DE KAT"
+	var tw := word.length() * 6 - 1
+	_text5(x + w / 2 - tw / 2 + 1, top - 37, word, T0)
+	_text5(x + w / 2 - tw / 2, top - 38, word, O3)
+	_text5_top(x + w / 2 - tw / 2, top - 38, word, W5)
+	# Podium: stone, canopy, revolving door, planters.
+	_rect(x, GY - 90, w, 90, W3)
+	_rect(x, GY - 90, w, 2, W5)
+	_rect(x, GY - 90, 2, 90, W4)
+	for wx in range(x + 14, x + w - 30, 60):
+		_rect(wx, GY - 70, 40, 56, T0)
+		_rect(wx + 1, GY - 69, 38, 55, T2)
+		_rect(wx + 1, GY - 40, 38, 26, O1)
+		for i in 10:
+			_px(wx + 6 + i, GY - 30 - i * 3, T4)
+	_rect(x + w / 2 - 60, GY - 84, 120, 8, T0)
+	_rect(x + w / 2 - 60, GY - 84, 120, 2, T3)
+	for k in range(x + w / 2 - 56, x + w / 2 + 56, 14):
+		_rect(k, GY - 76, 4, 3, W5)
+	_rect(x + w / 2 - 22, GY - 72, 44, 72, T0)
+	_rect(x + w / 2 - 20, GY - 70, 40, 70, O2)
+	_rect(x + w / 2 - 1, GY - 70, 2, 70, W1)
+	_topiary(x + 30, GY)
+	_topiary(x + w - 30, GY)
+
+
+func _airport_fence(x0: int) -> void:
+	# Low mesh fence along the road: posts, two rails, sparse mesh.
+	for k in range(x0, W, 32):
+		_rect(k, GY - 34, 3, 34, R1)
+		_px(k, GY - 35, R3)
+	_rect(x0, GY - 34, W - x0, 2, R1)
+	_rect(x0, GY - 18, W - x0, 1, R1)
+	for yy in range(GY - 32, GY, 8):
+		for k in range(x0, W, 8):
+			_px(k + (yy / 8 % 2) * 4, yy, R1)
 
 
 func _plane_flying(x: int, y: int) -> void:
@@ -1132,76 +1435,18 @@ func _cornice(x: int, top: int, w: int) -> void:
 	_rect(x, top + 1, w, 2, cs)
 
 
-func _car_c(x: int, b: int, body: Color, dark: Color, hi: Color, shadow: Color) -> void:
-	# The 80s hatchback (124 x 44 art px) in any colour, standing on line b.
-	for yy in 4:
-		for xx in range(x + 4, x + 120):
-			if _bayer(xx, b + yy) < 0.7 - yy * 0.15:
-				_px(xx, b + yy - 2, T0)
-	_rect(x + 2, b - 26, 120, 18, body)
-	_rect(x + 2, b - 26, 120, 2, hi)
-	_rect(x + 2, b - 13, 120, 5, dark)
-	_rect(x + 2, b - 14, 120, 1, T0)
-	_rect(x + 26, b - 44, 72, 18, body)
-	for yy in 6:
-		_rect(x + 20 + yy, b - 32 - yy, 8, 1, body)
-		_rect(x + 98, b - 44 + yy * 3, 10 - yy, 3, body)
-	_rect(x + 26, b - 44, 72, 1, hi)
-	_rect(x + 30, b - 42, 30, 14, T0)
-	_rect(x + 64, b - 42, 30, 14, T0)
-	_rect(x + 30, b - 42, 30, 2, T1)
-	_rect(x + 64, b - 42, 30, 2, T1)
-	for i in 10:
-		_px(x + 36 + i, b - 30 - i, T5)
-		_px(x + 37 + i, b - 30 - i, T3)
-		_px(x + 70 + i, b - 30 - i, T5)
-		_px(x + 71 + i, b - 30 - i, T3)
-	_rect(x + 61, b - 44, 3, 36, dark)
-	_rect(x + 28, b - 26, 1, 12, shadow)
-	_rect(x + 62, b - 26, 1, 12, shadow)
-	_rect(x + 96, b - 26, 1, 12, shadow)
-	_rect(x + 52, b - 22, 6, 2, R3)
-	_rect(x + 86, b - 22, 6, 2, R3)
-	_rect(x + 98, b - 34, 4, 4, T0)
-	_rect(x + 114, b - 24, 8, 5, W5)
-	_rect(x + 114, b - 24, 8, 1, O3)
-	_rect(x + 116, b - 19, 6, 2, O1)
-	_rect(x + 2, b - 24, 5, 6, B2)
-	_rect(x, b - 12, 10, 4, R2)
-	_rect(x, b - 12, 10, 1, R3)
-	_rect(x + 114, b - 12, 10, 4, R2)
-	_rect(x + 114, b - 12, 10, 1, R3)
-	_rect(x + 6, b - 20, 14, 5, O2)
-	_text3(x + 7, b - 20, "TL", T0)
-	for wx in [x + 24, x + 100]:
-		WDisc.draw(self, wx, b - 8, 10, dark)
-		WDisc.draw(self, wx, b - 7, 9, T0)
-		WDisc.ring(self, wx, b - 7, 7, T1)
-		WDisc.draw(self, wx, b - 7, 5, R2)
-		WDisc.draw(self, wx, b - 7, 2, R3)
-		_px(wx - 3, b - 10, R3)
+const PARKED := [["hatch", "coral"], ["wagon", "teal"], ["sedan", "cream"], ["mpv", "silver"],
+	["duck", "green"], ["coupe", "red"], ["sedan", "navy"], ["hatch", "yellow"], ["wagon", "brown"],
+	["mpv", "plum"], ["hatch", "white"], ["sedan", "black"]]
 
 
 func _parked(x: int, kind: int) -> void:
-	var b := WATER - 9
-	match kind % 6:
-		0: _car_c(x, b, B3, B1, B4, B0)
-		1: _car_c(x, b, T3, T2, T5, T1)
-		2: _car_c(x, b, W4, W2, W5, W1)
-		3: _car_c(x, b, G2, G1, G3, G0)
-		4: _car_c(x, b, O2, O1, O3, W1)
-		_: _car_c(x, b, R2, R1, R3, R0)
+	var v: Array = PARKED[kind % PARKED.size()]
+	_vehicle(x, WATER - 9, v[0], v[1])
 
 
 func _taxi(x: int) -> void:
-	var b := WATER - 9
-	_car_c(x, b, T1, T0, T2, T0)
-	_rect(x + 50, b - 50, 24, 6, T0)                 # roof light
-	_rect(x + 51, b - 49, 22, 4, O2)
-	_rect(x + 51, b - 49, 22, 1, O3)
-	_rect(x + 2, b - 18, 120, 2, O2)                 # checker line
-	for k in range(x + 4, x + 120, 6):
-		_rect(k, b - 18, 3, 1, T0)
+	_vehicle(x, WATER - 9, "taxi", "yellow")
 
 
 func _bench(x: int) -> void:
@@ -1296,7 +1541,7 @@ func _zone_hotels() -> void:
 	_lamp(1200)
 	_poster_column(1180)
 	_taxi(700)
-	_parked(1260, 2)
+	_vehicle(1240, WATER - 9, "police", "white")
 	_bike(470, T0, false)
 	for bx in [570, 1170]:
 		_bollard(bx)
@@ -1348,8 +1593,8 @@ func _viaduct() -> void:
 		_rect(x, y + 22, 1, GY - y - 22, R2 if x % 40 > 2 else R1)
 		_px(x, y + 22, T0)
 	# Cars on the ring road (they come in from the polder).
-	_car_c(60, deck - 4, W4, W2, W5, W1)
-	_car_c(250, deck - 4, B3, B1, B4, B0)
+	_vehicle(40, deck - 4, "wagon", "cream")
+	_vehicle(230, deck - 4, "coupe", "red")
 	# Blue direction sign on the deck.
 	var sx := 330
 	_rect(sx + 30, deck - 96, 4, 80, R2)
@@ -1728,35 +1973,37 @@ func _zone_oldtown() -> void:
 	var row := [
 		{"x": 0, "w": 112, "f": 4, "s": "mustard", "g": "neck", "gr": "shop", "shop": "cafe", "sign": "BAR", "awn": [B1, W4], "fascia": B0},
 		{"x": 112, "w": 116, "f": 4, "s": "darkbrick", "g": "step", "gr": "shop", "shop": "kaas", "sign": "KAAS", "fascia": G0, "pipe": true},
-		{"x": 228, "w": 108, "f": 5, "s": "slate", "g": "bell", "gr": "shop", "shop": "cafe", "sign": "IN DE KAT", "awn": [G1, W5], "fascia": T1, "shutters": [B1, W5]},
-		{"x": 900, "w": 120, "f": 4, "s": "cream", "g": "spout", "gr": "door", "boxes": true, "no": "3"},
-		{"x": 1020, "w": 112, "f": 4, "s": "coral", "g": "step", "gr": "door", "cat": true, "plaque": true, "no": "5"},
-		{"x": 1132, "w": 124, "f": 4, "s": "teal", "g": "neck", "gr": "shop", "shop": "cafe", "sign": "PROEFLOKAAL", "fascia": B0, "awn": [B2, W5]},
-		{"x": 1256, "w": 116, "f": 3, "s": "plum", "g": "mansard", "gr": "shop", "shop": "boek", "sign": "PLATEN", "fascia": T1},
-		{"x": 1372, "w": 112, "f": 4, "s": "brick", "g": "bell", "gr": "door", "no": "11"},
+		{"x": 1052, "w": 108, "f": 5, "s": "slate", "g": "bell", "gr": "shop", "shop": "cafe", "sign": "IN DE KAT", "awn": [G1, W5], "fascia": T1, "shutters": [B1, W5]},
+		{"x": 1160, "w": 124, "f": 4, "s": "teal", "g": "neck", "gr": "shop", "shop": "cafe", "sign": "PROEFLOKAAL", "fascia": B0, "awn": [B2, W5]},
+		{"x": 1284, "w": 116, "f": 3, "s": "plum", "g": "mansard", "gr": "shop", "shop": "boek", "sign": "PLATEN", "fascia": T1},
 	]
+	# The church stands free: a walled graveyard with trees behind it (seen in
+	# the gaps either side), a small brick square in front.
+	_graveyard(228, 1052)
 	for hs: Dictionary in row:
 		_house(hs)
-	_church(336, 564)
+	_church(392, 500)
 	_street()
+	_church_square(228, 1052)
 	_quay()
 	_reflect()
-	_market_stall(880, 120, [B2, W5], "fruit")
-	_market_stall(1010, 110, [G1, W5], "kaas")
 	_terrace(10)
-	_terrace(1140)
+	_terrace(1168)
 	_aboard(96, "CA")
-	_aboard(1250, "CA")
-	_lamp(340)
-	_lamp(880)
+	_aboard(1278, "CA")
+	_lamp(250)
+	_lamp(1030)
+	_street_pump(610)
+	_bench(916)
+	_bench(964)
 	_plant_box(240)
-	_plant_box(1300)
+	_plant_box(1370)
+	_square_tree(870)
 	_bike(560, B1, true)
-	_bike(620, T0, false)
 	_rack(700)
 	_bike(694, G1, false)
-	_bike(1200, T2, true)
-	for bx in [60, 400, 860, 1340]:
+	_bike(1240, T2, true)
+	for bx in [60, 236, 1044, 1340]:
 		_bollard(bx)
 	_beer_crates(196)
 
@@ -2036,11 +2283,7 @@ func _zone_flats() -> void:
 	_quay()
 	_reflect()
 	# Ring rules: cars bumper to bumper (gaps at doors), young trees in pits.
-	var kinds := [0, 1, 2, 5, 3, 4, 1, 0, 2]
-	var i := 0
-	for cx in [-60, 90, 370, 520, 790, 940, 1090, 1310]:
-		_parked(cx, int(kinds[i % kinds.size()]))
-		i += 1
+	# Pavement things first, the parked cars in front of them.
 	for tx in [70, 600, 800, 1040, 1260]:
 		_young_tree(tx)
 	_bike_shed(1080)
@@ -2048,6 +2291,10 @@ func _zone_flats() -> void:
 	_bike(990, T0, false)
 	_lamp_modern(430)
 	_lamp_modern(1180)
+	var i := 0
+	for cx in [-70, 84, 360, 512, 784, 938, 1094, 1290]:
+		_parked(cx, [2, 4, 0, 3, 8, 1, 6, 9][i])
+		i += 1
 
 
 func _ring_block(x: int, w: int, floors: int, scheme: String, balconies: bool, shop: String) -> void:
@@ -2241,3 +2488,96 @@ func _lamp_modern(x: int) -> void:
 	_rect(x + 18, b - 138, 14, 4, R0)
 	_rect(x + 19, b - 134, 12, 2, W5)
 	_rect(x - 5, b - 4, 10, 4, R0)
+
+
+func _graveyard(x0: int, x1: int) -> void:
+	# Old trees and leaning headstones behind a low brick wall with a gate.
+	for t in [[262, 0.95], [350, 0.8], [940, 1.0], [1010, 0.85]]:
+		_tree(int(t[0]), float(t[1]))
+	rng.seed = 77
+	for k in 22:
+		var sx := x0 + 6 + int(_hash(k, 41) * (x1 - x0 - 12))
+		var sh := 10 + int(_hash(41, k) * 10.0)
+		var top := GY - 36 - sh
+		if k % 5 == 0:                                  # a cross
+			_rect(sx + 3, top - 6, 3, sh + 6, R2)
+			_rect(sx, top - 2, 9, 3, R2)
+			_px(sx + 3, top - 6, R3)
+		else:
+			_rect(sx, top + 3, 10, sh, R2)
+			_rect(sx + 1, top + 1, 8, 2, R2)
+			_rect(sx + 2, top, 6, 1, R2)
+			_rect(sx, top + 3, 2, sh, R3)
+			_rect(sx + 8, top + 3, 2, sh, R1)
+			_px(sx + 2, top, R3)
+			if _hash(k, 5) < 0.4:
+				_rect(sx + 1, GY - 38, 8, 2, G2)          # moss
+	# The wall.
+	var wt := GY - 36
+	for yy in range(wt, GY):
+		for xx in range(x0, x1):
+			var c := B1 if ((xx + (yy / 4 % 2) * 4) % 8 != 0 and yy % 4 != 3) else B0
+			if _hash(xx / 8, yy / 4) < 0.07 and c == B1:
+				c = B2
+			img.set_pixel(xx, yy, c)
+	_rect(x0, wt - 5, x1 - x0, 5, W3)
+	_rect(x0, wt - 5, x1 - x0, 1, W5)
+	_rect(x0, wt, x1 - x0, 1, T0)
+	for xx in range(x0, x1, 3):                         # ivy on the wall
+		if _hash(xx / 9, 2) < 0.35:
+			for k in int(_hash(xx, 3) * 14.0):
+				_px(xx + int(_hash(xx, k) * 3.0), wt + k, G1 if k % 3 else G2)
+	# Gate: brick piers with stone balls, an open iron gate onto the path.
+	var gx := 290
+	for px_ in [gx, gx + 52]:
+		_bevel(px_, GY - 56, 12, 56, B2, B3, B0)
+		_bevel(px_ - 2, GY - 60, 16, 4, W3, W5, W2)
+		WDisc.draw(self, px_ + 6, GY - 65, 5, W3)
+		_px(px_ + 4, GY - 68, W5)
+	_rect(gx + 12, GY - 56, 40, 56, G1)
+	for yy in range(GY - 20, GY):
+		_rect(gx + 12, yy, 40, 1, W2 if yy % 3 else W1)
+	_line(gx + 12, GY - 52, gx + 32, GY - 58, T0)
+	_rect(gx + 12, GY - 52, 1, 52, T0)
+	for k in range(gx + 14, gx + 30, 3):
+		_rect(k, GY - 52 - (k - gx - 12) / 3, 1, 50 + (k - gx - 12) / 3, T0)
+
+
+func _church_square(x0: int, x1: int) -> void:
+	# Herringbone brick paving instead of the pavement tiles.
+	for yy in range(GY, GY + 10):
+		for xx in range(x0, x1):
+			var u := (xx + yy) / 3
+			var v := (xx - yy + 300) / 3
+			var c := B1
+			if (u + v) % 2 == 0:
+				c = B2 if (u % 3) else B1
+			else:
+				c = W1 if (v % 4) else B0
+			if (xx + yy) % 6 == 0:
+				c = B0
+			img.set_pixel(xx, yy, c)
+	_rect(x0, GY, x1 - x0, 1, T0)
+	_rect(x0, GY + 10, x1 - x0, 1, W2)
+
+
+func _street_pump(x: int) -> void:
+	# An old Amsterdam street pump: green cast iron, a spout and a handle.
+	var b := GY + 8
+	_rect(x - 9, b - 6, 18, 6, R2)
+	_rect(x - 9, b - 6, 18, 1, R3)
+	_rect(x - 5, b - 62, 10, 56, G0)
+	_rect(x - 5, b - 62, 3, 56, G1)
+	_rect(x - 7, b - 66, 14, 4, G0)
+	WDisc.draw(self, x, b - 70, 5, G0)
+	_px(x - 2, b - 72, G2)
+	_rect(x + 5, b - 36, 8, 3, G0)                     # spout
+	_rect(x + 11, b - 34, 2, 3, G0)
+	_line(x - 5, b - 50, x - 22, b - 60, T0)           # handle
+	_line(x - 5, b - 49, x - 22, b - 59, G0)
+	_rect(x - 6, b - 26, 12, 2, O2)                    # a little brass ring
+
+
+func _square_tree(x: int) -> void:
+	# A lime tree on the square, smaller than the graveyard trees.
+	_tree(x, 0.62)

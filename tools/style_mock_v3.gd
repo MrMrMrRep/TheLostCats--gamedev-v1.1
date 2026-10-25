@@ -79,7 +79,7 @@ const FONT3 := {
 	"4": "101101111001001", "5": "111100111001111", "6": "111100111101111", "7": "111001010010010",
 	"8": "111101111101111", "9": "111101111001111", "A": "010101111101101", "C": "011100100100011",
 	"E": "111100110100111", "G": "011100101101011", "H": "101101111101101", "N": "110101101101101",
-	"R": "110101110101101", "T": "111010010010010", "O": "010101101101010", "P": "110101110100100",
+	"R": "110101110101101", "T": "111010010010010", "I": "111010010010111", "X": "101101010101101", "L": "100100100100111", "O": "010101101101010", "P": "110101110100100",
 	" ": "000000000000000",
 }
 
@@ -677,6 +677,8 @@ func _glass(x: int, y: int, w: int, h: int, kind: int) -> void:
 
 
 func _is_glass(x: int, y: int) -> bool:
+	if x < 0 or y < 0 or x >= W or y >= H:
+		return false
 	var c := img.get_pixel(x, y)
 	return c == T0 or c == T1
 
@@ -1338,61 +1340,13 @@ func _rack(x: int) -> void:
 
 
 func _car(x: int, body: Color) -> void:
-	# Boxy 80s hatchback, 124 x 44 art px.
-	var b := WATER - 9
-	var dark := B1 if body == B3 else T2
-	var hi := B4 if body == B3 else T5
-	var shadow := B0 if body == B3 else T1
-	for yy in 4:                                     # shadow under the car
-		for xx in range(x + 4, x + 120):
-			if _bayer(xx, b + yy) < 0.7 - yy * 0.15:
-				_px(xx, b + yy - 2, T0)
-	_rect(x + 2, b - 26, 120, 18, body)              # lower body
-	_rect(x + 2, b - 26, 120, 2, hi)
-	_rect(x + 2, b - 13, 120, 5, dark)
-	_rect(x + 2, b - 14, 120, 1, T0)                 # rubber strip
-	_rect(x + 26, b - 44, 72, 18, body)              # cabin
-	for yy in 6:
-		_rect(x + 20 + yy, b - 32 - yy, 8, 1, body)
-		_rect(x + 98, b - 44 + yy * 3, 10 - yy, 3, body)
-	_rect(x + 26, b - 44, 72, 1, hi)
-	_rect(x + 30, b - 42, 30, 14, T0)                # windows
-	_rect(x + 64, b - 42, 30, 14, T0)
-	_rect(x + 30, b - 42, 30, 2, T1)
-	_rect(x + 64, b - 42, 30, 2, T1)
-	for i in 10:
-		_px(x + 36 + i, b - 30 - i, T5)
-		_px(x + 37 + i, b - 30 - i, T3)
-		_px(x + 70 + i, b - 30 - i, T5)
-		_px(x + 71 + i, b - 30 - i, T3)
-	_rect(x + 61, b - 44, 3, 36, dark)               # B pillar + door seams
-	_rect(x + 28, b - 26, 1, 12, shadow)
-	_rect(x + 62, b - 26, 1, 12, shadow)
-	_rect(x + 96, b - 26, 1, 12, shadow)
-	_rect(x + 52, b - 22, 6, 2, R3)                  # handles
-	_rect(x + 86, b - 22, 6, 2, R3)
-	_rect(x + 98, b - 34, 4, 4, T0)                  # mirror
-	_rect(x + 114, b - 24, 8, 5, W5)                 # headlight
-	_rect(x + 114, b - 24, 8, 1, O3)
-	_rect(x + 116, b - 19, 6, 2, O1)
-	_rect(x + 2, b - 24, 5, 6, B2)                   # tail light
-	_rect(x, b - 12, 10, 4, R2)                      # bumpers
-	_rect(x, b - 12, 10, 1, R3)
-	_rect(x + 114, b - 12, 10, 4, R2)
-	_rect(x + 114, b - 12, 10, 1, R3)
-	_rect(x + 6, b - 20, 14, 5, O2)                  # yellow Dutch plate
-	_text3(x + 7, b - 20, "TL", T0)
-	_rect(x + 30, b - 46, 1, 6, T0)                  # antenna
-	for wx in [x + 24, x + 100]:
-		WDisc.draw(self, wx, b - 8, 10, dark)
-		WDisc.draw(self, wx, b - 7, 9, T0)
-		WDisc.ring(self, wx, b - 7, 7, T1)
-		WDisc.draw(self, wx, b - 7, 5, R2)
-		WDisc.draw(self, wx, b - 7, 2, R3)
-		for a in range(0, 360, 60):
-			var p := Vector2(wx, b - 7) + Vector2(cos(deg_to_rad(a)), sin(deg_to_rad(a))) * 4
-			_px(int(p.x), int(p.y), R1)
-		_px(wx - 3, b - 10, R3)
+	# v3.1: the new vehicle renderer (see Vehicles below).
+	if body == B3:
+		_vehicle(x, WATER - 9, "hatch", "coral")
+	elif body == T3:
+		_vehicle(x, WATER - 9, "wagon", "teal")
+	else:
+		_vehicle(x, WATER - 9, "sedan", "cream")
 
 
 func _terrace(x: int) -> void:
@@ -1730,3 +1684,289 @@ class WDisc:
 		for i in n:
 			var a := TAU * i / n
 			m._px(cx + int(round(cos(a) * r)), cy + int(round(sin(a) * r)), c)
+
+
+# --- Vehicles (v3.1) ----------------------------------------------------------
+# One renderer for every car type: polygon body + cabin, top-lit shading with a
+# crease line, dark glass with a sky band and glare streaks, wheel wells,
+# chrome bumpers, a 1 px navy outline, lights with a soft glow, alloy/steel/gold
+# rims. Facing right; b = the line the tyres stand on.
+
+const VEHICLE_RAMPS := {
+	"red": [B0, B1, B2, B3, B4], "coral": [B1, B2, B3, B4, W5], "yellow": [W1, O1, O2, O3, W5],
+	"teal": [T1, T2, T3, T4, T6], "cream": [W1, W2, W3, W4, W5], "green": [G0, G1, G2, G3, G4],
+	"silver": [R0, R1, R2, R3, W5], "black": [T0, T0, T1, T2, T4], "plum": [T0, T0, P0, R1, R2],
+	"white": [R1, R2, R3, W5, W5], "navy": [T0, T1, T2, T3, T5], "brown": [W0, W0, W1, W2, W3],
+	"orange": [B1, O1, O1, O2, O3],
+}
+
+
+func _vspec(kind: String) -> Dictionary:
+	match kind:
+		"hatch":
+			return {"L": 124, "body": [[0, 8], [0, 25], [4, 28], [116, 28], [124, 21], [124, 8]],
+				"cabin": [[8, 28], [26, 44], [88, 44], [106, 28]],
+				"win": [[[15, 30], [28, 41], [55, 41], [55, 30]], [[59, 30], [59, 41], [86, 41], [99, 30]]],
+				"wheels": [24, 100], "r": 10, "cl": 21, "doors": [57], "head": [118, 18, 6, 5], "tail": [0, 18, 4, 7]}
+		"sedan", "taxi", "police":
+			return {"L": 138, "body": [[0, 8], [0, 25], [3, 29], [32, 30], [110, 30], [134, 26], [138, 22], [138, 8]],
+				"cabin": [[30, 30], [48, 44], [92, 44], [110, 30]],
+				"win": [[[38, 32], [50, 41], [68, 41], [68, 32]], [[72, 32], [72, 41], [90, 41], [102, 32]]],
+				"wheels": [27, 112], "r": 10, "cl": 22, "doors": [70], "head": [132, 19, 6, 5], "tail": [0, 19, 4, 7]}
+		"wagon":
+			return {"L": 142, "body": [[0, 8], [0, 30], [140, 30], [142, 25], [142, 8]],
+				"cabin": [[1, 30], [3, 47], [98, 47], [114, 30]],
+				"win": [[[8, 32], [8, 44], [36, 44], [36, 32]], [[40, 32], [40, 44], [68, 44], [68, 32]], [[72, 32], [72, 44], [96, 44], [108, 32]]],
+				"wheels": [27, 114], "r": 10, "cl": 23, "doors": [38, 70], "head": [135, 20, 7, 6], "tail": [0, 18, 4, 10]}
+		"coupe":
+			return {"L": 132, "body": [[0, 8], [0, 25], [3, 27], [70, 27], [132, 19], [132, 8]],
+				"cabin": [[18, 27], [44, 38], [76, 38], [98, 25]],
+				"win": [[[28, 28], [45, 36], [60, 36], [60, 28]], [[64, 28], [64, 36], [75, 36], [90, 26]]],
+				"wheels": [25, 108], "r": 10, "cl": 17, "doors": [62], "head": [126, 14, 6, 3], "tail": [0, 17, 4, 8]}
+		"mpv":
+			return {"L": 134, "body": [[0, 8], [0, 31], [126, 31], [134, 25], [134, 8]],
+				"cabin": [[1, 31], [4, 55], [84, 55], [124, 31]],
+				"win": [[[8, 34], [8, 51], [34, 51], [34, 34]], [[38, 34], [38, 51], [66, 51], [66, 34]], [[70, 34], [70, 51], [84, 51], [112, 34]]],
+				"wheels": [25, 110], "r": 11, "cl": 24, "doors": [36, 68], "head": [128, 21, 6, 6], "tail": [0, 20, 4, 10]}
+		"duck":
+			return {"L": 112, "body": [[0, 8], [1, 22], [8, 27], [96, 28], [106, 24], [112, 16], [112, 8]],
+				"cabin": [[8, 27], [14, 38], [28, 46], [70, 46], [84, 40], [94, 28]],
+				"win": [[[19, 30], [25, 41], [47, 43], [47, 30]], [[51, 30], [51, 43], [72, 43], [84, 30]]],
+				"wheels": [22, 93], "r": 10, "cl": 19, "doors": [49], "head": [100, 26, 8, 8], "tail": [0, 16, 3, 5]}
+		"van":
+			return {"L": 152, "body": [[0, 8], [0, 62], [114, 62], [118, 60], [140, 36], [152, 30], [152, 8]],
+				"cabin": [], "win": [[[116, 36], [116, 57], [119, 57], [138, 36]]],
+				"wheels": [30, 126], "r": 11, "cl": 26, "doors": [112, 80], "head": [146, 22, 6, 6], "tail": [0, 22, 4, 12]}
+		"bus":
+			var wins := []
+			for i in 8:
+				wins.append([[10 + i * 34, 52], [10 + i * 34, 82], [40 + i * 34, 82], [40 + i * 34, 52]])
+			wins.append([[290, 40], [290, 84], [318, 84], [328, 60], [328, 40]])
+			return {"L": 330, "body": [[0, 8], [0, 90], [320, 90], [330, 82], [330, 8]], "cabin": [], "win": wins,
+				"wheels": [52, 272], "r": 13, "cl": 46, "doors": [], "head": [324, 20, 6, 8], "tail": [0, 20, 4, 14]}
+	return _vspec("hatch")
+
+
+func _vpoly(x: int, b: int, pts: Array) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for p: Array in pts:
+		out.append(Vector2(x + int(p[0]), b - int(p[1])))
+	return out
+
+
+func _is_glass_col(c: Color) -> bool:
+	return c == T0 or c == T1 or c == T2 or c == T3 or c == T5
+
+
+func _vehicle(x: int, b: int, kind: String, colour: String) -> void:
+	var s := _vspec(kind)
+	var rp: Array = VEHICLE_RAMPS.get(colour, VEHICLE_RAMPS["silver"])
+	var c_sh: Color = rp[0]
+	var c_dk: Color = rp[1]
+	var c_md: Color = rp[2]
+	var c_lt: Color = rp[3]
+	var c_sp: Color = rp[4]
+	var L: int = s["L"]
+	var cl: int = s["cl"]
+	var wr: int = s["r"]
+	var body := _vpoly(x, b, s["body"])
+	var has_cab: bool = (s["cabin"] as Array).size() > 0
+	var cab := _vpoly(x, b, s["cabin"]) if has_cab else PackedVector2Array()
+	var m := {}
+	# 1. Silhouette.
+	for yy in range(b - 100, b):
+		for xx in range(x - 2, x + L + 2):
+			var p := Vector2(xx + 0.5, yy + 0.5)
+			if Geometry2D.is_point_in_polygon(p, body) or (has_cab and Geometry2D.is_point_in_polygon(p, cab)):
+				m[Vector2i(xx, yy)] = c_md
+	# 2. Shading: lit top edges, crease line, darker lower body, rocker shadow, side edges.
+	for k: Vector2i in m.keys():
+		var h := b - k.y
+		var d := 0
+		while d < 3 and m.has(Vector2i(k.x, k.y - d - 1)):
+			d += 1
+		var c := c_md
+		if d == 0:
+			c = c_sp
+		elif d == 1:
+			c = c_lt
+		elif h == cl:
+			c = c_lt
+		elif h == cl - 1:
+			c = c_dk
+		elif h < 12:
+			c = c_dk
+		if h < 9:
+			c = c_sh
+		if c == c_md and not m.has(Vector2i(k.x + 1, k.y)):
+			c = c_dk
+		if c == c_md and not m.has(Vector2i(k.x - 1, k.y)):
+			c = c_lt
+		m[k] = c
+	# 3. Glass: dark, a sky band at the top, two diagonal glare streaks.
+	for w: Array in s["win"]:
+		var poly := _vpoly(x, b, w)
+		var r := Rect2i(int(poly[0].x), int(poly[0].y), 0, 0)
+		for q in poly:
+			r = r.expand(Vector2i(int(q.x), int(q.y)))
+		for yy in range(r.position.y, r.end.y + 1):
+			for xx in range(r.position.x, r.end.x + 1):
+				if Geometry2D.is_point_in_polygon(Vector2(xx + 0.5, yy + 0.5), poly):
+					var c := T0
+					var ry := yy - r.position.y
+					if ry < 2:
+						c = T1
+					elif ry < 4:
+						c = T2
+					var g := ((xx - r.position.x) + ry) % 26
+					if g >= 6 and g <= 8:
+						c = T5 if g == 7 else T3
+					elif g == 12:
+						c = T3
+					m[Vector2i(xx, yy)] = c
+	# 4. Door seams + handles.
+	for dxs: int in s["doors"]:
+		for yy in range(b - cl - 9, b - 9):
+			var k := Vector2i(x + dxs, yy)
+			if m.has(k) and not _is_glass_col(m[k]):
+				m[k] = c_sh
+		for i in 4:
+			m[Vector2i(x + dxs - 8 + i, b - cl + 2)] = R3
+	# 5. Wheel wells.
+	for wx: int in s["wheels"]:
+		var cx := x + wx
+		var cy := b - wr
+		for yy in range(cy - wr - 3, b):
+			for xx in range(cx - wr - 3, cx + wr + 4):
+				var dd := (xx - cx) * (xx - cx) + (yy - cy) * (yy - cy)
+				var k := Vector2i(xx, yy)
+				if dd <= (wr + 2) * (wr + 2) and m.has(k):
+					m[k] = T0 if dd <= (wr + 1) * (wr + 1) else c_sh
+	# 6. Chrome bumpers.
+	for bx: int in [x - 2, x + L - 10]:
+		for yy in range(b - 14, b - 9):
+			for xx in range(bx, bx + 12):
+				m[Vector2i(xx, yy)] = W5 if yy == b - 14 else R3
+		for xx in range(bx, bx + 12):
+			m[Vector2i(xx, b - 9)] = R1
+	# 7. Ground shadow, outline, then the body itself.
+	for yy in 4:
+		for xx in range(x + 2, x + L - 2):
+			if _bayer(xx, b + yy) < 0.75 - yy * 0.18:
+				_px(xx, b + yy - 1, T0)
+	for k: Vector2i in m.keys():
+		for o in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			if not m.has(k + o):
+				_px(k.x + o.x, k.y + o.y, T0)
+	for k: Vector2i in m.keys():
+		_px(k.x, k.y, m[k])
+	# 8. Wheels.
+	var style := "alloy"
+	if kind == "coupe":
+		style = "gold"
+	elif kind in ["duck", "bus", "van"]:
+		style = "steel"
+	for wx: int in s["wheels"]:
+		var cx := x + wx
+		var cy := b - wr
+		WDisc.draw(self, cx, cy, wr, T0)
+		WDisc.ring(self, cx, cy, wr - 1, T1)
+		if style == "gold":
+			WDisc.draw(self, cx, cy, wr - 4, O1)
+			WDisc.ring(self, cx, cy, wr - 4, O2)
+			for a in range(0, 360, 72):
+				var e := Vector2(cos(deg_to_rad(a)), sin(deg_to_rad(a))) * (wr - 5)
+				_line(cx, cy, cx + int(round(e.x)), cy + int(round(e.y)), O2)
+		elif style == "steel":
+			WDisc.draw(self, cx, cy, wr - 4, R1)
+			WDisc.ring(self, cx, cy, wr - 5, R2)
+			WDisc.draw(self, cx, cy, 2, R3)
+		else:
+			WDisc.draw(self, cx, cy, wr - 3, R2)
+			WDisc.ring(self, cx, cy, wr - 3, R3)
+			for a in range(0, 360, 60):
+				var e := Vector2(cos(deg_to_rad(a)), sin(deg_to_rad(a))) * (wr - 5)
+				_px(cx + int(round(e.x)), cy + int(round(e.y)), R1)
+			WDisc.draw(self, cx, cy, 2, R3)
+		_px(cx - 3, cy - wr + 2, R2)
+		_px(cx - 4, cy - wr + 3, R2)
+	# 9. Lights with a soft glow ahead of the car.
+	var hd: Array = s["head"]
+	var hx: int = hd[0]
+	var hh: int = hd[1]
+	var hw: int = hd[2]
+	var hht: int = hd[3]
+	_rect(x + hx, b - hh - hht, hw, hht, W5)
+	_rect(x + hx, b - hh - hht, hw, 1, O3)
+	for yy in range(b - hh - hht - 3, b - hh + 3):
+		for xx in range(x + L + 1, x + L + 7):
+			if _bayer(xx, yy) < 0.5 - (xx - x - L) * 0.08:
+				_px(xx, yy, O3)
+	var tl: Array = s["tail"]
+	_rect(x + int(tl[0]), b - int(tl[1]) - int(tl[3]), int(tl[2]), int(tl[3]), B2)
+	_rect(x + int(tl[0]), b - int(tl[1]) - int(tl[3]), int(tl[2]), 1, B4)
+	_px(x + int(tl[0]) + 1, b - int(tl[1]) - 2, O1)
+	# 10. Plate, mirror and the extras per type.
+	_rect(x + 2, b - 20, 12, 5, O2)
+	_text3(x + 3, b - 20, "TL", T0)
+	if has_cab:
+		var cf := 0
+		for p: Array in s["cabin"]:
+			cf = maxi(cf, int(p[0]))
+		_rect(x + cf - 6, b - cl - 8, 4, 4, T0)
+		_px(x + cf - 6, b - cl - 8, c_lt)
+	match kind:
+		"wagon":
+			_rect(x + 8, b - 50, 86, 2, T0)
+			for k in [10, 50, 90]:
+				_rect(x + k, b - 49, 2, 2, T0)
+		"coupe":
+			_rect(x - 2, b - 31, 18, 3, c_dk)
+			_rect(x - 2, b - 31, 18, 1, c_lt)
+			_rect(x + 4, b - 28, 2, 3, T0)
+			for xx in range(x + 4, x + L - 6):
+				for yy in [b - 20, b - 19]:
+					var k := Vector2i(xx, yy)
+					if m.has(k) and not _is_glass_col(m[k]) and m[k] != R3 and m[k] != W5:
+						_px(xx, yy, W5 if colour != "white" else B2)
+		"duck":
+			for xx in range(x + 30, x + 68):
+				for yy in range(b - 45, b - 42):
+					_px(xx, yy, T1 if (xx / 3) % 2 else T2)
+			for k in range(x + L - 30, x + L - 10, 3):
+				_line(k, b - 27, k + 2, b - 15, c_dk)
+		"taxi":
+			_rect(x + 56, b - 50, 26, 6, T0)
+			_rect(x + 57, b - 49, 24, 4, O3)
+			_text3(x + 58, b - 49, "TAXI", T0)
+			for xx in range(x + 4, x + L - 4, 4):
+				if m.has(Vector2i(xx, b - 17)):
+					_px(xx, b - 17, T0)
+					_px(xx + 1, b - 16, T0)
+		"police":
+			for xx in range(x + 3, x + L - 3):
+				for yy in range(b - 22, b - 15):
+					var k := Vector2i(xx, yy)
+					if m.has(k) and not _is_glass_col(m[k]) and m[k] != R3 and m[k] != W5:
+						var c := T2 if yy < b - 18 else O1
+						if yy < b - 18 and ((xx / 5) + (yy / 2)) % 2 == 0:
+							c = T3
+						_px(xx, yy, c)
+			_rect(x + 60, b - 49, 22, 4, T0)
+			_rect(x + 61, b - 48, 9, 2, T4)
+			_rect(x + 72, b - 48, 9, 2, B3)
+		"bus":
+			_rect(x + 292, b - 88, 30, 8, T0)
+			_text3(x + 294, b - 86, "A1", O3)
+			for k in [120, 200]:
+				_rect(x + k, b - 80, 26, 70, T0)
+				_rect(x + k + 2, b - 78, 10, 66, T2)
+				_rect(x + k + 14, b - 78, 10, 66, T2)
+			_rect(x + 4, b - 40, 250, 6, O2)
+			_rect(x + 4, b - 34, 250, 2, B2)
+			_rect(x + 40, b - 96, 80, 6, R2)              # roof air-con
+			_rect(x + 40, b - 96, 80, 1, R3)
+		"van":
+			_rect(x + 10, b - 48, 90, 14, c_lt)
+			_text3(x + 16, b - 44, "TL", B1)
+			_rect(x + 6, b - 60, 104, 1, c_dk)
