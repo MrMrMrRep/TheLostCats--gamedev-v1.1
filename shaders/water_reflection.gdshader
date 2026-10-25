@@ -18,10 +18,10 @@ uniform float water_top_uv = 0.8;           // waterline, 0..1 of the screen hei
 uniform float px_per_world = 2.0;           // screen pixels per world pixel
 uniform float night = 0.0;                  // 0 by day .. 1 at night
 uniform float depth_rows = 90.0;            // world rows over which the water darkens
-uniform float tint_near = 0.42;             // how much water colour shows by the quay
-uniform float tint_far = 0.72;              // ... and far out
+uniform float tint_near = 0.62;             // how much water colour shows by the quay
+uniform float tint_far = 0.86;              // ... and far out
 uniform float squash = 0.94;                // mirror height (1 = exact)
-uniform float ripple = 1.0;                 // ripple strength
+uniform float ripple = 0.45;                // ripple strength (calm: the mirror shouldn't smear)
 uniform float world_left = 0.0;           // world x of the screen's left edge (keeps ripples in place)
 uniform float skip_rows = 22.0;             // world rows between the waterline and the street (the mirror shows what stands on it)
 
@@ -65,11 +65,11 @@ void fragment() {
 	float src_row = floor(floor(row / 2.0) * 2.0 * squash) + 1.0 + skip_rows;   // rows in pairs: calm
 	vec2 ruv = vec2(SCREEN_UV.x + sway * px_per_world * px.x, water_top_uv - (src_row - 0.5) * px_per_world * px.y);
 	ruv.y = max(ruv.y, px.y * 0.5);                               // above the screen: the sky's top row
-	// A soft mirror: five samples across (a little blur), not a sharp copy.
+	// A calm mirror: three samples across (just enough to soften the pixels),
+	// tinted well into the water colour so it never competes with the street.
 	vec2 dx = vec2(px_per_world * px.x, 0.0);
-	vec3 s = (texture(screen_tex, ruv).rgb * 3.0
-		+ (texture(screen_tex, ruv - dx).rgb + texture(screen_tex, ruv + dx).rgb) * 2.0
-		+ texture(screen_tex, ruv - dx * 2.0).rgb + texture(screen_tex, ruv + dx * 2.0).rgb) / 9.0;
+	vec3 s = (texture(screen_tex, ruv).rgb * 2.0
+		+ texture(screen_tex, ruv - dx).rgb + texture(screen_tex, ruv + dx).rgb) / 4.0;
 	// Mirror in its own colours, darker and bluer with distance.
 	vec3 water = mix(water_color.rgb, deep_color.rgb, depth);
 	vec3 c = mix(s * 0.9, water, mix(tint_near, tint_far, depth));
@@ -83,7 +83,7 @@ void fragment() {
 	float h = hash(vec2(seg, row));
 	float inside = smoothstep(0.0, 2.0, mod(pos, len)) * smoothstep(len * 0.6, len * 0.6 - 2.0, mod(pos, len));
 	if (row > 3.0) {
-		c = mix(c, highlight.rgb, 0.3 * smoothstep(0.8, 1.0, crest) * step(0.75, h) * inside);
+		c = mix(c, highlight.rgb, 0.42 * smoothstep(0.8, 1.0, crest) * step(0.78, h) * inside);
 		c = mix(c, deep_color.rgb, 0.25 * smoothstep(-0.8, -1.0, crest) * step(0.6, h) * inside);
 	}
 	// At night warm lights (windows, lamps) stay gold and bright.
