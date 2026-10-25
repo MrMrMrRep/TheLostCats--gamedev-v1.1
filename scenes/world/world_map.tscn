@@ -54,6 +54,7 @@ shader_parameter/tint_near = 0.42
 shader_parameter/tint_far = 0.72
 shader_parameter/squash = 0.94
 shader_parameter/ripple = 1.0
+shader_parameter/world_left = 0.0
 shader_parameter/skip_rows = 36.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_x5aeg"]
@@ -70,6 +71,7 @@ shader_parameter/tint_near = 0.42
 shader_parameter/tint_far = 0.72
 shader_parameter/squash = 0.94
 shader_parameter/ripple = 1.0
+shader_parameter/world_left = 0.0
 shader_parameter/skip_rows = 36.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ink1j"]
@@ -86,6 +88,7 @@ shader_parameter/tint_near = 0.42
 shader_parameter/tint_far = 0.72
 shader_parameter/squash = 0.94
 shader_parameter/ripple = 1.0
+shader_parameter/world_left = 0.0
 shader_parameter/skip_rows = 36.0
 
 [node name="WorldMap" type="Node2D" unique_id=1907990674]
@@ -719,81 +722,6 @@ kind = 4
 length = 100.0
 seed_value = 113
 
-[node name="PeopleBack" type="Node2D" parent="." unique_id=452844296]
-position = Vector2(0, 288)
-script = ExtResource("14_1pnen")
-
-[node name="TrafficBack" type="Node2D" parent="." unique_id=17328989]
-position = Vector2(0, 288)
-script = ExtResource("15_7kcv0")
-town = Vector2(6000, 18240)
-map_width = 21600.0
-map_min = -4000.0
-
-[node name="Signs" type="Node2D" parent="." unique_id=506889379]
-
-[node name="WestRoad" type="Node2D" parent="Signs" unique_id=35399797]
-
-[node name="Gantry0" type="Node2D" parent="Signs/WestRoad" unique_id=1745374182]
-position = Vector2(2300, 288)
-script = ExtResource("18_2xpb7")
-signs = PackedStringArray("Utrecht|A2", "Schiphol|A4")
-
-[node name="Gantry1" type="Node2D" parent="Signs/WestRoad" unique_id=606566643]
-position = Vector2(200, 288)
-script = ExtResource("18_2xpb7")
-signs = PackedStringArray("Haarlem|A9", "Amsterdam|A10")
-
-[node name="Gantry2" type="Node2D" parent="Signs/WestRoad" unique_id=1378112247]
-position = Vector2(-1800, 288)
-script = ExtResource("18_2xpb7")
-signs = PackedStringArray("Den Haag|A4", "Leiden|A44")
-
-[node name="MotorwayLampsWest" type="Node2D" parent="Signs/WestRoad" unique_id=1477142436]
-position = Vector2(-3950, 288)
-script = ExtResource("17_x5aeg")
-length = 9900.0
-
-[node name="Viaduct" type="Node2D" parent="Signs" unique_id=1226381908]
-
-[node name="Sign50" type="Node2D" parent="Signs/Viaduct" unique_id=1735456731]
-position = Vector2(6050, 288)
-script = ExtResource("16_h2iuf")
-structure = false
-only_sign = "50"
-
-[node name="Sign100" type="Node2D" parent="Signs/Viaduct" unique_id=477356368]
-position = Vector2(5450, 288)
-script = ExtResource("16_h2iuf")
-structure = false
-only_sign = "100"
-
-[node name="Fork" type="Node2D" parent="Signs/Viaduct" unique_id=1846335162]
-position = Vector2(4660, 288)
-script = ExtResource("17_8fuv1")
-
-[node name="Airport" type="Node2D" parent="Signs" unique_id=588588043]
-
-[node name="Gantry3" type="Node2D" parent="Signs/Airport" unique_id=4207087]
-position = Vector2(20550, 288)
-script = ExtResource("18_2xpb7")
-signs = PackedStringArray("Schiphol|A4", "Amsterdam|A10")
-
-[node name="MotorwayLampsEast" type="Node2D" parent="Signs/Airport" unique_id=462057339]
-position = Vector2(18300, 288)
-script = ExtResource("17_x5aeg")
-length = 3250.0
-
-[node name="RoadBlockWest" type="StaticBody2D" parent="." unique_id=1499203911]
-position = Vector2(-3960, 288)
-collision_mask = 0
-script = ExtResource("19_u1jm8")
-
-[node name="RoadBlockEast" type="StaticBody2D" parent="." unique_id=37812092]
-position = Vector2(21560, 288)
-collision_mask = 0
-script = ExtResource("19_u1jm8")
-
 [node name="Places" type="Node2D" parent="." unique_id=760997711]
 
 [node name="Viaduct" type="Node2D" parent="Places" unique_id=1949410878]
@@ -912,6 +840,81 @@ script = ExtResource("23_86d8r")
 kind = 1
 save_id = &"van_x"
 area_size = Vector2(76, 34)
+
+[node name="PeopleBack" type="Node2D" parent="." unique_id=452844296]
+position = Vector2(0, 288)
+script = ExtResource("14_1pnen")
+
+[node name="TrafficBack" type="Node2D" parent="." unique_id=17328989]
+position = Vector2(0, 288)
+script = ExtResource("15_7kcv0")
+town = Vector2(6000, 18240)
+map_width = 21600.0
+map_min = -4000.0
+
+[node name="Signs" type="Node2D" parent="." unique_id=506889379]
+
+[node name="WestRoad" type="Node2D" parent="Signs" unique_id=35399797]
+
+[node name="Gantry0" type="Node2D" parent="Signs/WestRoad" unique_id=1745374182]
+position = Vector2(2300, 288)
+script = ExtResource("18_2xpb7")
+signs = PackedStringArray("Utrecht|A2", "Schiphol|A4")
+
+[node name="Gantry1" type="Node2D" parent="Signs/WestRoad" unique_id=606566643]
+position = Vector2(200, 288)
+script = ExtResource("18_2xpb7")
+signs = PackedStringArray("Haarlem|A9", "Amsterdam|A10")
+
+[node name="Gantry2" type="Node2D" parent="Signs/WestRoad" unique_id=1378112247]
+position = Vector2(-1800, 288)
+script = ExtResource("18_2xpb7")
+signs = PackedStringArray("Den Haag|A4", "Leiden|A44")
+
+[node name="MotorwayLampsWest" type="Node2D" parent="Signs/WestRoad" unique_id=1477142436]
+position = Vector2(-3950, 288)
+script = ExtResource("17_x5aeg")
+length = 9900.0
+
+[node name="Viaduct" type="Node2D" parent="Signs" unique_id=1226381908]
+
+[node name="Sign50" type="Node2D" parent="Signs/Viaduct" unique_id=1735456731]
+position = Vector2(6050, 288)
+script = ExtResource("16_h2iuf")
+structure = false
+only_sign = "50"
+
+[node name="Sign100" type="Node2D" parent="Signs/Viaduct" unique_id=477356368]
+position = Vector2(5450, 288)
+script = ExtResource("16_h2iuf")
+structure = false
+only_sign = "100"
+
+[node name="Fork" type="Node2D" parent="Signs/Viaduct" unique_id=1846335162]
+position = Vector2(4660, 288)
+script = ExtResource("17_8fuv1")
+
+[node name="Airport" type="Node2D" parent="Signs" unique_id=588588043]
+
+[node name="Gantry3" type="Node2D" parent="Signs/Airport" unique_id=4207087]
+position = Vector2(20550, 288)
+script = ExtResource("18_2xpb7")
+signs = PackedStringArray("Schiphol|A4", "Amsterdam|A10")
+
+[node name="MotorwayLampsEast" type="Node2D" parent="Signs/Airport" unique_id=462057339]
+position = Vector2(18300, 288)
+script = ExtResource("17_x5aeg")
+length = 3250.0
+
+[node name="RoadBlockWest" type="StaticBody2D" parent="." unique_id=1499203911]
+position = Vector2(-3960, 288)
+collision_mask = 0
+script = ExtResource("19_u1jm8")
+
+[node name="RoadBlockEast" type="StaticBody2D" parent="." unique_id=37812092]
+position = Vector2(21560, 288)
+collision_mask = 0
+script = ExtResource("19_u1jm8")
 
 [node name="Band" parent="." unique_id=1097071013 instance=ExtResource("26_st8kn")]
 
