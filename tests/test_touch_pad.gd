@@ -19,7 +19,7 @@ func _run() -> void:
 	if not InputMap.has_action(&"sprint"):
 		InputMap.add_action(&"sprint")
 
-	var jump_at: Vector2 = pad.BUTTONS[0][2]
+	var jump_at: Vector2 = pad._centre(0)
 	await _touch(0, jump_at, true)
 	_check(Input.is_action_pressed(&"jump"), "touching JUMP presses jump")
 	# Second finger on the stick, pushed right while jump is still held.
@@ -39,7 +39,7 @@ func _run() -> void:
 	await _touch(0, jump_at, false)
 	_check(not Input.is_action_pressed(&"jump"), "lifting releases jump")
 
-	var e_at: Vector2 = pad.BUTTONS[3][2]
+	var e_at: Vector2 = pad._centre(3)
 	await _touch(2, e_at, true)
 	_check(Input.is_action_pressed(&"interact"), "E button presses interact")
 	var key := InputEventKey.new()

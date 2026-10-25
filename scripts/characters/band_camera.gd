@@ -15,6 +15,7 @@ extends Camera2D
 
 var target: Node2D
 var fixed_y := NAN                          # world map: keep the view at this height
+var bounds := Rect2i()                      # the current room (set_bounds)
 
 var _shake := 0.0                           # px, fading
 var _shake_time := 0.0
@@ -30,6 +31,7 @@ func _ready() -> void:
 	process_callback = Camera2D.CAMERA2D_PROCESS_PHYSICS
 	position_smoothing_enabled = true
 	position_smoothing_speed = 8.0
+	get_viewport().size_changed.connect(_apply_limits)
 
 
 func follow(new_target: Node2D, instant := false) -> void:
@@ -83,10 +85,23 @@ func _process(delta: float) -> void:
 		_shake = 0.0
 
 
-func set_bounds(bounds: Rect2i) -> void:
-	limit_left = bounds.position.x
+func set_bounds(room: Rect2i) -> void:
+	bounds = room
+	_apply_limits()
+
+
+## The room's limits. A room narrower than the screen (wide phone screens)
+## sits in the middle instead of against one side.
+func _apply_limits() -> void:
+	var left := bounds.position.x
+	var right := bounds.end.x
+	var spare := get_viewport_rect().size.x / zoom.x - float(bounds.size.x)
+	if spare > 0.0:
+		left -= ceili(spare / 2.0)
+		right += ceili(spare / 2.0)
+	limit_left = left
 	limit_top = bounds.position.y
-	limit_right = bounds.end.x
+	limit_right = right
 	limit_bottom = bounds.end.y
 
 

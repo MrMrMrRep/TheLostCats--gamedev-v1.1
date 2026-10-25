@@ -27,6 +27,8 @@ func _ready() -> void:
 			_skip_button(Vector2(x, 37), h)
 			x += 24.0
 	_radio.add_theme_color_override("font_color", Color("ffd36b"))
+	for l in [_coins, _clock, _radio]:
+		ScreenFit.pin(l, 1.0)               # top right, also on wide screens
 	Game.coins_changed.connect(func(_c: int) -> void: refresh())
 	Game.flag_changed.connect(func(_f: StringName, _v: Variant) -> void: refresh())
 	refresh()
@@ -84,6 +86,7 @@ func _skip_button(pos: Vector2, hours: int) -> void:
 	b.pressed.connect(func() -> void: skip_requested.emit(float(hours)))
 	add_child(b)
 	b.size = Vector2.ZERO                    # shrink to fit the small font (else it keeps the default height)
+	ScreenFit.pin(b, 1.0)
 
 
 func _label(pos: Vector2, size_px: Vector2, align: HorizontalAlignment) -> Label:

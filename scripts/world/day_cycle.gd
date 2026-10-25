@@ -58,7 +58,7 @@ func sleep(hours: float) -> void:
 	add_child(layer)
 	var black := ColorRect.new()
 	black.color = Color(0.02, 0.02, 0.05, 0.0)
-	black.size = Vector2(640, 360)
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
 	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(black)
 	var text := Label.new()
@@ -67,6 +67,7 @@ func sleep(hours: float) -> void:
 	text.position = Vector2(0, 170)
 	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text.add_theme_font_size_override("font_size", 12)
+	ScreenFit.full_width(text)
 	text.modulate.a = 0.0
 	layer.add_child(text)
 	var tw := create_tween()

@@ -16,6 +16,13 @@ var time_of_day := -1.0                     # clock hour 0..24 on the world map 
 var _flags: Dictionary = {}
 
 
+func _ready() -> void:
+	# Browser and phone: scale by any amount so the game fills the whole screen
+	# (the width follows the screen, no stretching). Desktop keeps whole-pixel scaling.
+	if OS.has_feature("web") or OS.has_feature("mobile"):
+		get_tree().root.content_scale_stretch = Window.CONTENT_SCALE_STRETCH_FRACTIONAL
+
+
 func switch_member(index: int) -> void:
 	index = wrapi(index, 0, MEMBERS.size())
 	if index == active_member:

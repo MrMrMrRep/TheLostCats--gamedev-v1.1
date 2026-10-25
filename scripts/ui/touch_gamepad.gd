@@ -20,7 +20,8 @@ const STICK_AREA := Rect2(0, 60, 300, 300)   # where a touch grabs the stick
 const HIT_SLACK := 6.0             # extra px around a button that still counts
 const MOUSE_FINGER := 99
 
-# [action, label, centre, radius] in the 640x360 base screen.
+# [action, label, centre, radius] on the 640x360 base screen. Buttons on the
+# right half stay the same distance from the right edge on wider screens.
 const BUTTONS := [
 	[&"jump", "JUMP", Vector2(598, 306), 24.0],
 	[&"action_a", "ABIL", Vector2(546, 322), 18.0],
@@ -60,6 +61,7 @@ func _ready() -> void:
 	_view.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_view.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_view.draw.connect(_draw_pad)
+	get_viewport().size_changed.connect(_view.queue_redraw)
 	add_child(_view)
 	forced = "--touchpad" in OS.get_cmdline_user_args()
 	_set_enabled(forced or is_touch_device())
@@ -110,7 +112,7 @@ func _on_touch(finger: int, pos: Vector2, pressed: bool) -> void:
 			_fingers[finger] = "stick"
 			_stick_finger = finger
 			_stick_origin = pos.clamp(Vector2(STICK_RADIUS + 4, STICK_AREA.position.y + STICK_RADIUS),
-					Vector2(STICK_AREA.end.x - STICK_RADIUS, 360 - STICK_RADIUS - 4))
+					Vector2(STICK_AREA.end.x - STICK_RADIUS, ScreenFit.BASE.y - STICK_RADIUS - 4))
 			_update_stick(pos)
 		else:
 			return
@@ -201,11 +203,19 @@ func _set_enabled(on: bool) -> void:
 		_release_all()
 
 
+## Where button `i` is on the real screen.
+func _centre(i: int) -> Vector2:
+	var c: Vector2 = BUTTONS[i][2]
+	if c.x > ScreenFit.BASE.x / 2.0:
+		c.x += ScreenFit.width(_view) - ScreenFit.BASE.x
+	return c
+
+
 func _button_at(pos: Vector2) -> int:
 	var best := -1
 	var best_d := INF
 	for i in BUTTONS.size():
-		var d: float = pos.distance_to(BUTTONS[i][2])
+		var d: float = pos.distance_to(_centre(i))
 		if d <= BUTTONS[i][3] + HIT_SLACK and d < best_d:
 			best = i
 			best_d = d
@@ -224,7 +234,7 @@ func _draw_pad() -> void:
 	_view.draw_arc(knob, KNOB_RADIUS, 0, TAU, 20, COL_EDGE, 1.0)
 
 	for i in BUTTONS.size():
-		var c: Vector2 = BUTTONS[i][2]
+		var c := _centre(i)
 		var r: float = BUTTONS[i][3]
 		_view.draw_circle(c, r, COL_FILL_DOWN if _down.has(i) else COL_FILL)
 		_view.draw_arc(c, r, 0, TAU, 24, COL_EDGE, 1.0)
