@@ -12,15 +12,18 @@ var _menu: MenuList
 func _ready() -> void:
 	Audio.music(&"map_calm")
 	add_child(WorldSky.new())
+	var cam := Camera2D.new()                    # keeps the scene centred on wide screens
+	cam.position = ScreenFit.BASE / 2.0
+	add_child(cam)
 	var ground := ColorRect.new()                # a strip of street and canal
 	ground.color = WorldPalette.COBBLE
-	ground.position = Vector2(0, 250)
-	ground.size = Vector2(640, 14)
+	ground.position = Vector2(-320, 250)
+	ground.size = Vector2(1280, 14)
 	add_child(ground)
 	var water := ColorRect.new()
 	water.color = WorldPalette.WATER
-	water.position = Vector2(0, 264)
-	water.size = Vector2(640, 96)
+	water.position = Vector2(-320, 264)
+	water.size = Vector2(1280, 96)
 	add_child(water)
 	for i in PROFILES.size():                    # the band, idling
 		var prof: MovementProfile = load("res://resources/profiles/%s.tres" % PROFILES[i])
@@ -44,6 +47,7 @@ func _ready() -> void:
 	_menu.spacing = 20.0
 	_menu.font_size = 13
 	ui.add_child(_menu)
+	ScreenFit.pin(_menu, 0.5)
 	_menu.set_options(["Start the tour", "Go to the base", "Quit"])
 	_menu.chosen.connect(_on_chosen)
 
@@ -58,6 +62,7 @@ func _text(t: String, pos: Vector2, size: int, color: Color) -> Label:
 	l.add_theme_color_override("font_color", color)
 	l.add_theme_color_override("font_outline_color", Color("1d1a22"))
 	l.add_theme_constant_override("outline_size", 6)
+	ScreenFit.full_width(l)
 	return l
 
 

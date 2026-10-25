@@ -6,7 +6,7 @@ extends CanvasLayer
 ## always fills the screen. The day/night cycle (WorldDayCycle) sets its
 ## colours and the time via set_time(); without it, it's a sunny morning.
 
-const VIEW := Vector2(640, 360)
+const VIEW := Vector2(1024, 360)            # drawn wider than the base screen: phones are wider than 16:9
 const FAR_PARALLAX := 0.04
 const NEAR_PARALLAX := 0.1
 const FAR_DRIFT := 3.0                      # px/s
@@ -48,11 +48,12 @@ func set_time(hour: float, colours: Array[Color], night: float, cloud_tint: Colo
 	# the moon follows the same path through the night.
 	var t := (hour - 6.0) / 14.5
 	_sun.visible = t > -0.05 and t < 1.05
-	_sun.position = Vector2(lerpf(600.0, 40.0, t), 200.0 - sin(clampf(t, 0.0, 1.0) * PI) * 170.0).round()
+	var w := ScreenFit.width(_gradient)
+	_sun.position = Vector2(lerpf(w - 40.0, 40.0, t), 200.0 - sin(clampf(t, 0.0, 1.0) * PI) * 170.0).round()
 	_sun.warm = 1.0 - sin(clampf(t, 0.0, 1.0) * PI)
 	var m := fposmod(hour - 19.0, 24.0) / 12.0
 	_moon.visible = m < 1.0 and night > 0.01
-	_moon.position = Vector2(lerpf(600.0, 40.0, m), 210.0 - sin(m * PI) * 160.0).round()
+	_moon.position = Vector2(lerpf(w - 40.0, 40.0, m), 210.0 - sin(m * PI) * 160.0).round()
 	_moon.modulate.a = night
 	_far.modulate = cloud_tint
 	_near.modulate = cloud_tint

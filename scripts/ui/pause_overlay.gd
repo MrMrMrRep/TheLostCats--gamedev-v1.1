@@ -23,6 +23,7 @@ var is_open := false
 
 var _panel: Control
 var _menu: MenuList
+var _frame: Control                         # the 640-wide layout, centred on wide screens
 var _actions: Array[StringName] = []
 
 
@@ -35,6 +36,11 @@ func _ready() -> void:
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.visible = false
 	add_child(_panel)
+	_frame = Control.new()
+	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_frame.size = ScreenFit.BASE
+	_panel.add_child(_frame)
+	ScreenFit.pin(_frame, 0.5)
 	var title := _label("PAUSED", Vector2(0, 26), 20, Color("ffd36b"))
 	title.size.x = 640
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -42,7 +48,7 @@ func _ready() -> void:
 	_menu.position = Vector2(40, 90)
 	_menu.size = Vector2(200, 120)
 	_menu.chosen.connect(_on_chosen)
-	_panel.add_child(_menu)
+	_frame.add_child(_menu)
 	for i in CONTROLS.size():
 		var y := 80 + i * 17
 		var what := _label(CONTROLS[i][0], Vector2(250, y), 8, Color(1, 1, 1, 0.7))
@@ -108,5 +114,5 @@ func _label(text: String, pos: Vector2, size: int, color: Color) -> Label:
 	l.add_theme_color_override("font_color", color)
 	l.add_theme_color_override("font_outline_color", Color.BLACK)
 	l.add_theme_constant_override("outline_size", 3)
-	_panel.add_child(l)
+	_frame.add_child(l)
 	return l

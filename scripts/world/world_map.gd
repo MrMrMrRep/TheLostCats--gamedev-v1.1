@@ -215,7 +215,7 @@ func _tempo_zoom() -> float:
 	var c := cam_cfg
 	var near := c.zoom_bike_slow if on_bikes else c.zoom_walk
 	var far := c.zoom_bike if on_bikes else c.zoom_walk_moving
-	return minf(lerpf(near, far, _tempo), 640.0 / (_spread + c.fit_margin))
+	return minf(lerpf(near, far, _tempo), ScreenFit.width(self) / (_spread + c.fit_margin))
 
 
 ## The camera aims at the middle of the group (members within focus_cap of the
@@ -238,7 +238,7 @@ func _update_focus(delta: float, instant := false) -> void:
 	var want_drift := 0.0
 	if _idle_cam > c.idle_after:
 		var t := _idle_cam - c.idle_after
-		var room := maxf(0.0, 640.0 / zoom / 2.0 - 40.0)
+		var room := maxf(0.0, ScreenFit.width(self) / zoom / 2.0 - 40.0)
 		want_drift = sin(t * TAU / c.drift_period) * minf(room, c.drift_max) * clampf(t / 20.0, 0.0, 1.0)
 	_drift = 0.0 if instant else lerpf(_drift, want_drift, 1.0 - exp(-delta * c.drift_ease))
 	goal += _drift

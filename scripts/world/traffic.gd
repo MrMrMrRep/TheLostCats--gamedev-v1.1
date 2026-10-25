@@ -74,7 +74,7 @@ func _view() -> Vector2:
 	var cam := get_viewport().get_camera_2d() if is_inside_tree() else null
 	if cam == null:
 		return Vector2(0, 640)
-	var half := 320.0 / cam.zoom.x + 160.0
+	var half := ScreenFit.width(self) / 2.0 / cam.zoom.x + 160.0
 	var cx := cam.get_screen_center_position().x
 	return Vector2(cx - half, cx + half)
 

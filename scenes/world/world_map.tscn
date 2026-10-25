@@ -812,16 +812,6 @@ position = Vector2(5300, 288)
 script = ExtResource("24_2lmj1")
 width = 120.0
 
-[node name="Van" type="Area2D" parent="Places/Viaduct" unique_id=640780543]
-position = Vector2(5300, 288)
-collision_layer = 32
-collision_mask = 4
-monitorable = false
-script = ExtResource("23_86d8r")
-kind = 1
-save_id = &"van_x"
-area_size = Vector2(76, 34)
-
 [node name="CanalBelt" type="Node2D" parent="Places" unique_id=476367123]
 
 [node name="StudioDoor" type="Area2D" parent="Places/CanalBelt" unique_id=1064595658]
@@ -921,6 +911,16 @@ area_size = Vector2(36, 36)
 position = Vector2(17550, 288)
 script = ExtResource("24_2lmj1")
 width = 110.0
+
+[node name="Van" type="Area2D" parent="Places/Storage" unique_id=640780543]
+position = Vector2(17550, 288)
+collision_layer = 32
+collision_mask = 4
+monitorable = false
+script = ExtResource("23_86d8r")
+kind = 1
+save_id = &"van_x"
+area_size = Vector2(76, 34)
 
 [node name="Band" parent="." unique_id=1097071013 instance=ExtResource("26_st8kn")]
 
