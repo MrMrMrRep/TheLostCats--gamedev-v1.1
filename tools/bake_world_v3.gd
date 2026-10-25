@@ -1,6 +1,7 @@
 extends Node
 ## Bakes the style v3 world art into res://assets/sprites/world/v3/ so the game
 ## only loads it: every CityBlock and WorldBuilding in the world map, the
+## SideOpening (alleys, side streets, side canals), the
 ## street strip, the sky sprites, the cars and the palette filter's table.
 ## Run after changing the v3 painter (bump V3Cache.VERSION) or the buildings:
 ##   Summer --headless --path . res://tools/bake_world_v3.tscn
@@ -67,13 +68,19 @@ func _bake_scene() -> int:
 			node = CityBlock.new()
 		elif path.ends_with("outskirts.gd"):
 			node = WorldBuilding.new()
+		elif path.ends_with("side_opening.gd"):
+			node = SideOpening.new()
 		else:
 			continue
-		for key: String in ["houses", "seed_value", "sign_text", "shop_rate", "shop_signs", "style", "kind"]:
+		for key: String in ["houses", "seed_value", "sign_text", "shop_rate", "shop_signs", "style", "kind", "width", "open_width", "poort"]:
 			if props.has(key):
 				node.set(key, str_to_var(props[key]))
 		if node is CityBlock:
 			(node as CityBlock).v3_art()
+		elif node is SideOpening:
+			(node as SideOpening).v3_art()
+			if (node as SideOpening).kind == SideOpening.Kind.CANAL:
+				(node as SideOpening).bridge_art()
 		elif (node as WorldBuilding).kind != WorldBuilding.Kind.ROUND_HOTEL:
 			(node as WorldBuilding).v3_art()
 		node.free()

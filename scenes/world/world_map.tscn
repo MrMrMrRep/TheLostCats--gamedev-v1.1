@@ -1,23 +1,16 @@
 [gd_scene format=4 uid="uid://di6ojfs6lhly5"]
 
+[ext_resource type="Script" path="res://scripts/world/side_opening.gd" id="90_sideop"]
 [ext_resource type="Script" uid="uid://ctp0srj4lajoj" path="res://scripts/world/world_map.gd" id="1_3ywfa"]
 [ext_resource type="Script" uid="uid://dev54mp3hbgwy" path="res://scripts/world/sky.gd" id="2_ao3qg"]
 [ext_resource type="Script" uid="uid://limx42g745pm" path="res://scripts/world/parallax_layer.gd" id="3_x5aeg"]
 [ext_resource type="Script" uid="uid://ctqnwxf8fn4ab" path="res://scripts/world/scenery.gd" id="4_ink1j"]
-[ext_resource type="Texture2D" uid="uid://de5yfkkfh85av" path="res://assets/sprites/world/bridges/bridge1.png" id="5_das13"]
 [ext_resource type="Script" uid="uid://b7sefybao6c3v" path="res://scripts/world/city_block.gd" id="6_1co5k"]
-[ext_resource type="Texture2D" uid="uid://d3p0kt0ksujxk" path="res://assets/sprites/world/bridges/bridge2.png" id="6_ka37c"]
 [ext_resource type="Script" uid="uid://c7c3lviythxl5" path="res://scripts/world/outskirts.gd" id="7_q6byn"]
-[ext_resource type="Texture2D" uid="uid://1tnoe7b0wqrv" path="res://assets/sprites/world/bridges/bridge3.png" id="7_sloqf"]
 [ext_resource type="Script" uid="uid://bw8ftoq34rmyw" path="res://scripts/world/construction.gd" id="8_soo5g"]
-[ext_resource type="Texture2D" uid="uid://b7nbdpf88rrah" path="res://assets/sprites/world/bridges/bridge4.png" id="8_t1rse"]
-[ext_resource type="Texture2D" uid="uid://cwx0fdy83xb2l" path="res://assets/sprites/world/bridges/bridge5.png" id="9_1pnen"]
 [ext_resource type="Script" uid="uid://bqf6h8kx7vngq" path="res://scripts/world/airport.gd" id="9_bl11g"]
-[ext_resource type="Texture2D" uid="uid://brlls54y8tkpu" path="res://assets/sprites/world/bridges/bridge6.png" id="10_7kcv0"]
 [ext_resource type="Script" uid="uid://bj0j0c6urt452" path="res://scripts/world/highway.gd" id="10_das13"]
-[ext_resource type="Texture2D" uid="uid://dgpjt6e7w4byp" path="res://assets/sprites/world/bridges/sidestreet1.png" id="11_h2iuf"]
 [ext_resource type="TileSet" uid="uid://q6tppnguf7t6" path="res://resources/tiles/amwoods_tileset.tres" id="11_ka37c"]
-[ext_resource type="Texture2D" uid="uid://b64et8batiec8" path="res://assets/sprites/world/bridges/sidestreet2.png" id="12_8fuv1"]
 [ext_resource type="Script" uid="uid://x40td6prvcbg" path="res://scripts/world/street.gd" id="12_sloqf"]
 [ext_resource type="Script" uid="uid://bgbp14408lj4e" path="res://scripts/world/street_life.gd" id="13_t1rse"]
 [ext_resource type="Script" uid="uid://dqsnng81sspxd" path="res://scripts/world/pedestrians.gd" id="14_1pnen"]
@@ -52,28 +45,31 @@
 shader = ExtResource("27_078hn")
 shader_parameter/water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
 shader_parameter/deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
-shader_parameter/highlight = Color(0.6117647, 0.76862746, 0.89411765, 1)
+shader_parameter/highlight = Color(0.5254902, 0.75686276, 0.73333335, 1)
 shader_parameter/water_top_uv = 0.8
 shader_parameter/px_per_world = 2.0
-shader_parameter/tint = 0.42
+shader_parameter/night = 0.0
+shader_parameter/depth_rows = 90.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ka37c"]
 shader = ExtResource("27_078hn")
-shader_parameter/water_color = Color(0.16862746, 0.34117648, 0.4745098, 1)
-shader_parameter/deep_color = Color(0.12156863, 0.2509804, 0.3764706, 1)
-shader_parameter/highlight = Color(0.6117647, 0.76862746, 0.89411765, 1)
+shader_parameter/water_color = Color(0.20784314, 0.3764706, 0.42352942, 1)
+shader_parameter/deep_color = Color(0.17254902, 0.25490198, 0.32156864, 1)
+shader_parameter/highlight = Color(0.5254902, 0.75686276, 0.73333335, 1)
 shader_parameter/water_top_uv = 0.8
 shader_parameter/px_per_world = 2.0
-shader_parameter/tint = 0.42
+shader_parameter/night = 0.0
+shader_parameter/depth_rows = 90.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sloqf"]
 shader = ExtResource("27_078hn")
 shader_parameter/water_color = Color(0.24705882, 0.4509804, 0.5882353, 1)
 shader_parameter/deep_color = Color(0.16058823, 0.29313725, 0.38235295, 1)
-shader_parameter/highlight = Color(0.6117647, 0.76862746, 0.89411765, 1)
+shader_parameter/highlight = Color(0.5254902, 0.75686276, 0.73333335, 1)
 shader_parameter/water_top_uv = 0.8
 shader_parameter/px_per_world = 2.0
-shader_parameter/tint = 0.42
+shader_parameter/night = 0.0
+shader_parameter/depth_rows = 90.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_wv7si"]
 shader = ExtResource("34_r1w5a")
@@ -156,75 +152,67 @@ seed_value = 17
 
 [node name="Bridge1" type="Node2D" parent="Bridges" unique_id=68092989]
 position = Vector2(10200, 288)
-
-[node name="Image" type="Sprite2D" parent="Bridges/Bridge1" unique_id=1549668474]
-position = Vector2(-145, -158)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("5_das13")
-centered = false
+script = ExtResource("90_sideop")
+kind = 0
+width = 290.0
+open_width = 124.0
+seed_value = 11
 
 [node name="Bridge2" type="Node2D" parent="Bridges" unique_id=876549002]
 position = Vector2(10900, 288)
-
-[node name="Image" type="Sprite2D" parent="Bridges/Bridge2" unique_id=656397666]
-position = Vector2(-145, -175)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("6_ka37c")
-centered = false
+script = ExtResource("90_sideop")
+kind = 0
+width = 290.0
+open_width = 110.0
+seed_value = 23
 
 [node name="Bridge3" type="Node2D" parent="Bridges" unique_id=574452183]
 position = Vector2(12500, 288)
-
-[node name="Image" type="Sprite2D" parent="Bridges/Bridge3" unique_id=962219132]
-position = Vector2(-145, -145)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("7_sloqf")
-centered = false
+script = ExtResource("90_sideop")
+kind = 0
+width = 290.0
+open_width = 132.0
+seed_value = 37
 
 [node name="Bridge4" type="Node2D" parent="Bridges" unique_id=1813853080]
 position = Vector2(13200, 288)
-
-[node name="Image" type="Sprite2D" parent="Bridges/Bridge4" unique_id=1071135412]
-position = Vector2(-145, -194)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("8_t1rse")
-centered = false
+script = ExtResource("90_sideop")
+kind = 0
+width = 290.0
+open_width = 116.0
+seed_value = 41
 
 [node name="Bridge5" type="Node2D" parent="Bridges" unique_id=971111081]
 position = Vector2(13900, 288)
-
-[node name="Image" type="Sprite2D" parent="Bridges/Bridge5" unique_id=1848317239]
-position = Vector2(-145, -177)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("9_1pnen")
-centered = false
+script = ExtResource("90_sideop")
+kind = 0
+width = 290.0
+open_width = 128.0
+seed_value = 53
 
 [node name="Bridge6" type="Node2D" parent="Bridges" unique_id=554565311]
 position = Vector2(14900, 288)
-
-[node name="Image" type="Sprite2D" parent="Bridges/Bridge6" unique_id=1107950313]
-position = Vector2(-145, -174)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("10_7kcv0")
-centered = false
+script = ExtResource("90_sideop")
+kind = 0
+width = 290.0
+open_width = 120.0
+seed_value = 67
 
 [node name="SideStreet1" type="Node2D" parent="Bridges" unique_id=1327535044]
 position = Vector2(11250, 288)
-
-[node name="Image" type="Sprite2D" parent="Bridges/SideStreet1" unique_id=1924462134]
-position = Vector2(-125, -160)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("11_h2iuf")
-centered = false
+script = ExtResource("90_sideop")
+kind = 1
+width = 250.0
+open_width = 92.0
+seed_value = 71
 
 [node name="SideStreet2" type="Node2D" parent="Bridges" unique_id=922191127]
 position = Vector2(13550, 288)
-
-[node name="Image" type="Sprite2D" parent="Bridges/SideStreet2" unique_id=1590115680]
-position = Vector2(-125, -168)
-scale = Vector2(0.5, 0.5)
-texture = ExtResource("12_8fuv1")
-centered = false
+script = ExtResource("90_sideop")
+kind = 2
+width = 250.0
+open_width = 44.0
+seed_value = 83
 
 [node name="Buildings" type="Node2D" parent="." unique_id=986741327]
 
@@ -612,6 +600,7 @@ tile_map_data = PackedByteArray("AABY/wwAAAAMAAAAAABZ/wwAAAAMAAAAAABa/wwAAAAMAAA
 tile_set = ExtResource("11_ka37c")
 
 [node name="Street" type="Node2D" parent="Road" unique_id=957212350]
+texture_repeat = 2
 position = Vector2(0, 288)
 script = ExtResource("12_sloqf")
 map_width = 21600.0
@@ -958,7 +947,7 @@ offset_top = 310.0
 offset_right = 18240.0
 offset_bottom = 830.0
 mouse_filter = 2
-color = Color(0.16862746, 0.34117648, 0.4745098, 1)
+color = Color(0.20784314, 0.3764706, 0.42352942, 1)
 script = ExtResource("28_12evo")
 
 [node name="DitchEast" type="ColorRect" parent="Water" unique_id=1656000291]

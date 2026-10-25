@@ -1,9 +1,10 @@
 @tool
 class_name V3Painter
-extends "res://scripts/world/v3/v3_zones.gd"
+extends "res://scripts/world/v3/v3_alleys.gd"
 ## Paints world-map art in the style v3 look of the mocks (docs/art/style_v3_*),
 ## with the very same drawing code: v3_base.gd and v3_zones.gd are made from
-## tools/style_mock_v3.gd and tools/style_mock_v3_zones.gd by
+## tools/style_mock_v3.gd, tools/style_mock_v3_zones.gd and
+## tools/style_mock_v3_alleys.gd (v3_alleys.gd) by
 ## tools/port_v3_painter.py (change the mocks, then run that script).
 ## Coordinates are the mocks': art px, the street line (the band's feet) at
 ## y = GY. Each piece paints on its own canvas and comes out as a V3Art.
@@ -69,6 +70,70 @@ static func city_block(rows: Array, style: int, sign_text: String, shop_signs: P
 	return p.finish(bx)
 
 
+## An opening in the house row (SideOpening): a side canal, a wide side
+## street or an alley in perspective, with v3 houses filling the rest of the
+## slot. Widths in world px; the origin is the slot's middle on the street line.
+static func side_opening(kind: String, slot_w: float, open_w: float, seed_value: int, poort: bool) -> V3Art:
+	var p := V3Painter.new()
+	var tw := int(slot_w) * 2
+	var ow := mini(int(open_w) * 2, tw)
+	var bx := base_x(seed_value + 977)
+	var x0 := bx - tw / 2
+	p.begin(x0 - 8, tw + 16)
+	var left := (tw - ow) / 2
+	p._side_street(x0 + left, ow, kind, poort)
+	var r := RandomNumberGenerator.new()
+	r.seed = seed_value * 17 + 3
+	p._flank_houses(r, x0, left)
+	p._flank_houses(r, x0 + left + ow, tw - left - ow)
+	return p.finish(bx)
+
+
+## The bridge in front of a side canal: stone piers with lamps, the iron
+## railing and the brick arch over the water (drawn over street and canal).
+static func side_bridge(open_w: float, seed_value: int) -> V3Art:
+	var p := V3Painter.new()
+	var ow := int(open_w) * 2
+	var bx := base_x(seed_value + 977)
+	p.begin(bx - ow / 2 - 16, ow + 32)
+	p.H = WATER + 64
+	p.img = Image.create(p.W, p.H, false, Image.FORMAT_RGBA8)
+	p._bridge_deck(bx - ow / 2, ow)
+	p._bridge_arch(bx - ow / 2, ow)
+	return p.finish(bx)
+
+
+## Canal houses filling `w` art px from `x` (beside an opening).
+func _flank_houses(r: RandomNumberGenerator, x: int, w: int) -> void:
+	if w < 40:
+		return
+	var n := maxi(1, roundi(w / 130.0))
+	var last := ""
+	var shops := [["cafe", "CAFE"], ["bakker", "BAKKER"], ["bloem", "BLOEMEN"], ["boek", "BOEKEN"], ["vis", "VIS"], ["koffie", "KOFFIE"]]
+	for i in n:
+		var hw := w / n if i < n - 1 else w - (w / n) * (n - 1)
+		var scheme: String = CANAL_SCHEMES[r.randi_range(0, CANAL_SCHEMES.size() - 1)]
+		if scheme == last:
+			scheme = CANAL_SCHEMES[(CANAL_SCHEMES.find(scheme) + 1) % CANAL_SCHEMES.size()]
+		last = scheme
+		var hs := {"x": x, "w": hw, "f": r.randi_range(3, 4), "s": scheme, "g": _pick_gable(r, 0)}
+		if r.randf() < 0.5:
+			var sh: Array = shops[r.randi_range(0, shops.size() - 1)]
+			hs.gr = "shop"
+			hs.shop = sh[0]
+			hs.sign = sh[1]
+			hs.fascia = FASCIAS[r.randi_range(0, FASCIAS.size() - 1)]
+			if r.randf() < 0.55:
+				hs.awn = AWNINGS[r.randi_range(0, AWNINGS.size() - 1)]
+		else:
+			hs.gr = "door"
+			hs.no = str(r.randi_range(2, 480))
+		hs.boxes = r.randf() < 0.3
+		hs.pipe = r.randf() < 0.35
+		_house(hs)
+		x += hw
+
+
 func _block(bx: int, rows: Array, style: int, sign_text: String, shop_signs: PackedStringArray, seed_value: int) -> void:
 	var r := RandomNumberGenerator.new()
 	r.seed = seed_value * 31 + 7
@@ -86,6 +151,16 @@ func _block(bx: int, rows: Array, style: int, sign_text: String, shop_signs: Pac
 			scheme = schemes[(schemes.find(scheme) + 1) % schemes.size()]
 		last = scheme
 		var signed := sign_text != "" and i == mid
+		# Now and then a narrow alley (steeg) or a covered gateway next to the
+		# house; its own dice, so the rest of the row keeps its look.
+		var gap := 0
+		var poort := false
+		var rs := RandomNumberGenerator.new()
+		rs.seed = seed_value * 97 + i * 13 + 5
+		if style != 2 and not signed and i > 0 and i < rows.size() - 1 and w >= 116 and rs.randf() < 0.16:
+			poort = rs.randf() < 0.35
+			gap = 40 if poort else rs.randi_range(13, 18) * 2
+			w -= gap
 		var shop_name := ""
 		if d.shop and not shop_signs.is_empty():
 			shop_name = shop_signs[(i + seed_value) % shop_signs.size()]
@@ -141,6 +216,9 @@ func _block(bx: int, rows: Array, style: int, sign_text: String, shop_signs: Pac
 		if r.randf() < 0.1:
 			furniture.append(["bin", x + w - 18])
 		x += w
+		if gap > 0:
+			_side_street(x, gap, "steeg", poort)
+			x += gap
 	for f: Array in furniture:
 		match f[0]:
 			"terrace": _terrace(f[1])
