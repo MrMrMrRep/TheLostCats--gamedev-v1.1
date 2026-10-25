@@ -70,6 +70,188 @@ static func city_block(rows: Array, style: int, sign_text: String, shop_signs: P
 	return p.finish(bx)
 
 
+## The round hotel tower: a shaded cylinder with porthole windows (squashed
+## toward the edges), a dark glass crown under a white sign ring, a lobby.
+func _round_hotel(x: int, w: int, sign: String) -> void:
+	var top := GY - 472
+	var body_top := top + 52
+	var body_bot := GY - 50
+	var ramp := [T2, T3, T4, T5, T6]
+	var down := {T6: T5, T5: T4, T4: T3, T3: T2, T2: T1, T1: T0}
+	for xx in range(x, x + w):
+		var u := (xx - x + 0.5) / w
+		var l := 1.0 - pow(absf(u - 0.35) * 1.6, 2.0)
+		var c: Color = ramp[clampi(int(l * 4.6), 0, 4)]
+		_rect(xx, body_top, 1, body_bot - body_top, c)
+		for fy in range(body_top + 22, body_bot, 26):        # floor lines
+			_px(xx, fy, down[c])
+	_rect(x - 1, body_top, 1, body_bot - body_top, T0)
+	_rect(x + w, body_top, 1, body_bot - body_top, T0)
+	# Portholes in rows, squashed toward the edges of the cylinder.
+	var row := 0
+	for fy in range(body_top + 4, body_bot - 22, 26):
+		for k in 9:
+			var th := deg_to_rad(-78.0 + k * 19.5 + (9.75 if row % 2 else 0.0))
+			if absf(th) > deg_to_rad(80.0):
+				continue
+			var cx := x + (0.5 + 0.5 * sin(th)) * w
+			var rx := maxf(7.0 * cos(th), 1.0)
+			var cy := fy + 9
+			var lit := _hash(k + row * 9, x) < 0.18
+			for yy in range(-8, 9):
+				for xx in range(int(cx - rx - 1), int(cx + rx + 2)):
+					var e := pow((xx - cx) / (rx + 1.0), 2.0) + pow(yy / 8.5, 2.0)
+					if e > 1.0:
+						continue
+					var inner := pow((xx - cx) / maxf(rx - 1.0, 0.6), 2.0) + pow(yy / 6.5, 2.0)
+					var c := W5 if (yy < 0 and xx < cx) else R3
+					if inner <= 1.0:
+						c = (O3 if yy < -2 else O2) if lit else (T0 if cos(th) < 0.35 else T1)
+						if not lit and yy < -3 and xx < cx - rx * 0.2:
+							c = T3
+					_px(xx, cy + yy, c)
+		row += 1
+	# Crown: dark glass band with mullions, the white sign ring, a roof edge.
+	_rect(x - 2, top + 20, w + 4, 32, T1)
+	for xx in range(x, x + w, 6):
+		_rect(xx, top + 22, 1, 28, R1)
+	_rect(x - 2, top + 20, w + 4, 2, T2)
+	_rect(x - 4, top, w + 8, 20, T7)
+	_rect(x - 4, top + 18, w + 8, 2, T6)
+	_rect(x - 5, top, 1, 20, T0)
+	_rect(x + w + 4, top, 1, 20, T0)
+	_rect(x - 4, top - 3, w + 8, 3, R3)
+	_rect(x - 4, top - 3, w + 8, 1, W5)
+	var tw := sign.length() * 6 - 1
+	_text5(x + w / 2 - tw / 2, top + 6, sign, T1)
+	# Lobby: a canopy, recessed glass on slim columns, the door.
+	_rect(x + 4, body_bot, w - 8, GY - body_bot, R0)
+	_rect(x + 8, body_bot + 10, w - 16, GY - body_bot - 10, T2)
+	for i in 12:
+		_px(x + 20 + i, GY - 6 - i * 3, T4)
+	for cxx in range(x + 10, x + w - 8, 20):
+		_rect(cxx, body_bot + 8, 3, GY - body_bot - 8, W3)
+	_rect(x + w / 2 - 16, GY - 34, 32, 34, O2)
+	_rect(x + w / 2 - 16, GY - 34, 32, 3, O3)
+	_rect(x + w / 2, GY - 34, 1, 34, O1)
+	_rect(x - 8, body_bot, w + 16, 6, W5)
+	_rect(x - 8, body_bot + 6, w + 16, 2, R1)
+	_topiary(x + 2, GY)
+	_topiary(x + w - 2, GY)
+
+
+## Polder scenery sprites (WorldScenery): "farm", "mill" (without sails, they
+## turn in the game), "cow0" / "cow1" (Holstein / brown), "sheep", "poplar0..2",
+## "tree0..2", "bigtree", "willow", "fields" (a tile of striped fields, 1024 px).
+## Origin = the sprite's foot on the street line.
+static func scenery(name: String) -> V3Art:
+	var p := V3Painter.new()
+	var bx := base_x(name.hash() % 3000 + 120)
+	p.begin(bx - 260, 520)
+	match name:
+		"farm": p._farm(bx - 140, GY)
+		"mill": p._windmill_body(bx, GY)
+		"cow0": p._cow(bx - 20, GY, false)
+		"cow1": p._cow(bx - 20, GY, true)
+		"sheep": p._sheep(bx - 10, GY)
+		"poplar0": p._poplar(bx, GY, 78)
+		"poplar1": p._poplar(bx, GY, 90)
+		"poplar2": p._poplar(bx, GY, 66)
+		"tree0": p._tree_small(bx, GY, 0.8)
+		"tree1": p._tree_small(bx, GY, 0.95)
+		"tree2": p._tree_small(bx, GY, 0.7)
+		"bigtree":                          # right in front of the camera: in shade
+			p._tree(bx, 1.7)
+			p._haze_all({G4: G2, G3: G1, G2: G1, G1: G0, G0: T0, W1: W0, W0: T0})
+		"willow": p._willow(bx, GY)
+		"treeh0", "treeh1", "treeh2":
+			p._tree_small(bx, GY, [0.8, 0.95, 0.7][int(name.right(1))])
+			p._haze_all({G4: T6, G3: T5, G2: T4, G1: T3, G0: T3, W0: T2, W1: T3})
+		"jet": p._airliner(bx - 150, GY - 40, 300, 0.0, true)
+		"jet_air": p._airliner(bx - 150, GY - 40, 300, 0.0, false)
+		"fields":
+			p.begin(bx, 1024)
+			p._fields_tile(bx, 1024)
+	return p.finish(bx)
+
+
+## Recolours what's painted (distant, hazy copies of a sprite).
+func _haze_all(m: Dictionary) -> void:
+	for y in img.get_height():
+		for x in img.get_width():
+			var c := img.get_pixel(x, y)
+			if c.a > 0.0 and m.has(c):
+				img.set_pixel(x, y, m[c])
+
+
+## The windmill without its sails (V3Painter's _windmill, sails cut off).
+func _windmill_body(x: int, b: int) -> void:
+	for yy in range(b - 34, b):
+		for xx in range(x - 34, x + 34):
+			var c := B1 if ((xx + (yy / 3 % 2) * 4) % 8 != 0 and yy % 3 != 2) else B0
+			_px(xx, yy, c)
+	_rect(x - 34, b - 34, 2, 34, B2)
+	_rect(x - 8, b - 26, 16, 26, T0)
+	_rect(x - 7, b - 25, 14, 25, G1)
+	_rect(x - 7, b - 25, 14, 1, G2)
+	var bh := 150
+	for yy in bh:
+		var half := 30 - yy * 14 / bh
+		for xx in range(-half, half):
+			var t := float(xx + half) / (half * 2)
+			var c := R1
+			if t < 0.25:
+				c = R2
+			elif t > 0.75:
+				c = R0
+			if (x + xx) % 3 == 0 and _hash(x + xx, (b - 34 - yy) / 3) < 0.6:
+				c = R0 if c != R0 else T1
+			_px(x + xx, b - 34 - yy, c)
+		_px(x - half - 1, b - 34 - yy, T0)
+		_px(x + half, b - 34 - yy, T0)
+	for wy in [b - 90, b - 140]:
+		_rect(x - 4, wy, 8, 10, W5)
+		_rect(x - 3, wy + 1, 6, 8, T0)
+	var sy := b - 70
+	_rect(x - 50, sy, 100, 4, W0)
+	_rect(x - 50, sy, 100, 1, W1)
+	_rect(x - 50, sy - 12, 100, 2, W0)
+	for k in range(x - 50, x + 51, 6):
+		_rect(k, sy - 12, 1, 12, W0)
+	for k in range(x - 46, x + 47, 14):
+		_line(k, sy + 4, x + (k - x) / 3, b - 34, W0)
+	var cy := b - 34 - bh
+	for yy in 18:
+		var half := 20 - yy / 2
+		_rect(x - half, cy - yy, half * 2, 1, W1 if yy % 3 else W0)
+		_px(x - half, cy - yy, W2)
+	_rect(x - 20, cy, 40, 2, T0)
+	_line(x + 4, cy - 4, x + 70, b - 2, W0)
+	_line(x + 5, cy - 4, x + 71, b - 2, W0)
+	WDisc.ring(self, x + 70, b - 8, 6, W0)
+
+
+## Striped fields with crop rows and ditches, 80 art px deep, tileable across.
+func _fields_tile(x0: int, w: int) -> void:
+	var y := GY - 80
+	var band := 3
+	var i := 0
+	var cols := [G3, G2, G4, G2, G3, G1, G2]
+	while y < GY:
+		_rect(x0, y, w, band, cols[i % cols.size()])
+		for x in range(x0, x0 + w, 2):
+			if _hash(x / 2 % (w / 2), y) < 0.2:
+				_px(x, y + band / 2, [G1, G2, G3, G2, G4, G1, G1][i % 7])
+		if i % 3 == 2:
+			_rect(x0, y, w, 1, T4)
+			for x in range(x0, x0 + w, 9):
+				if _hash(x % w, y) < 0.3:
+					_rect(x, y, 3, 1, T6)
+		y += band
+		band += 1
+		i += 1
+
+
 ## Street furniture along one stretch (WorldStreetLife.plan()): elms, canal
 ## lamps, Amsterdammertjes, bikes in racks, benches, bins, planters, signs.
 ## Origin = the stretch's left end on the street line.
@@ -461,8 +643,15 @@ func _building(x: int, w: int, kind: int, sign_text: String, seed_value: int) ->
 			sign_override = "" if up == "" or up == "AIRPORT" else up
 			_apron()
 			_terminal2(x + 40, w - 80)
+			# v3.1: an airliner at the gate in full view, a jet climbing out.
+			_airliner(x + 300, 250, 300, 11.0, false)
+			_jet_bridge(x + 640, x + 780)
+			_airliner(x + 120, GY - 118, 560, 0.0, true)
+			_tug(x + 900, GY - 32)
 		11:                                 # TOWER
 			_tower2(x + w / 2)
+		12:                                 # ROUND_HOTEL
+			_round_hotel(x, w, up if up != "" else "HOTEL")
 		13:                                 # PETROL
 			_service_station(x, w)
 		_:

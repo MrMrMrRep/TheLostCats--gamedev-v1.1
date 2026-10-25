@@ -34,7 +34,6 @@
 [ext_resource type="Script" uid="uid://dxgdea21ha6t8" path="res://scripts/world/water_life.gd" id="31_wfxop"]
 [ext_resource type="Script" uid="uid://17me68c8331m" path="res://scripts/world/front_ground.gd" id="32_75cur"]
 [ext_resource type="Script" uid="uid://bwcj1xu1k3b1x" path="res://scripts/world/canopy.gd" id="33_c4aei"]
-[ext_resource type="Shader" uid="uid://ch2dw1jfpohix" path="res://shaders/defocus.gdshader" id="34_r1w5a"]
 [ext_resource type="Script" uid="uid://bknnw481rvjw2" path="res://scripts/ui/map_hud.gd" id="35_13r83"]
 [ext_resource type="Script" uid="uid://betobmadg6kph" path="res://scripts/ui/dialogue_box.gd" id="36_q1yks"]
 [ext_resource type="PackedScene" uid="uid://1hjoq3evq167" path="res://scenes/ui/debug_overlay.tscn" id="37_h1t5q"]
@@ -70,11 +69,6 @@ shader_parameter/water_top_uv = 0.8
 shader_parameter/px_per_world = 2.0
 shader_parameter/night = 0.0
 shader_parameter/depth_rows = 90.0
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_wv7si"]
-shader = ExtResource("34_r1w5a")
-shader_parameter/radius = 3.0
-shader_parameter/lod = 1.0
 
 [node name="WorldMap" type="Node2D" unique_id=1907990674]
 script = ExtResource("1_3ywfa")
@@ -147,6 +141,7 @@ map_min = -4000.0
 cows_until = 0.0
 farm_clear = Vector2(5250, 6100)
 seed_value = 17
+quiet = Vector2(18300, 21800)
 
 [node name="Bridges" type="Node2D" parent="." unique_id=652504016]
 
@@ -1084,12 +1079,9 @@ seed_value = 15
 script = ExtResource("3_x5aeg")
 factor = 1.35
 
-[node name="RoundHotelNear" type="CanvasGroup" parent="Foreground" unique_id=274952865]
-material = SubResource("ShaderMaterial_wv7si")
-position = Vector2(6912, 618)
-scale = Vector2(1.7, 1.7)
-fit_margin = 24.0
-use_mipmaps = true
+[node name="RoundHotelNear" type="Node2D" parent="Foreground" unique_id=274952865]
+position = Vector2(6912, 689)
+scale = Vector2(2, 2)
 
 [node name="RoundHotel" type="Node2D" parent="Foreground/RoundHotelNear" unique_id=186216943]
 texture_repeat = 2

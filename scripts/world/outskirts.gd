@@ -95,7 +95,7 @@ func width() -> float:
 func _draw() -> void:
 	if _glow:
 		_glow.clear()
-	if WorldPalette.V3 and kind != Kind.ROUND_HOTEL:
+	if WorldPalette.V3:
 		var art := v3_art()
 		art.draw(self)
 		art.add_glow(_glow)

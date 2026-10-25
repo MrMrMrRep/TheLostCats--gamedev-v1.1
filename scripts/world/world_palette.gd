@@ -178,6 +178,11 @@ static func triangle(ci: CanvasItem, x: float, base: float, w: float, h: int, c:
 
 
 static func tree(ci: CanvasItem, x: float, base: float, r: int, tint := 0.0) -> void:
+	if V3:                                  # the v3 leaf-cluster trees (hazy teal in the distance)
+		var v := posmod(int(x * 7.0) + r, 3)
+		var art := WorldScenery.v3_sprite(("treeh%d" if tint > 0.15 else "tree%d") % v)
+		art.draw(ci, Vector2(x, base), 0.5 if r >= 9 else 0.4)
+		return
 	ci.draw_rect(Rect2(x - 1, base - r, 3, r), TRUNK.lerp(HAZE, tint))
 	disc(ci, x, base - r - r / 2, r, LEAF[0].lerp(HAZE, tint))
 	disc(ci, x - 3, base - r - r / 2 - 3, r - 3, LEAF[1].lerp(HAZE, tint))

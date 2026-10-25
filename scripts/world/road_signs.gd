@@ -40,10 +40,10 @@ func _panel(pos: Vector2, place: String, road: String, dir: float) -> void:
 	var p := WorldPalette
 	draw_rect(Rect2(pos - Vector2(1, 1), Vector2(56, 32)), p.WHITE)
 	draw_rect(Rect2(pos, Vector2(54, 30)), WorldPalette.T2)
-	draw_string(ThemeDB.fallback_font, pos + Vector2(4, 11), place, HORIZONTAL_ALIGNMENT_LEFT, 48, 8, p.WHITE)
+	PixelFont.draw_string(self, pos + Vector2(4, 11), place, HORIZONTAL_ALIGNMENT_LEFT, 48, 8, p.WHITE)
 	var badge := WorldPalette.B2 if road.begins_with("A") else WorldPalette.O2
 	draw_rect(Rect2(pos + Vector2(4, 16), Vector2(18, 9)), badge)
-	draw_string(ThemeDB.fallback_font, pos + Vector2(4, 23), road, HORIZONTAL_ALIGNMENT_CENTER, 18, 6, p.WHITE)
+	PixelFont.draw_string(self, pos + Vector2(4, 23), road, HORIZONTAL_ALIGNMENT_CENTER, 18, 6, p.WHITE)
 	var ax := pos.x + 42
 	var ay := pos.y + 24
 	draw_line(Vector2(ax - dir * 5, ay), Vector2(ax + dir * 5, ay - 8), p.WHITE, 2.0)     # arrow

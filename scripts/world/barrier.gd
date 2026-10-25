@@ -23,4 +23,4 @@ func _draw() -> void:
 	for i in 6:
 		draw_rect(Rect2(-16 + i * 6, -16, 6, 5), WorldPalette.B2 if i % 2 == 0 else Color.WHITE)
 	draw_rect(Rect2(-22, -44, 44, 14), WorldPalette.O2)
-	draw_string(ThemeDB.fallback_font, Vector2(-20, -34), text, HORIZONTAL_ALIGNMENT_CENTER, 40, 6, WorldPalette.T0)
+	PixelFont.draw_string(self, Vector2(-20, -34), text, HORIZONTAL_ALIGNMENT_CENTER, 40, 6, WorldPalette.T0)

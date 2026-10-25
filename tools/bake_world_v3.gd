@@ -22,6 +22,7 @@ func _ready() -> void:
 	for k in 4:
 		V3Cache.art("sky_cloud%d" % k, func() -> V3Art: return V3Painter.cloud_sprite(0.9 + k * 0.35))
 	_bake_vehicles()
+	WorldScenery.bake_v3()
 	var n := _bake_scene()
 	_prune()
 	print("v3 bake: %d buildings, %d files, %.1f s" % [n, V3Cache.used.size(), (Time.get_ticks_msec() - t0) / 1000.0])
@@ -85,7 +86,7 @@ func _bake_scene() -> int:
 			(node as SideOpening).v3_art()
 			if (node as SideOpening).kind == SideOpening.Kind.CANAL:
 				(node as SideOpening).bridge_art()
-		elif (node as WorldBuilding).kind != WorldBuilding.Kind.ROUND_HOTEL:
+		else:
 			(node as WorldBuilding).v3_art()
 		node.free()
 		count += 1

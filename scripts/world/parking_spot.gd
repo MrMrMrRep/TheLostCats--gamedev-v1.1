@@ -21,4 +21,4 @@ func _draw() -> void:
 	draw_rect(Rect2(-width / 2.0, -1, width, 1), Color(1, 1, 1, 0.35))
 	draw_line(Vector2(0, 0), Vector2(0, -26), WorldPalette.R2, 1.5)
 	draw_rect(Rect2(-6, -38, 12, 12), WorldPalette.T2)
-	draw_string(ThemeDB.fallback_font, Vector2(-3, -28), "P", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color.WHITE)
+	PixelFont.draw_string(self, Vector2(-3, -28), "P", HORIZONTAL_ALIGNMENT_LEFT, -1, 9, Color.WHITE)

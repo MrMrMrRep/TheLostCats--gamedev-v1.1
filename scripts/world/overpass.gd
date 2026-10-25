@@ -62,7 +62,7 @@ func _speed_sign(x: float, text: String) -> void:
 	draw_rect(Rect2(x - 1, -40, 2, 40), WorldPalette.R2)
 	WorldPalette.disc(self, x, -46, 8, WorldPalette.B2)
 	WorldPalette.disc(self, x, -46, 6, WorldPalette.W5)
-	draw_string(ThemeDB.fallback_font, Vector2(x - 8, -43), text, HORIZONTAL_ALIGNMENT_CENTER, 16, 7, WorldPalette.T0)
+	PixelFont.draw_string(self, Vector2(x - 8, -43), text, HORIZONTAL_ALIGNMENT_CENTER, 16, 7, WorldPalette.T0)
 
 
 func _front(half: float) -> void:
@@ -84,11 +84,11 @@ func _front(half: float) -> void:
 		draw_rect(Rect2(x, DECK_BOTTOM - DECK_H - 11, 1, 3), WorldPalette.R2)
 	# A drip stain and a bit of graffiti, the way overpasses look.
 	draw_rect(Rect2(-half + 40, DECK_BOTTOM - DECK_H + 4, 2, 14), CONCRETE.darkened(0.2))
-	draw_string(ThemeDB.fallback_font, Vector2(-14, DECK_BOTTOM - 6), "LOST CATS", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, WorldPalette.B2)
+	PixelFont.draw_string(self, Vector2(-14, DECK_BOTTOM - 6), "LOST CATS", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, WorldPalette.B2)
 	# Gantry sign on the deck edge.
 	draw_rect(Rect2(-36, DECK_BOTTOM - DECK_H - 34, 72, 22), WorldPalette.T2)
 	draw_rect(Rect2(-36, DECK_BOTTOM - DECK_H - 34, 72, 1), p.WHITE)
-	draw_string(ThemeDB.fallback_font, Vector2(-36, DECK_BOTTOM - DECK_H - 25), "A10  RING", HORIZONTAL_ALIGNMENT_CENTER, 72, 8, p.WHITE)
-	draw_string(ThemeDB.fallback_font, Vector2(-36, DECK_BOTTOM - DECK_H - 16), "CENTRUM  ->" if city_side > 0 else "<-  CENTRUM", HORIZONTAL_ALIGNMENT_CENTER, 72, 7, p.WHITE)
+	PixelFont.draw_string(self, Vector2(-36, DECK_BOTTOM - DECK_H - 25), "A10  RING", HORIZONTAL_ALIGNMENT_CENTER, 72, 8, p.WHITE)
+	PixelFont.draw_string(self, Vector2(-36, DECK_BOTTOM - DECK_H - 16), "CENTRUM  ->" if city_side > 0 else "<-  CENTRUM", HORIZONTAL_ALIGNMENT_CENTER, 72, 7, p.WHITE)
 	draw_rect(Rect2(-30, DECK_BOTTOM - DECK_H - 12, 2, 4), WorldPalette.R2)
 	draw_rect(Rect2(28, DECK_BOTTOM - DECK_H - 12, 2, 4), WorldPalette.R2)

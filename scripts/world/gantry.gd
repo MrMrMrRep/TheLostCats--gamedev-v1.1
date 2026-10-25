@@ -39,15 +39,15 @@ func _draw() -> void:
 		var sx := x0 + 14 + i * 76
 		draw_rect(Rect2(sx - 1, BEAM_Y - 33, 66, 32), WorldPalette.WHITE)
 		draw_rect(Rect2(sx, BEAM_Y - 32, 64, 30), WorldPalette.T2)
-		draw_string(ThemeDB.fallback_font, Vector2(sx + 4, BEAM_Y - 21), parts[0], HORIZONTAL_ALIGNMENT_LEFT, 58, 8, WorldPalette.WHITE)
+		PixelFont.draw_string(self, Vector2(sx + 4, BEAM_Y - 21), parts[0], HORIZONTAL_ALIGNMENT_LEFT, 58, 8, WorldPalette.WHITE)
 		if parts.size() > 1:
 			draw_rect(Rect2(sx + 4, BEAM_Y - 16, 18, 9), WorldPalette.B2)
-			draw_string(ThemeDB.fallback_font, Vector2(sx + 4, BEAM_Y - 9), parts[1], HORIZONTAL_ALIGNMENT_CENTER, 18, 7, WorldPalette.WHITE)
+			PixelFont.draw_string(self, Vector2(sx + 4, BEAM_Y - 9), parts[1], HORIZONTAL_ALIGNMENT_CENTER, 18, 7, WorldPalette.WHITE)
 		draw_line(Vector2(sx + 50, BEAM_Y - 5), Vector2(sx + 50, BEAM_Y - 17), WorldPalette.WHITE, 2.0)   # arrow
 		draw_line(Vector2(sx + 46, BEAM_Y - 13), Vector2(sx + 50, BEAM_Y - 17), WorldPalette.WHITE, 2.0)
 		draw_line(Vector2(sx + 54, BEAM_Y - 13), Vector2(sx + 50, BEAM_Y - 17), WorldPalette.WHITE, 2.0)
 	draw_rect(Rect2(x0 + w - 40, BEAM_Y - 30, 22, 12), WorldPalette.T3)
-	draw_string(ThemeDB.fallback_font, Vector2(x0 + w - 40, BEAM_Y - 21), "E19", HORIZONTAL_ALIGNMENT_CENTER, 22, 7, WorldPalette.WHITE)
+	PixelFont.draw_string(self, Vector2(x0 + w - 40, BEAM_Y - 21), "E19", HORIZONTAL_ALIGNMENT_CENTER, 22, 7, WorldPalette.WHITE)
 
 
 func _post(x: float, bottom: float, c: Color) -> void:

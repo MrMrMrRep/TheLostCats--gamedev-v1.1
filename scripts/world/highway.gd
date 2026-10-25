@@ -86,7 +86,7 @@ func _draw() -> void:
 	draw_rect(Rect2(sx + 40, sy - 34, 2, 34), p.IRON)
 	draw_rect(Rect2(sx - 6, sy - 48, 54, 16), WorldPalette.T2)
 	draw_rect(Rect2(sx - 6, sy - 48, 54, 1), p.WHITE)
-	draw_string(ThemeDB.fallback_font, Vector2(sx - 6, sy - 37), sign_text, HORIZONTAL_ALIGNMENT_CENTER, 54, 7, p.WHITE)
+	PixelFont.draw_string(self, Vector2(sx - 6, sy - 37), sign_text, HORIZONTAL_ALIGNMENT_CENTER, 54, 7, p.WHITE)
 	# Cars coming down.
 	for c in _cars:
 		var a: Array = ramp(c[0])
