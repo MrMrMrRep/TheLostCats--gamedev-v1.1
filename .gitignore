@@ -5,6 +5,9 @@
 # Summer Engine local-only state
 .summer/local/
 
+# Visual-check frames from tools/map_capture.gd
+.shots/
+
 # OS / backups
 .DS_Store
 project.godot.bak
