@@ -34,7 +34,10 @@ func _draw() -> void:
 		draw_rect(Rect2(x - 7, -110, 17, 2), WorldPalette.W4)
 	_windsock(length - 80, -14)
 	# Parked plane with a stair truck and baggage carts.
-	_plane(Vector2(length * 0.28, -14), 1.0, 0.0, 1.0)
+	if WorldPalette.V3:
+		WorldScenery.v3_sprite("jet").draw(self, Vector2(length * 0.28, -14))
+	else:
+		_plane(Vector2(length * 0.28, -14), 1.0, 0.0, 1.0)
 	draw_rect(Rect2(length * 0.28 + 40, -40, 26, 4), WorldPalette.O2)
 	draw_line(Vector2(length * 0.28 + 40, -36), Vector2(length * 0.28 + 30, -14), WorldPalette.R2, 2.0)
 	for k in 3:
@@ -47,7 +50,12 @@ func _draw() -> void:
 		var x := lerpf(length * 0.45, length * 1.6, u * u)
 		var climb := maxf(0.0, (u - 0.55) / 0.45)
 		var y := -22.0 - climb * climb * 160.0
-		_plane(Vector2(x, y), lerpf(0.85, 0.6, climb), -0.18 * minf(climb * 3.0, 1.0), 1.0 - climb * 0.3)
+		if WorldPalette.V3:
+			draw_set_transform(Vector2(x, y), -0.18 * minf(climb * 3.0, 1.0), Vector2.ONE * lerpf(1.0, 0.75, climb))
+			WorldScenery.v3_sprite("jet_air").draw(self)
+			draw_set_transform(Vector2.ZERO)
+		else:
+			_plane(Vector2(x, y), lerpf(0.85, 0.6, climb), -0.18 * minf(climb * 3.0, 1.0), 1.0 - climb * 0.3)
 	# Chain-link fence in front.
 	draw_rect(Rect2(0, -30, length, 1), WorldPalette.R2)
 	for x in range(0, int(length), 30):

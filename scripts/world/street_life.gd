@@ -44,9 +44,91 @@ func _clear(x: float, half: float) -> bool:
 func _draw() -> void:
 	if _glow:
 		_glow.clear()
+	if WorldPalette.V3:
+		var items := plan()
+		v3_art(items).draw(self)
+		if _glow:                           # lamp light at night (art px -> world px)
+			for it: Array in items:
+				if it[0] == "lamp":
+					_glow.add_lamp(Vector2(it[1] * 0.5, -66.0), 20.0, 0.0, 0.03 + NightGlow.spot_hash(it[1], 1.0) * 0.1)
+				elif it[0] == "tall_lamp":
+					_glow.add_lamp(Vector2(it[1] * 0.5 + 15.0, -78.0), 26.0, 0.0, 0.03 + NightGlow.spot_hash(it[1], 2.0) * 0.1, Color(1.0, 0.9, 0.7, 0.5))
+			_glow.queue_redraw()
+		return
 	_draw_life()
 	if _glow:
 		_glow.queue_redraw()
+
+
+## The stretch in the style v3 look (baked once, see V3Cache / V3Painter).
+func v3_art(items: Array = plan()) -> V3Art:
+	var key := "life%d_%d|%s|%s" % [kind, seed_value, length, keep_clear]
+	var paint := func() -> V3Art: return V3Painter.street_life(items, length, seed_value)
+	return V3Cache.art(key, paint)
+
+
+## What stands where, by the district rules: [piece, art x, extra].
+func plan() -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var out := []
+	var x := rng.randf_range(20, 80)
+	while x < length - 20:
+		var ax := x * 2.0
+		var r := rng.randf()
+		var step := 80.0
+		match kind:
+			Kind.CANAL:
+				if r < 0.45 and _clear(x, 30):
+					out.append(["tree", ax, rng.randf_range(0.85, 1.05)])
+					if rng.randf() < 0.5:
+						out.append(["rack", ax + 60, rng.randi_range(1, 2)])
+				elif r < 0.7 and _clear(x, 6):
+					out.append(["lamp", ax])
+					out.append(["bollards", ax + 24, rng.randi_range(2, 4)])
+				elif r < 0.8 and _clear(x, 16):
+					out.append(["bench", ax])
+					out.append(["bin", ax + 50])
+				elif r < 0.85 and _clear(x, 6):
+					out.append(["sign", ax])
+				elif _clear(x, 30):
+					out.append(["rack", ax, rng.randi_range(1, 3)])
+				step = rng.randf_range(55, 95)
+			Kind.OLD_TOWN:
+				if r < 0.3 and _clear(x, 6):
+					out.append(["lamp", ax])
+				elif r < 0.5 and _clear(x, 14):
+					out.append(["planter", ax])
+				elif r < 0.7 and _clear(x, 20):
+					out.append(["rack", ax, rng.randi_range(1, 2)])
+				elif r < 0.8 and _clear(x, 24):
+					out.append(["tree", ax, rng.randf_range(0.7, 0.85)])
+				else:
+					out.append(["bollards", ax, rng.randi_range(3, 5)])
+				step = rng.randf_range(50, 90)
+			Kind.RING:
+				if r < 0.5 and _clear(x, 20):
+					out.append(["tree", ax, rng.randf_range(0.6, 0.75)])
+				elif r < 0.7 and _clear(x, 6):
+					out.append(["lamp", ax])
+				elif r < 0.85 and _clear(x, 6):
+					out.append(["meter", ax])
+					out.append(["bin", ax + 24])
+				elif _clear(x, 20):
+					out.append(["rack", ax, rng.randi_range(1, 2)])
+				step = rng.randf_range(70, 110)
+			Kind.INDUSTRY:
+				if _clear(x, 8):
+					out.append(["tall_lamp", ax])
+				step = rng.randf_range(120, 160)
+			_:
+				if _clear(x, 8):
+					out.append(["tall_lamp", ax])
+				if r < 0.3 and _clear(x + 40, 10):
+					out.append(["flags", ax + 80])
+				step = rng.randf_range(110, 150)
+		x += step
+	return out
 
 
 func _draw_life() -> void:

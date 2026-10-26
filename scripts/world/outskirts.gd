@@ -38,6 +38,10 @@ const CAR_COLOURS := [WorldPalette.B2, WorldPalette.T3, WorldPalette.W5, WorldPa
 	set(value):
 		sign_text = value
 		queue_redraw()
+@export var span := 0.0:                    ## width of its slot in world px (0 = the kind's usual width)
+	set(value):
+		span = value
+		queue_redraw()
 
 
 var _glow: NightGlow                        # lit windows and lamps at night (game only)
@@ -46,6 +50,31 @@ var _glow: NightGlow                        # lit windows and lamps at night (ga
 func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	_glow = NightGlow.attach(self)
+	if WorldPalette.V3 and kind == Kind.CHURCH and not Engine.is_editor_hint():
+		_add_front.call_deferred()
+
+
+## The little square in front of the church lies on the street, so it is
+## drawn just after the street strip (in the Road node), under the band.
+func _add_front() -> void:
+	var scene := get_tree().current_scene
+	var road: Node = scene.get_node_or_null("Road") if scene else null
+	var front := Node2D.new()
+	front.name = "%sSquare" % name
+	(road if road else get_parent()).add_child(front)
+	front.global_position = global_position
+	front.draw.connect(func() -> void:
+		var art := front_art()
+		if art:
+			art.draw(front))
+	front.queue_redraw()
+
+
+## The church square in the style v3 look (baked once, see V3Cache / V3Painter).
+func front_art() -> V3Art:
+	var key := "front%d_%d|%.1f" % [kind, seed_value, width()]
+	var paint := func() -> V3Art: return V3Painter.building_front(kind, width(), seed_value)
+	return V3Cache.art(key, paint)
 
 
 ## A wall at the band sprites' density: texture (0 plaster, 1 brick, 2 smooth),
@@ -89,13 +118,13 @@ func _win(r: Rect2, lit := false, bars := 1) -> void:
 
 
 func width() -> float:
-	return WIDTHS[kind]
+	return span if span > 0.0 else WIDTHS[kind]
 
 
 func _draw() -> void:
 	if _glow:
 		_glow.clear()
-	if WorldPalette.V3 and kind != Kind.ROUND_HOTEL:
+	if WorldPalette.V3:
 		var art := v3_art()
 		art.draw(self)
 		art.add_glow(_glow)

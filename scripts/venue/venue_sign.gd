@@ -14,10 +14,18 @@ extends Node2D
 		queue_redraw()
 
 
+const UI_FONT := preload("res://scripts/ui/ui_font.gd")
+const SHADOW := Color("1d2838")
+
+
+## In the game's pixel letters (UiFont): the name at 2x, the hint at 1x, each
+## with a 1 px navy shadow so it reads on brick.
 func _draw() -> void:
-	var f := ThemeDB.fallback_font
-	draw_string(f, Vector2(0, 14), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color("ffd36b"))
-	var y := 28.0
+	var f: Font = UI_FONT.font()
+	draw_string(f, Vector2(2, 16), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, SHADOW)
+	draw_string(f, Vector2(0, 14), title, HORIZONTAL_ALIGNMENT_LEFT, -1, 16, Color("f2bc58"))
+	var y := 30.0
 	for line in hint.split("\n"):
-		draw_string(f, Vector2(0, y), line, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color(1, 1, 1, 0.8))
+		draw_string(f, Vector2(1, y + 1), line, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, SHADOW)
+		draw_string(f, Vector2(0, y), line, HORIZONTAL_ALIGNMENT_LEFT, -1, 8, Color("fff7df"))
 		y += 11

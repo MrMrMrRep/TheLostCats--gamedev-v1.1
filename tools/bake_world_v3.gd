@@ -1,6 +1,7 @@
 extends Node
 ## Bakes the style v3 world art into res://assets/sprites/world/v3/ so the game
 ## only loads it: every CityBlock and WorldBuilding in the world map, the
+## SideOpening (alleys, side streets, side canals), the
 ## street strip, the sky sprites, the cars and the palette filter's table.
 ## Run after changing the v3 painter (bump V3Cache.VERSION) or the buildings:
 ##   Summer --headless --path . res://tools/bake_world_v3.tscn
@@ -21,6 +22,7 @@ func _ready() -> void:
 	for k in 4:
 		V3Cache.art("sky_cloud%d" % k, func() -> V3Art: return V3Painter.cloud_sprite(0.9 + k * 0.35))
 	_bake_vehicles()
+	WorldScenery.bake_v3()
 	var n := _bake_scene()
 	_prune()
 	print("v3 bake: %d buildings, %d files, %.1f s" % [n, V3Cache.used.size(), (Time.get_ticks_msec() - t0) / 1000.0])
@@ -67,15 +69,27 @@ func _bake_scene() -> int:
 			node = CityBlock.new()
 		elif path.ends_with("outskirts.gd"):
 			node = WorldBuilding.new()
+		elif path.ends_with("side_opening.gd"):
+			node = SideOpening.new()
+		elif path.ends_with("street_life.gd"):
+			node = WorldStreetLife.new()
 		else:
 			continue
-		for key: String in ["houses", "seed_value", "sign_text", "shop_rate", "shop_signs", "style", "kind"]:
+		for key: String in ["houses", "seed_value", "sign_text", "shop_rate", "shop_signs", "style", "kind", "width", "open_width", "poort", "length", "keep_clear", "span"]:
 			if props.has(key):
 				node.set(key, str_to_var(props[key]))
 		if node is CityBlock:
 			(node as CityBlock).v3_art()
-		elif (node as WorldBuilding).kind != WorldBuilding.Kind.ROUND_HOTEL:
+		elif node is WorldStreetLife:
+			(node as WorldStreetLife).v3_art()
+		elif node is SideOpening:
+			(node as SideOpening).v3_art()
+			if (node as SideOpening).kind == SideOpening.Kind.CANAL:
+				(node as SideOpening).bridge_art()
+		else:
 			(node as WorldBuilding).v3_art()
+			if (node as WorldBuilding).kind == WorldBuilding.Kind.CHURCH:
+				(node as WorldBuilding).front_art()
 		node.free()
 		count += 1
 	return count
@@ -86,6 +100,6 @@ func _prune() -> void:
 	if dir == null:
 		return
 	for f in dir.get_files():
-		if f.ends_with(".res") and not V3Cache.used.has(f):
+		if f.ends_with(".res") and not V3Cache.used.has(f) and not f.begins_with("street_seg"):   # street pieces: baked by the game/editor (WorldStreet.segments)
 			dir.remove(f)
 			print("removed old ", f)

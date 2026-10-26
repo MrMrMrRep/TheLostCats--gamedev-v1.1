@@ -31,6 +31,7 @@ const STREET_Y := 288.0
 @export var foreground := Vector2.ZERO      ## world x range with foreground trees
 @export var farm_clear := Vector2.ZERO      ## world x range where farms step aside (moved west)
 @export var seed_value := 5
+@export var quiet := Vector2.ZERO           ## world x range without farms, mills or poplars (the airport)
 @export_range(0.1, 1.5) var tower_scale := 0.45:  ## skyline: height of the church towers (1 = the old, very tall ones)
 	set(value):
 		tower_scale = value
@@ -42,6 +43,7 @@ var _cars: Array = []                       # [x, speed, colour] on the highway
 
 
 const FAR_WINDOW := Color(0.85, 0.58, 0.28, 0.55)   # lit windows in the hazy distance
+const NIGHT_SKYLINE := Color(0.5, 0.52, 0.62)      # the skyline's shade at full night (silhouettes, not glowing)
 
 var _glow: NightGlow                        # windows lit at night (game only)
 
@@ -68,6 +70,13 @@ func _x0() -> float:
 
 func _in_town(local_x: float) -> bool:
 	return local_x >= _local(town.x) and local_x <= _local(town.y)
+
+
+static func _in_spans(spans: Array[Vector2], local_x: float) -> bool:
+	for sp in spans:
+		if local_x >= sp.x and local_x <= sp.y:
+			return true
+	return false
 
 
 func _plan() -> void:
@@ -98,6 +107,8 @@ func _plan() -> void:
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return
+	if kind == Kind.SKYLINE:                # the far city goes dark against the night sky
+		self_modulate = Color.WHITE.lerp(NIGHT_SKYLINE, WorldDayCycle.night_now)
 	if kind == Kind.POLDER_FAR or kind == Kind.POLDER_NEAR:
 		for c in _cars:
 			c[0] += c[1] * delta
@@ -113,6 +124,12 @@ func _draw() -> void:
 		_glow.clear()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
+	if WorldPalette.V3 and kind in [Kind.POLDER_FAR, Kind.POLDER_NEAR, Kind.FOREGROUND]:
+		match kind:
+			Kind.POLDER_FAR: _v3_far()
+			Kind.POLDER_NEAR: _v3_near(rng)
+			_: _v3_foreground(rng)
+		return
 	match kind:
 		Kind.SKYLINE: _draw_skyline(rng)
 		Kind.BACK_STREET: _draw_back_street(rng)
@@ -126,6 +143,14 @@ func _draw() -> void:
 func _draw_skyline(rng: RandomNumberGenerator) -> void:
 	var p := WorldPalette
 	var base := STREET_Y - 40
+	# The modern city far behind (towers, flats, chimneys, cranes), palest of
+	# all and drawn first: behind the hotels in the west, and from the
+	# outskirts out past the airport in the east. The old centre keeps its
+	# low roofline in front.
+	var far_rng := RandomNumberGenerator.new()
+	far_rng.seed = seed_value + 77
+	_far_city(far_rng, _local(town.x + FAR_CITY_WEST.x), _local(town.x + FAR_CITY_WEST.y), base)
+	_far_city(far_rng, _local(outskirts - 500.0), _local(town.y + FAR_CITY_EAST), base)
 	var x := _local(centre.x) - 120
 	var end := _local(centre.y) + 60
 	while x < end:
@@ -165,6 +190,95 @@ func _draw_skyline(rng: RandomNumberGenerator) -> void:
 	var crane := _local((centre.x + centre.y) / 2.0) + 90
 	draw_rect(Rect2(crane, base - 80, 2, 80), p.HAZE_DARK)
 	draw_rect(Rect2(crane - 30, base - 80, 60, 2), p.HAZE_DARK)
+
+
+const FAR_CITY_WEST := Vector2(150, 1900)   ## world px from the town's west edge: towers behind the hotels
+const FAR_CITY_EAST := 2800.0               ## world px past the town's east edge (behind the airport)
+
+
+## A hazy band of modern city between local x `a` and `b` (base = its foot):
+## two depths, the farther one paler. Rooftop tanks, antennas and lit
+## windows at night, like the reference's distant high-rises.
+func _far_city(rng: RandomNumberGenerator, a: float, b: float, base: float) -> void:
+	if b <= a:
+		return
+	var far := WorldPalette.T6
+	var mid := WorldPalette.T5
+	var line := WorldPalette.T4
+	# Farther row: tall, sparse towers.
+	var x := a + rng.randf_range(0, 20)
+	while x < b:
+		var w := rng.randf_range(14, 26)
+		var h := rng.randf_range(64, 118)
+		draw_rect(Rect2(x, base - h, w, h + 60), far)
+		if rng.randf() < 0.5:                   # setback crown
+			draw_rect(Rect2(x + 3, base - h - 6, w - 6, 6), far)
+		if rng.randf() < 0.4:                   # antenna
+			draw_rect(Rect2(x + w * 0.5, base - h - 16, 1, 12), far)
+		var y := base - h + 6
+		while y < base:                         # floor bands, barely there
+			draw_rect(Rect2(x + 2, y, w - 4, 1), mid)
+			if _glow:
+				_glow.add_window(Rect2(floorf(x + 3 + NightGlow.spot_hash(x, y) * (w - 7)), y - 2, 2, 1),
+					NightGlow.window_threshold(x, y, false), Color(FAR_WINDOW, 0.4))
+			y += 6
+		x += w + rng.randf_range(8, 40)
+	# Nearer row: blocks, chimneys, cranes, a gas holder, rooftop clutter.
+	x = a + rng.randf_range(0, 30)
+	while x < b:
+		var roll := rng.randf()
+		if roll < 0.45:                         # block of flats / offices
+			var w := rng.randf_range(30, 56)
+			var h := rng.randf_range(34, 62)
+			draw_rect(Rect2(x, base - h, w, h + 60), mid)
+			draw_rect(Rect2(x + w - 2, base - h, 2, h + 60), line)          # shade on the right
+			var y := base - h + 5
+			while y < base:
+				var wx := x + 3
+				while wx < x + w - 4:
+					draw_rect(Rect2(wx, y, 2, 2), line)
+					wx += 5
+				y += 6
+			if rng.randf() < 0.6:               # water tank / plant room / antenna
+				var tx := x + rng.randf_range(4, w - 12)
+				match rng.randi_range(0, 2):
+					0:
+						draw_rect(Rect2(tx, base - h - 7, 8, 5), line)
+						draw_rect(Rect2(tx + 1, base - h - 2, 1, 2), line)
+						draw_rect(Rect2(tx + 6, base - h - 2, 1, 2), line)
+					1:
+						draw_rect(Rect2(tx, base - h - 4, 10, 4), mid)
+						draw_rect(Rect2(tx, base - h - 4, 10, 1), line)
+					_:
+						draw_rect(Rect2(tx + 4, base - h - 12, 1, 12), line)
+						draw_rect(Rect2(tx + 2, base - h - 9, 5, 1), line)
+			x += w + rng.randf_range(2, 14)
+		elif roll < 0.6:                        # factory chimney with bands
+			var h := rng.randf_range(70, 96)
+			draw_rect(Rect2(x, base - h, 5, h + 60), mid)
+			draw_rect(Rect2(x, base - h + 4, 5, 2), line)
+			draw_rect(Rect2(x, base - h + 12, 5, 2), line)
+			draw_rect(Rect2(x - 12, base - 24, 30, 84), mid)                  # its hall
+			WorldPalette.triangle(self, x - 12, base - 24, 30, 5, line)
+			x += 30 + rng.randf_range(6, 20)
+		elif roll < 0.72:                       # tower crane
+			var h := rng.randf_range(80, 104)
+			draw_rect(Rect2(x, base - h, 2, h + 60), line)
+			draw_rect(Rect2(x - 14, base - h, 50, 2), line)
+			draw_rect(Rect2(x - 14, base - h + 2, 6, 3), line)              # counterweight
+			draw_rect(Rect2(x + 30, base - h + 2, 1, 10), line)             # hook line
+			x += 40 + rng.randf_range(10, 40)
+		elif roll < 0.8:                        # gas holder
+			var w := 36.0
+			var h := 30.0
+			draw_rect(Rect2(x, base - h, w, h + 60), mid)
+			for k in range(0, int(w), 6):
+				draw_rect(Rect2(x + k, base - h, 1, h), line)
+			draw_rect(Rect2(x - 1, base - h - 1, w + 2, 2), line)
+			x += w + rng.randf_range(10, 30)
+		else:                                   # trees between the blocks
+			WorldPalette.tree(self, x + 6, base + 4, 12, 0.4)
+			x += rng.randf_range(16, 30)
 
 
 func _draw_back_street(rng: RandomNumberGenerator) -> void:
@@ -364,4 +478,171 @@ func _draw_foreground(rng: RandomNumberGenerator) -> void:
 			var c := Vector2(x + lean + cos(a) * size * 0.45, cy + sin(a) * size * 0.3)
 			draw_circle(c + Vector2(-size * 0.08, -size * 0.1), size * 0.3, (leaves[0] as Color).darkened(0.25))
 		draw_circle(Vector2(x + lean - size * 0.2, cy - size * 0.25), size * 0.28, (leaves[1] as Color).darkened(0.2))
+		x += rng.randf_range(700, 1300)
+
+
+# --- Style v3 (the polder mocks' sprites, baked once, see V3Painter.scenery) --
+
+const V3_SPRITES := ["farm", "mill", "cow0", "cow1", "sheep", "poplar0", "poplar1", "poplar2",
+	"tree0", "tree1", "tree2", "treeh0", "treeh1", "treeh2", "bigtree", "willow", "fields", "jet", "jet_air"]
+
+
+static func v3_sprite(name: String) -> V3Art:
+	return V3Cache.art("scenery_" + name, func() -> V3Art: return V3Painter.scenery(name))
+
+
+## The bake tool calls this so the game only loads them.
+static func bake_v3() -> void:
+	for n: String in V3_SPRITES:
+		v3_sprite(n)
+
+
+func _quiet(local_x: float) -> bool:
+	var wx := local_x / maxf(_factor(), 0.001) if _factor() > 0.0 else local_x
+	return quiet.y > quiet.x and wx > quiet.x and wx < quiet.y
+
+
+## The far fields run outside town only (plus a little way into its west
+## edge, where the hotels still look out over the polder): in town they
+## showed through the gaps between the back buildings as green stripes.
+func _field_spans() -> Array[Vector2]:
+	var x0 := _x0()
+	var x1 := _local(map_width) + 320.0
+	var a := _local(town.x + FIELDS_INTO_TOWN)
+	var b := _local(town.y)
+	var out: Array[Vector2] = []
+	if a > x0:
+		out.append(Vector2(x0, minf(a, x1)))
+	if b < x1:
+		out.append(Vector2(maxf(b, x0), x1))
+	return out
+
+
+const FIELDS_INTO_TOWN := 900.0             ## world px the far fields reach past the town's west edge
+
+
+func _v3_far() -> void:
+	var horizon := STREET_Y - 40
+	var x0 := _x0()
+	var x1 := _local(map_width) + 320.0
+	var fields := v3_sprite("fields")
+	var tex := fields.texture()
+	var spans := _field_spans()
+	for sp in spans:
+		draw_rect(Rect2(sp.x, horizon + 40, sp.y - sp.x, 40), WorldPalette.G2)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
+	if tex:
+		var h := tex.get_height()
+		for sp in spans:
+			draw_texture_rect(tex, Rect2(sp.x * 2.0, (horizon + 40) * 2.0 - h, (sp.y - sp.x) * 2.0, h), true)
+	# Far tree line and farms in haze, low and flat.
+	var x := x0
+	var r := RandomNumberGenerator.new()
+	r.seed = seed_value * 3 + 1
+	while x < x1:
+		var w := r.randf_range(10, 40)
+		var th := r.randf_range(2, 7)
+		var far := r.randf() < 0.15
+		if _in_spans(spans, x):
+			if far:
+				draw_rect(Rect2(x * 2.0, (horizon - 7) * 2.0, 24, 14), WorldPalette.T5)
+				draw_rect(Rect2(x * 2.0 - 4, (horizon - 9) * 2.0, 32, 4), WorldPalette.T5)
+			else:
+				draw_rect(Rect2(x * 2.0, (horizon - th) * 2.0, w * 2.0, th * 2.0), WorldPalette.T5)
+		x += w + r.randf_range(4, 30)
+	for sp in spans:
+		draw_rect(Rect2(sp.x * 2.0, horizon * 2.0 - 1, (sp.y - sp.x) * 2.0, 1), WorldPalette.T4)
+	# Turbines: tapered masts, a nacelle, three turning blades.
+	var t := Time.get_ticks_msec() / 1000.0
+	for tx: float in _turbines:
+		var bx := tx * 2.0
+		var by := horizon * 2.0
+		var h := 92.0
+		for yy in int(h):
+			var tw := 2 + int((h - yy) * 3.0 / h)
+			draw_rect(Rect2(bx - tw / 2, by - yy - 1, tw, 1), WorldPalette.T7)
+			draw_rect(Rect2(bx + tw / 2, by - yy - 1, 1, 1), WorldPalette.T6)
+		draw_rect(Rect2(bx - 3, by - h - 3, 9, 5), WorldPalette.T7)
+		draw_rect(Rect2(bx - 3, by - h + 1, 9, 1), WorldPalette.T6)
+		var hub := Vector2(bx, by - h - 1)
+		for k in 3:
+			var a: float = t * 1.2 + k * TAU / 3.0 + tx
+			var d := Vector2(cos(a), sin(a))
+			draw_line(hub, hub + d * h * 0.46, WorldPalette.T7, 1.0)
+			draw_line(hub + Vector2(-d.y, d.x), hub + Vector2(-d.y, d.x) + d * h * 0.18, WorldPalette.T6, 1.0)
+		draw_rect(Rect2(hub.x - 1, hub.y - 1, 3, 3), WorldPalette.W5)
+	draw_set_transform(Vector2.ZERO)
+	# Highway with tiny cars, only outside town.
+	for sp in spans:
+		draw_rect(Rect2(sp.x, horizon + 4, sp.y - sp.x, 3), WorldPalette.R0)
+	for c in _cars:
+		if _in_spans(spans, c[0]):
+			draw_rect(Rect2(c[0], horizon + 3, 6, 2), c[2])
+
+
+func _v3_near(rng: RandomNumberGenerator) -> void:
+	var base := STREET_Y - 6
+	var t := Time.get_ticks_msec() / 1000.0
+	var x := _x0()
+	var end := _local(map_width) + 320.0
+	var trees := ["tree0", "tree1", "tree2"]
+	while x < end:
+		if not _in_town(x) and x < _local(cows_until):          # open meadow: cows, sheep
+			var roll := rng.randf()
+			if roll < 0.7:
+				for k in rng.randi_range(2, 5):
+					var herd := "sheep" if roll < 0.15 else ("cow1" if rng.randf() < 0.3 else "cow0")
+					v3_sprite(herd).draw(self, Vector2(x + k * rng.randf_range(16, 24), base + rng.randi_range(-2, 1)))
+			elif roll < 0.8:
+				v3_sprite(trees[rng.randi_range(0, 2)]).draw(self, Vector2(x, base))
+		elif not _in_town(x):
+			var roll := rng.randf()
+			if roll < 0.25 and not _quiet(x):
+				var fx := x
+				if fx + 145.0 > _local(farm_clear.x) and fx < _local(farm_clear.y):
+					fx = _local(farm_clear.x) - 150.0
+				v3_sprite("farm").draw(self, Vector2(fx + 70.0, base))
+			elif roll < 0.4 and not _quiet(x):
+				for k in rng.randi_range(5, 8):
+					v3_sprite("poplar%d" % rng.randi_range(0, 2)).draw(self, Vector2(x + k * 11.0, base - 2))
+			elif roll < 0.65:
+				for k in rng.randi_range(2, 4):
+					v3_sprite("cow1" if rng.randf() < 0.3 else "cow0").draw(self, Vector2(x + k * 20, base))
+			else:
+				v3_sprite(trees[rng.randi_range(0, 2)]).draw(self, Vector2(x, base))
+		x += rng.randf_range(90, 160)
+	var mill := v3_sprite("mill")
+	for mx: float in _mills:
+		if _quiet(mx):
+			continue
+		mill.draw(self, Vector2(mx, base + 2))
+		_v3_sails(Vector2(mx, base + 2 - 97.0), t)
+
+
+## The mill's four lattice sails, turning (world px; two carry cloth).
+func _v3_sails(hub: Vector2, t: float) -> void:
+	for s in 4:
+		var a := t * 0.6 + s * TAU / 4.0 + 0.5
+		var d := Vector2(cos(a), sin(a))
+		var n := Vector2(-d.y, d.x)
+		if s % 2 == 0:
+			var q := PackedVector2Array([hub + d * 11, hub + d * 64, hub + d * 64 + n * 7.5, hub + d * 11 + n * 7.5])
+			draw_colored_polygon(q, WorldPalette.W4)
+		draw_line(hub + d * 11 + n * 8, hub + d * 64 + n * 8, WorldPalette.W3, 1.0)
+		for k in range(12, 64, 4):
+			draw_line(hub + d * k, hub + d * k + n * 8, WorldPalette.W3, 1.0)
+		draw_line(hub + d * 2, hub + d * 64, WorldPalette.W0, 1.5)
+	draw_rect(Rect2(hub.x - 2, hub.y - 2, 4, 4), WorldPalette.W0)
+
+
+func _v3_foreground(rng: RandomNumberGenerator) -> void:
+	if foreground.y <= foreground.x:
+		return
+	var x := _local(foreground.x)
+	var end := _local(foreground.y)
+	var tree := v3_sprite("bigtree")
+	while x < end:
+		rng.randf_range(80, 120)
+		rng.randf_range(-8, 8)
+		tree.draw(self, Vector2(x, STREET_Y + 150.0), 1.0)
 		x += rng.randf_range(700, 1300)

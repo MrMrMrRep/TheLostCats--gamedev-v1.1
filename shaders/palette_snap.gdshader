@@ -8,7 +8,7 @@ shader_type canvas_item;
 uniform sampler2D lut : filter_nearest;
 
 void fragment() {
-	vec4 c = texture(TEXTURE, UV) * COLOR;
+	vec4 c = COLOR;                          // already texture * modulate in Godot 4 (sampling again squared it: far too dark)
 	ivec3 q = ivec3(clamp(floor(c.rgb * 31.0 + 0.5), vec3(0.0), vec3(31.0)));
 	COLOR = vec4(texelFetch(lut, ivec2(q.b * 32 + q.r, q.g), 0).rgb, c.a);
 }

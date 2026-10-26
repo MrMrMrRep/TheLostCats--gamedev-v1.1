@@ -33,6 +33,7 @@ const PATH := "res://resources/config/vehicle_config.tres"
 @export var pitch_damp := 9.0               ## how fast the bounce dies out
 
 @export_group("Van lanes")
+@export var lane_town := 18.0               ## px below the street line the van drives and parks in town (the canal edge of the cobbles)
 @export var lane_east := 4.0                ## px lower on the motorway heading into the city (east)
 @export var lane_west := -5.0               ## px (negative = higher) heading out of the city (west)
 @export var lane_change := 10.0             ## px/s: how gently the van changes lane

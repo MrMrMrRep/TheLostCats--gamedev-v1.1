@@ -17,6 +17,7 @@ var _flags: Dictionary = {}
 
 
 func _ready() -> void:
+	preload("res://scripts/ui/ui_font.gd").install()   # the pixel UI font for every Control
 	# Browser and phone: scale by any amount so the game fills the whole screen
 	# (the width follows the screen, no stretching). Desktop keeps whole-pixel scaling.
 	if OS.has_feature("web") or OS.has_feature("mobile"):

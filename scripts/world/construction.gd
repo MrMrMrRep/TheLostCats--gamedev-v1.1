@@ -65,7 +65,7 @@ func _draw() -> void:
 	draw_rect(Rect2(length * 0.5 - 20, -24, 40, 24), WorldPalette.O2)
 	for k in 4:
 		draw_line(Vector2(length * 0.5 - 20 + k * 10, -24), Vector2(length * 0.5 - 10 + k * 10, 0), WorldPalette.T0, 2.0)
-	draw_string(ThemeDB.fallback_font, Vector2(4, -10), "NIEUWBOUW", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, WorldPalette.T0)
+	PixelFont.draw_string(self, Vector2(4, -10), "NIEUWBOUW", HORIZONTAL_ALIGNMENT_LEFT, -1, 7, WorldPalette.T0)
 
 
 func _crane(x: float, h: float, jib: float, t: float, phase: float) -> void:
