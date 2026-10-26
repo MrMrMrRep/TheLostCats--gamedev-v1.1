@@ -12,9 +12,8 @@
         "summer-engine@latest",
         "mcp",
         "--project",
-        "/Users/jaya/Documents/Games/the-lost-cats--gamedev-v-1.1"
+        "${workspaceFolder}"
       ]
     }
   }
 }
-
