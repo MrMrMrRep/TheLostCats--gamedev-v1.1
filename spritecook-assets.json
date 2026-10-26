@@ -176,5 +176,49 @@
   },
   "file_openings_SideStreet1": {
     "sha12": "0d807b15dde0"
+  },
+  "district_W9_refined": {
+    "asset_id": "2a871c43-ffd3-4304-9470-473b0b122595",
+    "label": "district W9 refined"
+  },
+  "district_W10_refined": {
+    "asset_id": "0fd1f7c5-2118-4b82-8b53-0f3697c493ca",
+    "label": "district W10 refined"
+  },
+  "district_W11_refined": {
+    "asset_id": "427218d1-1fc9-422d-a85b-786a655f9dd6",
+    "label": "district W11 refined"
+  },
+  "district_W8_refined": {
+    "asset_id": "1cd0c11b-e745-422a-a0e8-292a11b4a0ad",
+    "label": "district W8 refined"
+  },
+  "district_J12_refined": {
+    "asset_id": "0d519b59-05a3-4f42-b2a7-843d500d238e",
+    "label": "district J12 refined"
+  },
+  "district_J13_refined": {
+    "asset_id": "7d990dc6-2e8c-4290-80f9-c1b9c3132d68",
+    "label": "district J13 refined"
+  },
+  "district_J18_source": {
+    "asset_id": "7679eba7-7419-4f6f-82df-69f0b9db6ddc",
+    "label": "district J18 source"
+  },
+  "district_J19_source": {
+    "asset_id": "0560a8d4-0dda-4181-bbf9-6c0518fe91c9",
+    "label": "district J19 source"
+  },
+  "district_J20_source": {
+    "asset_id": "8eee26e4-9cb5-49d7-9abf-cb6b36a678ad",
+    "label": "district J20 source"
+  },
+  "district_G21_source": {
+    "asset_id": "9a7eb4e8-76b2-405d-b19c-21bd76766f7b",
+    "label": "district G21 source"
+  },
+  "district_G22_source": {
+    "asset_id": "377116d0-8fa2-4f43-a5a7-67d23bb38d86",
+    "label": "district G22 source"
   }
 }
