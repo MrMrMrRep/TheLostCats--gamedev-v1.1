@@ -29,11 +29,12 @@ func _draw() -> void:
 	var a := town.x
 	var b := town.y
 	if WorldPalette.V3:
-		var tile := V3Cache.art("street_town", func() -> V3Art: return V3Painter.street_tile(1440)).texture()
-		if tile:
-			draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
-			draw_texture_rect(tile, Rect2(a * 2.0, 0, (b - a) * 2.0, EDGE_H * 2.0), true)
-			draw_set_transform(Vector2.ZERO)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
+		for seg: V3Art in segments():
+			var t := seg.texture()
+			if t:
+				draw_texture(t, Vector2(seg.origin))
+		draw_set_transform(Vector2.ZERO)
 	else:
 		_draw_town_legacy(a, b)
 	# Outside town: motorway proportions. Behind us the opposite carriageway
@@ -67,6 +68,83 @@ func _draw() -> void:
 		while xp < seg.y:
 			draw_rect(Rect2(xp, ROAD_H, 1, 3), WorldPalette.R1)
 			xp += 12
+		_motorway_details(x0, seg.y)
+
+
+const STREET_PAINTER := preload("res://scripts/world/v3/v3_street.gd")
+const SEGMENT := 2048                       ## art px per baked street piece
+const OLD_ZONES := ["OldTown", "CanalBelt"]
+const INDUSTRY_ZONES := ["Industry", "Storage"]
+
+var _segments: Array = []
+
+
+## The town street in pieces of SEGMENT art px (StreetPainter: the district
+## from the Zone nodes, bridges and side street mouths from the SideOpenings).
+## Each piece's origin.x is its art x.
+func segments() -> Array:
+	if not _segments.is_empty():
+		return _segments
+	var zones := []
+	for z in WorldZone.all(self):
+		var r: Vector2 = z.span()
+		var k: int = STREET_PAINTER.Kind.NEW
+		if String(z.name) in OLD_ZONES:
+			k = STREET_PAINTER.Kind.OLD
+		elif String(z.name) in INDUSTRY_ZONES:
+			k = STREET_PAINTER.Kind.INDUSTRY
+		zones.append([int(r.x * 2.0), int(r.y * 2.0), k])
+	var bridges := []
+	var mouths := []
+	var root := get_tree().edited_scene_root if Engine.is_editor_hint() else owner
+	if root == null:
+		root = get_parent()
+	for o in root.find_children("*", "SideOpening", true, false):
+		var c := int((o as Node2D).global_position.x * 2.0)
+		var half := int(o.open_width)
+		if o.kind == SideOpening.Kind.CANAL:
+			bridges.append([c - half, c + half])
+		else:
+			mouths.append([c - half, c + half])
+	var a := int(town.x * 2.0)
+	var b := int(town.y * 2.0)
+	var spec := "%s|%s|%s" % [zones, bridges, mouths]
+	var x := a
+	while x < b:
+		var w := mini(SEGMENT, b - x)
+		var x0 := x
+		var key := "street_seg|%d|%d|%s" % [x0, w, spec.md5_text()]
+		var art := V3Cache.art(key, func() -> V3Art:
+			return STREET_PAINTER.street_segment(x0, w, zones, bridges, mouths))
+		art.origin = Vector2i(x0, 0)
+		_segments.append(art)
+		x += w
+	return _segments
+
+
+## Motorway life: asphalt repairs and tyre marks, white reflector posts on the
+## verge and the green hectometre posts (every 100 m, with their number).
+func _motorway_details(a: float, b: float) -> void:
+	var p := WorldPalette
+	var x := a - fposmod(a, 50.0)
+	while x < b:
+		var h := NightGlow.spot_hash(x, 31.0)
+		if h < 0.18:                        # a darker repaired strip
+			draw_rect(Rect2(x, 3 + int(h * 40.0), 18 + h * 60.0, 3), p.T0.lerp(p.ROAD, 0.5))
+		elif h < 0.3:                       # tyre marks
+			draw_rect(Rect2(x, 15, 30, 1), p.T0.lerp(p.ROAD, 0.3))
+			draw_rect(Rect2(x + 4, 18, 26, 1), p.T0.lerp(p.ROAD, 0.3))
+		x += 50.0
+	var xr := a - fposmod(a, 25.0)
+	while xr < b:                           # reflector posts on the verge
+		draw_rect(Rect2(xr, ROAD_H - 6, 1, 6), p.WHITE)
+		draw_rect(Rect2(xr, ROAD_H - 5, 1, 1), p.O2)
+		xr += 25.0
+	var xh := a - fposmod(a, 100.0)
+	while xh < b:                           # hectometre posts
+		draw_rect(Rect2(xh + 12, ROAD_H - 9, 3, 9), p.G1)
+		draw_rect(Rect2(xh + 12, ROAD_H - 9, 3, 3), p.WHITE)
+		xh += 100.0
 
 
 func _draw_town_legacy(a: float, b: float) -> void:

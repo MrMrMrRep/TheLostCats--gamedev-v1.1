@@ -100,6 +100,6 @@ func _prune() -> void:
 	if dir == null:
 		return
 	for f in dir.get_files():
-		if f.ends_with(".res") and not V3Cache.used.has(f):
+		if f.ends_with(".res") and not V3Cache.used.has(f) and not f.begins_with("street_seg"):   # street pieces: baked by the game/editor (WorldStreet.segments)
 			dir.remove(f)
 			print("removed old ", f)
