@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cv5ta2d3rggus"]
+
+[ext_resource type="Script" uid="uid://crstjgwaydsjk" path="res://tools/bake_world_v3.gd" id="1_bake"]
+
+[node name="BakeWorldV3" type="Node" unique_id=2096697415]
+script = ExtResource("1_bake")

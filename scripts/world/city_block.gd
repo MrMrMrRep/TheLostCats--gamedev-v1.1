@@ -18,13 +18,13 @@ enum Style { CANAL, OLD_TOWN, RING }
 
 const GROUND := 44.0
 const STOREY := 38.0
-const BRICKS := [Color("8a3b2b"), Color("9c4a36"), Color("74402f"), Color("5e3a30"), Color("a85a3e"), Color("7d4a3a")]
-const PAINTED := [Color("ece6da"), Color("e3d2ae"), Color("5b7fa6"), Color("2f3a4a"), Color("6f8f86"), Color("d08a72"), Color("8fb0d2")]
-const DOORS := [Color("2f4f3a"), Color("1f2a3a"), Color("6b2a2a"), Color("2a2a2e"), Color("3e5a5a"), Color("5a3a2a")]
-const SHOPS := [Color("2f4f3a"), Color("1f2a3a"), Color("6b2a2a"), Color("4a3426"), Color("2a2a2e"), Color("8a6a2a"), Color("2a4a6a")]
-const CURTAINS := [Color("e8dcc0"), Color("b8463a"), Color("6f8f5a"), Color("d8b25a"), Color("f0ece4")]
-const FLOWERS := [Color("e04a5a"), Color("f2c14a"), Color("e8e0f0"), Color("d8609a"), Color("f08a3a")]
-const GOODS := [Color("e0b23a"), Color("c94a3d"), Color("86b44f"), Color("f2e8da"), Color("5b7fa6"), Color("e07a2e"), Color("8a5a9a")]
+const BRICKS := [WorldPalette.B1, WorldPalette.B1, WorldPalette.B1, WorldPalette.W0, WorldPalette.B2, WorldPalette.B1]
+const PAINTED := [WorldPalette.W4, WorldPalette.G4, WorldPalette.T3, WorldPalette.T1, WorldPalette.R2, WorldPalette.O1, WorldPalette.R3]
+const DOORS := [WorldPalette.G0, WorldPalette.T0, WorldPalette.B0, WorldPalette.T0, WorldPalette.T2, WorldPalette.W0]
+const SHOPS := [WorldPalette.G0, WorldPalette.T0, WorldPalette.B0, WorldPalette.W0, WorldPalette.T0, WorldPalette.W1, WorldPalette.T1]
+const CURTAINS := [WorldPalette.W4, WorldPalette.B2, WorldPalette.G2, WorldPalette.O2, WorldPalette.W4]
+const FLOWERS := [WorldPalette.B2, WorldPalette.O2, WorldPalette.W4, WorldPalette.B2, WorldPalette.O1]
+const GOODS := [WorldPalette.O2, WorldPalette.B2, WorldPalette.T5, WorldPalette.W4, WorldPalette.T3, WorldPalette.B3, WorldPalette.W1]
 const STREETS := ["Prinsengracht", "Herengracht", "Keizersgracht", "Spiegelstraat", "Leidsestraat", "Runstraat"]
 
 @export var houses := 6:
@@ -119,6 +119,14 @@ func width() -> float:
 func _draw() -> void:
 	if _glow:
 		_glow.clear()
+	if WorldPalette.V3:
+		var refined := refined_art()
+		var art := refined if refined else v3_art()
+		art.draw(self)
+		art.add_glow(_glow)
+		if _glow:
+			_glow.queue_redraw()
+		return
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
 	var x := 0.0
 	var rows := layout()
@@ -133,7 +141,35 @@ func _draw() -> void:
 		_glow.queue_redraw()
 
 
-# --- One house (all in art px; y up is negative) ------------------------------
+const REFINED_DIR := "res://assets/sprites/world/blocks/"
+
+var _refined: V3Art
+var _refined_checked := false
+
+
+## A hand-refined version of this row (the painted art touched up per
+## district, e.g. with SpriteCook; see tools/spritecook/), saved as
+## REFINED_DIR/<node name>.res with its own origin and windows. When there is
+## none, the painted art is used.
+func refined_art() -> V3Art:
+	if _refined_checked:
+		return _refined
+	_refined_checked = true
+	var path := REFINED_DIR + String(name) + ".res"
+	if ResourceLoader.exists(path):
+		_refined = load(path) as V3Art   # kept: its texture must outlive the draw call
+	return _refined
+
+
+## The row in the style v3 look (baked once, see V3Cache / V3Painter).
+func v3_art() -> V3Art:
+	var rows := layout()
+	var key := "block%d|%d|%d|%s|%s|%.3f" % [seed_value, houses, style, sign_text, ",".join(shop_signs), shop_rate]
+	var paint := func() -> V3Art: return V3Painter.city_block(rows, style, sign_text, shop_signs, seed_value)
+	return V3Cache.art(key, paint)
+
+
+# --- One house, legacy look (all in art px; y up is negative) -----------------
 
 func _house(x0: float, d: Dictionary, index: int, signed: bool) -> void:
 	var rng := RandomNumberGenerator.new()
@@ -145,13 +181,13 @@ func _house(x0: float, d: Dictionary, index: int, signed: bool) -> void:
 	var wall: Color = d.wall
 	var brick: bool = d.brick
 	var dark := wall.darkened(0.55)
-	var stone := Color("d9d0c0") if brick else wall.darkened(0.12)
+	var stone := WorldPalette.G4 if brick else wall.darkened(0.12)
 	# Chimney behind the roof line.
 	if d.gable >= 3 and rng.randf() < 0.7:
 		var cx := x0 + W * rng.randf_range(0.2, 0.75)
 		_tex(Rect2(cx, -H - 40, 12, 40), PixelArt.brick(), BRICKS[1])
-		draw_rect(Rect2(cx - 1, -H - 42, 14, 3), Color("6a6a70"))
-		draw_rect(Rect2(cx + 3, -H - 48, 5, 6), Color("8a5a3a"))
+		draw_rect(Rect2(cx - 1, -H - 42, 14, 3), WorldPalette.R1)
+		draw_rect(Rect2(cx + 3, -H - 48, 5, 6), WorldPalette.W1)
 	_gable(x0, W, H, d.gable, wall, brick, stone, dark, rng)
 	# Wall with texture, outline, light from the left.
 	_tex(Rect2(x0, -H, W, H), PixelArt.brick() if brick else PixelArt.plaster(), wall)
@@ -178,12 +214,12 @@ func _house(x0: float, d: Dictionary, index: int, signed: bool) -> void:
 			_balcony(x0 + gap - 6, base - 12, W - gap * 2 + 12)
 	# Drainpipe, street-name plaque.
 	if rng.randf() < 0.45:
-		draw_rect(Rect2(x0 + 3, -H + 6, 3, H - 8), Color("6c6a70"))
-		draw_rect(Rect2(x0 + 1, -H + 4, 7, 4), Color("6c6a70"))
+		draw_rect(Rect2(x0 + 3, -H + 6, 3, H - 8), WorldPalette.R1)
+		draw_rect(Rect2(x0 + 1, -H + 4, 7, 4), WorldPalette.R1)
 	if index == 0 and rng.randf() < 0.3:
 		var street: String = STREETS[(seed_value + index) % STREETS.size()]
-		draw_rect(Rect2(x0 + 8, -GH - 24, 64, 13), Color("f2f2f2"))
-		draw_rect(Rect2(x0 + 9, -GH - 23, 62, 11), Color("2a4ea0"))
+		draw_rect(Rect2(x0 + 8, -GH - 24, 64, 13), WorldPalette.W5)
+		draw_rect(Rect2(x0 + 9, -GH - 23, 62, 11), WorldPalette.T1)
 		draw_string(ThemeDB.fallback_font, Vector2(x0 + 9, -GH - 14), street, HORIZONTAL_ALIGNMENT_CENTER, 62, 9, Color.WHITE)
 	# Ground floor.
 	if signed:
@@ -193,8 +229,8 @@ func _house(x0: float, d: Dictionary, index: int, signed: bool) -> void:
 	else:
 		_entrance(x0, W, GH, rng, wall, brick, stone)
 	# Plinth.
-	draw_rect(Rect2(x0, -6, W, 6), Color("6a6470"))
-	draw_rect(Rect2(x0, -6, W, 1), Color("8a8490"))
+	draw_rect(Rect2(x0, -6, W, 6), WorldPalette.R1)
+	draw_rect(Rect2(x0, -6, W, 1), WorldPalette.R2)
 
 
 func _tex(r: Rect2, tex: Texture2D, c: Color) -> void:
@@ -244,7 +280,7 @@ func _gable(x0: float, W: float, H: float, kind: int, wall: Color, brick: bool, 
 			_attic_window(cx - 8, top - 32, 16, 20, rng)
 			hoist = true
 		3:                                  # spout gable with a tiled roof behind
-			WorldPalette.triangle(self, x0 - 2, top, W + 4, 40, Color("3b2522"))
+			WorldPalette.triangle(self, x0 - 2, top, W + 4, 40, WorldPalette.T0)
 			WorldPalette.triangle(self, x0 + 10, top, W - 20, 30, wall)
 			draw_rect(Rect2(cx - 10, top - 40, 20, 14), wall)
 			draw_rect(Rect2(cx - 11, top - 42, 22, 2), stone)
@@ -266,26 +302,26 @@ func _gable(x0: float, W: float, H: float, kind: int, wall: Color, brick: bool, 
 			for y in int(mh):
 				var t := float(y) / mh
 				var half := W / 2.0 - inset * t
-				_tex(Rect2(cx - half, top - y - 1, half * 2, 1), PixelArt.slate(), Color("4a5160"))
+				_tex(Rect2(cx - half, top - y - 1, half * 2, 1), PixelArt.slate(), WorldPalette.R0)
 			draw_rect(Rect2(x0 - 3, top - 4, W + 6, 4), stone)
 			var dorm := 2 if W >= 120 else 1
 			for k in dorm:
 				var dx := x0 + W * (k + 1) / (dorm + 1) - 9
 				draw_rect(Rect2(dx - 2, top - 32, 22, 26), stone)
-				WorldPalette.triangle(self, dx - 4, top - 32, 26, 8, Color("3a4150"))
+				WorldPalette.triangle(self, dx - 4, top - 32, 26, 8, WorldPalette.R0)
 				draw_rect(Rect2(dx + 2, top - 28, 14, 18), PixelArt.OUTLINE)
 				draw_rect(Rect2(dx + 3, top - 27, 12, 16), WorldPalette.GLASS)
 				draw_rect(Rect2(dx + 8, top - 27, 2, 16), stone)
 	if hoist:                               # hoist beam with a hook
-		draw_rect(Rect2(cx - 2, top - 14, 4, 6), Color("3a2a22"))
+		draw_rect(Rect2(cx - 2, top - 14, 4, 6), WorldPalette.W0)
 		draw_rect(Rect2(cx - 1, top - 8, 2, 1), PixelArt.OUTLINE)
-		draw_line(Vector2(cx, top - 8), Vector2(cx, top + 2), Color("2a2a2e"), 1.0)
+		draw_line(Vector2(cx, top - 8), Vector2(cx, top + 2), WorldPalette.T0, 1.0)
 
 
 func _attic_window(x: float, y: float, w: float, h: float, rng: RandomNumberGenerator) -> void:
 	draw_rect(Rect2(x - 1, y - 1, w + 2, h + 2), PixelArt.OUTLINE)
 	if rng.randf() < 0.5:                   # hoist doors (shutters)
-		draw_rect(Rect2(x, y, w, h), Color("2f4f3a"))
+		draw_rect(Rect2(x, y, w, h), WorldPalette.G0)
 		draw_rect(Rect2(x + w / 2, y, 1, h), PixelArt.OUTLINE)
 	else:
 		draw_rect(Rect2(x, y, w, h), WorldPalette.TRIM)
@@ -294,9 +330,9 @@ func _attic_window(x: float, y: float, w: float, h: float, rng: RandomNumberGene
 
 func _window(x: float, y: float, w: float, h: float, rng: RandomNumberGenerator, brick: bool, wall: Color, stone: Color, cat: bool) -> void:
 	var p := WorldPalette
-	var frame := p.TRIM if (brick or wall.get_luminance() < 0.6) else Color("2f4f3a")
+	var frame := p.TRIM if (brick or wall.get_luminance() < 0.6) else WorldPalette.G0
 	var lit := rng.randf() < 0.14
-	var glass := Color("f2c66a") if lit else Color("26304a")
+	var glass := WorldPalette.O2 if lit else WorldPalette.T0
 	if _glow:                               # art px -> world px
 		_glow.add_window(Rect2((x + 2) * 0.5, (y + 2) * 0.5, (w - 4) * 0.5, (h - 4) * 0.5),
 			NightGlow.window_threshold(x, y, lit))
@@ -325,22 +361,22 @@ func _window(x: float, y: float, w: float, h: float, rng: RandomNumberGenerator,
 		draw_rect(Rect2(gx + 5, cy - 11, 6, 5), PixelArt.OUTLINE)
 		draw_rect(Rect2(gx + 5, cy - 13, 1, 2), PixelArt.OUTLINE)
 		draw_rect(Rect2(gx + 10, cy - 13, 1, 2), PixelArt.OUTLINE)
-		draw_rect(Rect2(gx + 6, cy - 9, 1, 1), Color("f2e04a"))
-		draw_rect(Rect2(gx + 9, cy - 9, 1, 1), Color("f2e04a"))
+		draw_rect(Rect2(gx + 6, cy - 9, 1, 1), WorldPalette.O3)
+		draw_rect(Rect2(gx + 9, cy - 9, 1, 1), WorldPalette.O3)
 	draw_rect(Rect2(x, y + h * 0.5 - 1, w, 2), frame)          # sash bar
 	draw_rect(Rect2(x + w / 2 - 1, y, 2, h), frame)            # mullion
 	# Sill with its shadow; sometimes a flower box.
 	draw_rect(Rect2(x - 3, y + h, w + 6, 3), stone)
 	draw_rect(Rect2(x - 2, y + h + 3, w + 4, 2), wall.darkened(0.32))
 	if rng.randf() < 0.22:
-		draw_rect(Rect2(x - 1, y + h - 5, w + 2, 5), Color("6b4a32"))
+		draw_rect(Rect2(x - 1, y + h - 5, w + 2, 5), WorldPalette.W1)
 		for f in int(w / 3):
-			var fc: Color = FLOWERS[rng.randi_range(0, FLOWERS.size() - 1)] if f % 2 == 0 else Color("4f7a3a")
+			var fc: Color = FLOWERS[rng.randi_range(0, FLOWERS.size() - 1)] if f % 2 == 0 else WorldPalette.T3
 			draw_rect(Rect2(x + f * 3, y + h - 8, 2, 3), fc)
 
 
 func _balcony(x: float, y: float, w: float) -> void:
-	draw_rect(Rect2(x, y, w, 3), Color("8a8490"))
+	draw_rect(Rect2(x, y, w, 3), WorldPalette.R2)
 	draw_rect(Rect2(x, y - 12, w, 1), PixelArt.OUTLINE)
 	var bx := x
 	while bx < x + w:
@@ -374,8 +410,8 @@ func _entrance(x0: float, W: float, GH: float, rng: RandomNumberGenerator, wall:
 			draw_rect(Rect2(dx + 4 + c * 15, top + 5 + r * 28, 11, 22), dc.darkened(0.25))
 			draw_rect(Rect2(dx + 5 + c * 15, top + 6 + r * 28, 9, 20), dc.lightened(0.06))
 	draw_rect(Rect2(dx + dw - 6, top + dh / 2, 2, 3), p.LIT)
-	draw_rect(Rect2(dx + 10, top + dh * 0.62, 14, 2), Color("c9a36a"))
-	draw_rect(Rect2(dx + dw + 6, top + 10, 8, 6), Color("2a4ea0"))
+	draw_rect(Rect2(dx + 10, top + dh * 0.62, 14, 2), WorldPalette.B4)
+	draw_rect(Rect2(dx + dw + 6, top + 10, 8, 6), WorldPalette.T1)
 	draw_string(ThemeDB.fallback_font, Vector2(dx + dw + 6, top + 15), str(rng.randi_range(2, 480)), HORIZONTAL_ALIGNMENT_CENTER, 8, 6, Color.WHITE)
 	# Wall lamp by the door.
 	var lx := dx + (dw + 18.0 if left else -18.0)
@@ -387,7 +423,7 @@ func _entrance(x0: float, W: float, GH: float, rng: RandomNumberGenerator, wall:
 	draw_rect(Rect2(wx + 4, -20, 18, 10), PixelArt.OUTLINE)
 	draw_rect(Rect2(wx + 5, -19, 16, 8), p.GLASS)
 	for k in 4:
-		draw_rect(Rect2(wx + 7 + k * 4, -19, 1, 8), Color("4a4a50"))
+		draw_rect(Rect2(wx + 7 + k * 4, -19, 1, 8), WorldPalette.R0)
 	if rng.randf() < 0.25:
 		_bike(x0 + (W - 66.0 if left else 46.0), 0.0, rng)
 
@@ -405,7 +441,7 @@ func _shop_front(x0: float, W: float, GH: float, rng: RandomNumberGenerator, ind
 	draw_rect(Rect2(x0 + 6, top + 3, W - 12, 16), fc.darkened(0.35))
 	draw_rect(Rect2(x0 + 6, top + 3, W - 12, 1), fc.lightened(0.3))
 	if shop_name != "":
-		draw_string(ThemeDB.fallback_font, Vector2(x0 + 6, top + 15), shop_name, HORIZONTAL_ALIGNMENT_CENTER, W - 12, 11, Color("f4d68a"))
+		draw_string(ThemeDB.fallback_font, Vector2(x0 + 6, top + 15), shop_name, HORIZONTAL_ALIGNMENT_CENTER, W - 12, 11, WorldPalette.O3)
 	# Display window with goods on lit shelves, glass door.
 	var door_w := 26.0
 	var door_left := rng.randf() < 0.5
@@ -415,11 +451,11 @@ func _shop_front(x0: float, W: float, GH: float, rng: RandomNumberGenerator, ind
 	var wy := top + 24
 	var wh := GH - 12 - 24 - 14
 	draw_rect(Rect2(wx - 1, wy - 1, wwid + 2, wh + 2), PixelArt.OUTLINE)
-	draw_rect(Rect2(wx, wy, wwid, wh), Color("5a4630"))
-	draw_rect(Rect2(wx, wy, wwid, wh * 0.45), Color("8a6a40"))      # warm light
+	draw_rect(Rect2(wx, wy, wwid, wh), WorldPalette.P0)
+	draw_rect(Rect2(wx, wy, wwid, wh * 0.45), WorldPalette.W1)      # warm light
 	for s in 2:
 		var sy := wy + 10 + s * 14
-		draw_rect(Rect2(wx + 2, sy, wwid - 4, 2), Color("3a2a1a"))
+		draw_rect(Rect2(wx + 2, sy, wwid - 4, 2), WorldPalette.W0)
 		var gx := wx + 4
 		while gx < wx + wwid - 6:
 			if rng.randf() < 0.75:
@@ -429,14 +465,14 @@ func _shop_front(x0: float, W: float, GH: float, rng: RandomNumberGenerator, ind
 	draw_rect(Rect2(wx, wy + wh, wwid, 8), fc.darkened(0.2))
 	draw_rect(Rect2(dx - 1, top + 22, door_w + 2, GH - 12 - 22 + 1), PixelArt.OUTLINE)
 	draw_rect(Rect2(dx, top + 23, door_w, GH - 12 - 23), fc.darkened(0.15))
-	draw_rect(Rect2(dx + 4, top + 27, door_w - 8, 30), Color("6a5236"))
+	draw_rect(Rect2(dx + 4, top + 27, door_w - 8, 30), WorldPalette.W1)
 	draw_rect(Rect2(dx + door_w - 6, top + 50, 2, 3), p.LIT)
 	# Gooseneck lamps over the window, sometimes an awning.
 	for lx in [wx + 6, wx + wwid - 10]:
 		draw_rect(Rect2(lx, top + 19, 1, 4), PixelArt.OUTLINE)
 		draw_rect(Rect2(lx - 2, top + 22, 5, 3), p.LIT)
 	if rng.randf() < 0.45:
-		var ac: Color = [p.ORANGE, Color("c94a3d"), Color("2f6f4a"), Color("2a4a6a")][rng.randi_range(0, 3)]
+		var ac: Color = [p.ORANGE, WorldPalette.B2, WorldPalette.G1, WorldPalette.T1][rng.randi_range(0, 3)]
 		for k in int(wwid / 6) + 1:
 			draw_rect(Rect2(wx - 3 + k * 6, wy - 2, 6, 10), ac if k % 2 == 0 else p.WHITE)
 			draw_rect(Rect2(wx - 2 + k * 6, wy + 8, 4, 2), ac if k % 2 == 0 else p.WHITE)
@@ -463,41 +499,41 @@ func _signed_ground(x0: float, W: float, GH: float, stone: Color) -> void:
 
 
 func _terrace(cx: float, rng: RandomNumberGenerator) -> void:
-	var uc: Color = [Color("c94a3d"), Color("f2e8da"), Color("2f6f4a")][rng.randi_range(0, 2)]
+	var uc: Color = [WorldPalette.B2, WorldPalette.W4, WorldPalette.G1][rng.randi_range(0, 2)]
 	for k in 2:
 		var tx := cx - 22 + k * 40
-		draw_rect(Rect2(tx - 1, -46, 2, 34), Color("5a5a60"))
+		draw_rect(Rect2(tx - 1, -46, 2, 34), WorldPalette.R1)
 		WorldPalette.triangle(self, tx - 18, -44, 36, 8, uc)
 		draw_rect(Rect2(tx - 18, -44, 36, 2), uc.darkened(0.2))
-		draw_rect(Rect2(tx - 8, -14, 16, 2), Color("8a6a4a"))           # table
-		draw_rect(Rect2(tx - 1, -12, 2, 12), Color("3a3a40"))
+		draw_rect(Rect2(tx - 8, -14, 16, 2), WorldPalette.W1)           # table
+		draw_rect(Rect2(tx - 1, -12, 2, 12), WorldPalette.W0)
 		for side in [-1.0, 1.0]:                                         # chairs
 			var chx: float = tx + side * 13
-			draw_rect(Rect2(chx - 3, -9, 7, 2), Color("3a3a40"))
-			draw_rect(Rect2(chx + (3.0 if side > 0 else -3.0), -18, 1, 18), Color("3a3a40"))
-			draw_rect(Rect2(chx - 3, -7, 1, 7), Color("3a3a40"))
+			draw_rect(Rect2(chx - 3, -9, 7, 2), WorldPalette.W0)
+			draw_rect(Rect2(chx + (3.0 if side > 0 else -3.0), -18, 1, 18), WorldPalette.W0)
+			draw_rect(Rect2(chx - 3, -7, 1, 7), WorldPalette.W0)
 		if rng.randf() < 0.6:                                            # glasses
-			draw_rect(Rect2(tx - 5, -18, 2, 4), Color("f2c66a"))
-			draw_rect(Rect2(tx + 3, -18, 2, 4), Color("f0ece4"))
+			draw_rect(Rect2(tx - 5, -18, 2, 4), WorldPalette.O2)
+			draw_rect(Rect2(tx + 3, -18, 2, 4), WorldPalette.W4)
 
 
 func _aboard(x: float, rng: RandomNumberGenerator) -> void:
-	draw_line(Vector2(x, 0), Vector2(x + 6, -24), Color("4a3426"), 2.0)
-	draw_line(Vector2(x + 12, 0), Vector2(x + 6, -24), Color("4a3426"), 2.0)
-	draw_rect(Rect2(x + 2, -21, 9, 14), Color("2a2a2e"))
+	draw_line(Vector2(x, 0), Vector2(x + 6, -24), WorldPalette.W0, 2.0)
+	draw_line(Vector2(x + 12, 0), Vector2(x + 6, -24), WorldPalette.W0, 2.0)
+	draw_rect(Rect2(x + 2, -21, 9, 14), WorldPalette.T0)
 	for k in 3:
-		draw_rect(Rect2(x + 3, -19 + k * 4, rng.randi_range(4, 7), 1), Color("e8e0d0"))
+		draw_rect(Rect2(x + 3, -19 + k * 4, rng.randi_range(4, 7), 1), WorldPalette.W4)
 
 
 func _plant(x: float) -> void:
-	draw_rect(Rect2(x, -10, 8, 10), Color("b86a3a"))
-	draw_rect(Rect2(x - 1, -11, 10, 2), Color("c97a4a"))
-	WorldPalette.disc(self, x + 4, -16, 5, Color("4f7a3a"))
-	WorldPalette.disc(self, x + 3, -18, 3, Color("6f9a4a"))
+	draw_rect(Rect2(x, -10, 8, 10), WorldPalette.B2)
+	draw_rect(Rect2(x - 1, -11, 10, 2), WorldPalette.B3)
+	WorldPalette.disc(self, x + 4, -16, 5, WorldPalette.T3)
+	WorldPalette.disc(self, x + 3, -18, 3, WorldPalette.G2)
 
 
 func _bike(x: float, y: float, rng: RandomNumberGenerator) -> void:
-	var fc: Color = [Color("2a2a2e"), Color("6b2a2a"), Color("2a4a6a"), Color("e8e0d0")][rng.randi_range(0, 3)]
+	var fc: Color = [WorldPalette.T0, WorldPalette.B0, WorldPalette.T1, WorldPalette.W4][rng.randi_range(0, 3)]
 	draw_arc(Vector2(x, y - 10), 9, 0, TAU, 16, PixelArt.OUTLINE, 2.0)
 	draw_arc(Vector2(x + 30, y - 10), 9, 0, TAU, 16, PixelArt.OUTLINE, 2.0)
 	draw_line(Vector2(x, y - 10), Vector2(x + 12, y - 22), fc, 2.0)
@@ -506,4 +542,4 @@ func _bike(x: float, y: float, rng: RandomNumberGenerator) -> void:
 	draw_line(Vector2(x + 14, y - 10), Vector2(x, y - 10), fc, 2.0)
 	draw_line(Vector2(x + 26, y - 26), Vector2(x + 30, y - 10), fc, 2.0)
 	draw_rect(Rect2(x + 22, y - 28, 9, 2), PixelArt.OUTLINE)
-	draw_rect(Rect2(x + 9, y - 25, 7, 2), Color("3a2a22"))
+	draw_rect(Rect2(x + 9, y - 25, 7, 2), WorldPalette.W0)

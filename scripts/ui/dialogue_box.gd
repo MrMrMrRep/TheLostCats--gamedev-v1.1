@@ -33,6 +33,7 @@ func _ready() -> void:
 	style.set_corner_radius_all(3)
 	_panel.add_theme_stylebox_override("panel", style)
 	add_child(_panel)
+	ScreenFit.pin(_panel, 0.5)
 	_name_label = _label(Vector2(10, 4), Vector2(300, 12), 9, Color("ffd36b"))
 	_text_label = _label(Vector2(10, 20), Vector2(540, 48), 9, Color.WHITE)
 	_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

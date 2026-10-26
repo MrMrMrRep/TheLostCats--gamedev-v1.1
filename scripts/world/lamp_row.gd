@@ -17,8 +17,8 @@ extends Node2D
 		height = value
 		_rebuild()
 
-const POST := Color("8a8f99")
-const HEAD := Color("f6e8b0")
+const POST := WorldPalette.R2
+const HEAD := WorldPalette.W4
 const ARM := 13.0
 
 var _glow: NightGlow

@@ -5,18 +5,19 @@ extends Node2D
 ## like Joep; kids ~19), drawn at the band sprites' density. Kept around the
 ## camera only. Two sides of the street, for depth:
 ##   BACK   the pavement by the facades: behind the band, 0.94 size, a touch hazy
-##   FRONT  the quay side: in front of the band (they walk past/through us)
+##   FRONT  the quay side: in front of the band (they walk past/through us);
+##          kept few (PeopleConfig.front_share) so the band stays readable
 ## How busy each district is comes from the Zone nodes (WorldZone, "people
 ## per screen"); speeds etc. from resources/config/people_config.tres. Never in
 ## the countryside. Origin = street line.
 
 enum Side { BACK, FRONT }
 
-const SIDE_Y := {Side.BACK: -1.0, Side.FRONT: 6.0}
-const SKIN := [Color("f0c8a8"), Color("e0a882"), Color("b97a52"), Color("8a5a3a"), Color("5a3a28")]
-const HAIR := [Color("2a1e1a"), Color("5a3a22"), Color("c9a050"), Color("8a3a22"), Color("d8d0c8"), Color("1a1a1e")]
-const SHIRTS := [Color("c94a3d"), Color("2a4ea0"), Color("f2efe8"), Color("2f4f3a"), Color("e0b23a"), Color("6a4a8a"), Color("3a3a40"), Color("e07a2e"), Color("6f8f86")]
-const PANTS := [Color("2a3040"), Color("3a3a40"), Color("5a4a3a"), Color("1e2a4a"), Color("8a7a5a")]
+const SIDE_Y := {Side.BACK: 1.0, Side.FRONT: 5.0}   # both on the pavement (the band walks between, at 3)
+const SKIN := [WorldPalette.W3, WorldPalette.B4, WorldPalette.B3, WorldPalette.W1, WorldPalette.W0]
+const HAIR := [WorldPalette.T0, WorldPalette.W0, WorldPalette.W2, WorldPalette.B1, WorldPalette.G4, WorldPalette.T0]
+const SHIRTS := [WorldPalette.B2, WorldPalette.T1, WorldPalette.W5, WorldPalette.G0, WorldPalette.O2, WorldPalette.P0, WorldPalette.W0, WorldPalette.B3, WorldPalette.R2]
+const PANTS := [WorldPalette.T0, WorldPalette.W0, WorldPalette.P0, WorldPalette.T0, WorldPalette.R2]
 
 @export var side := Side.BACK
 var busy: Array[Vector3] = []               # (x0, x1, people per screen width), from the zones
@@ -36,7 +37,8 @@ func _ready() -> void:
 func density_at(x: float) -> float:
 	for b in busy:
 		if x >= b.x and x <= b.y:
-			return b.z * PeopleConfig.current().busy_scale
+			var cfg := PeopleConfig.current()
+			return b.z * cfg.busy_scale * (cfg.front_share if side == Side.FRONT else 1.0)
 	return 0.0
 
 
@@ -44,7 +46,7 @@ func _view() -> Vector2:
 	var cam := get_viewport().get_camera_2d() if is_inside_tree() else null
 	if cam == null:
 		return Vector2(0, 640)
-	var half := 320.0 / cam.zoom.x + 60.0
+	var half := ScreenFit.width(self) / 2.0 / cam.zoom.x + 60.0
 	var cx := cam.get_screen_center_position().x
 	return Vector2(cx - half, cx + half)
 
@@ -132,16 +134,16 @@ func _person(p: Dictionary, back: bool) -> void:
 	# one small story each
 	match int(p.extra):
 		0:                                  # shopping bag
-			draw_rect(Rect2(-swing * 0.7 - 4, -24, 9, 10), Color("e8dcc0").lerp(WorldPalette.HAZE, haze))
+			draw_rect(Rect2(-swing * 0.7 - 4, -24, 9, 10), WorldPalette.W4.lerp(WorldPalette.HAZE, haze))
 		1:                                  # backpack
-			draw_rect(Rect2(-11, -44, 6, 14), Color("5a4a3a").lerp(WorldPalette.HAZE, haze))
+			draw_rect(Rect2(-11, -44, 6, 14), WorldPalette.P0.lerp(WorldPalette.HAZE, haze))
 		2:                                  # phone in hand, looking down
 			draw_rect(Rect2(6, -36, 3, 5), o)
 		3:                                  # a dog on a lead
 			var dx := 22.0
 			draw_line(Vector2(-swing * 0.7, -26), Vector2(dx, -10), o, 1.0)
-			draw_rect(Rect2(dx - 2, -12, 14, 7), Color("8a5a3a"))
-			draw_rect(Rect2(dx + 10, -16, 6, 6), Color("8a5a3a"))
+			draw_rect(Rect2(dx - 2, -12, 14, 7), WorldPalette.W1)
+			draw_rect(Rect2(dx + 10, -16, 6, 6), WorldPalette.W1)
 			draw_rect(Rect2(dx, -5, 2, 5), o); draw_rect(Rect2(dx + 9, -5, 2, 5), o)
 		_:
 			pass

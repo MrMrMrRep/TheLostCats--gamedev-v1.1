@@ -22,8 +22,8 @@ const SPECS := {
 	Style.TAXI: [134.0, 7.0, 20.0, 18.0, 30.0, 18.0, 14.0, 22.0, 10.0],
 	Style.BEETLE: [100.0, 8.0, 18.0, 22.0, 0.0, 0.0, 0.0, 0.0, 10.0],
 }
-const COLOURS := [Color("c94a3d"), Color("2a4ea0"), Color("f2efe8"), Color("2a2a2e"), Color("e0b23a"),
-	Color("6f8f5a"), Color("8a8f99"), Color("3a4a6a"), Color("9a2a3a"), Color("d8d0c0"), Color("4a6a8a"), Color("e07a2e")]
+const COLOURS := [WorldPalette.B2, WorldPalette.T1, WorldPalette.W5, WorldPalette.T0, WorldPalette.O2,
+	WorldPalette.G2, WorldPalette.R2, WorldPalette.R0, WorldPalette.B1, WorldPalette.G4, WorldPalette.R1, WorldPalette.B3]
 
 
 static func colour(seed: int) -> Color:
@@ -42,10 +42,37 @@ static func style_for(seed: int) -> int:
 	return Style.BEETLE
 
 
+# Style v3 (WorldPalette.V3): each style as a v3 vehicle kind, each colour as a
+# v3 colour ramp (same order as COLOURS).
+const V3_KINDS := {Style.CITY: "hatch", Style.HATCH: "hatch", Style.SALOON: "sedan", Style.ESTATE: "wagon",
+	Style.SUV: "mpv", Style.MPV: "mpv", Style.TAXI: "taxi", Style.BEETLE: "duck"}
+const V3_COLOURS := ["red", "navy", "white", "black", "yellow", "green", "silver", "navy", "plum", "cream", "teal", "orange"]
+
+
+## A baked v3 vehicle: `kind` (hatch, sedan, wagon, coupe, mpv, duck, taxi,
+## police, van, bus, truck) in a v3 colour ramp. Drawn by v3_vehicle().
+static func v3_art(kind: String, colour: String) -> V3Art:
+	var paint := func() -> V3Art: return V3Painter.vehicle(kind, colour)
+	return V3Cache.art("car_%s_%s" % [kind, colour], paint)
+
+
+## Draws a v3 vehicle centred on x 0, wheels on y 0 (art px, facing right).
+static func v3_vehicle(ci: CanvasItem, kind: String, colour: String, alpha: float) -> void:
+	var L := V3Painter.vehicle_length(kind)
+	v3_art(kind, colour).draw(ci, Vector2(-L / 2.0, 0.0), 1.0, Color(1, 1, 1, alpha))
+
+
 ## A car of `style` in colour `c`. `phase` turns the wheels; `seed` picks extras.
 static func car(ci: CanvasItem, style: int, c: Color, alpha: float, phase: float, seed: int) -> void:
+	if WorldPalette.V3:
+		var kind: String = V3_KINDS[style]
+		if kind == "sedan" and absi(seed * 31) % 5 == 0:
+			kind = "coupe"
+		var colour: String = "yellow" if kind == "taxi" else V3_COLOURS[absi(seed) % V3_COLOURS.size()]
+		v3_vehicle(ci, kind, colour, alpha)
+		return
 	if style == Style.TAXI:
-		c = Color("1e1e22")
+		c = WorldPalette.T0
 	c = Color(c, alpha)
 	var o := Color(PixelArt.OUTLINE, alpha)
 	var sp: Array = SPECS[style]
@@ -76,7 +103,7 @@ static func car(ci: CanvasItem, style: int, c: Color, alpha: float, phase: float
 	ci.draw_rect(Rect2(-hl + 2, belt + 1, sp[0] - 8, 1), c.lightened(0.2))                                       # beltline
 	ci.draw_rect(Rect2(-hl + 2, -sill - 5, sp[0] - 4, 4), c.darkened(0.3))                                       # sill / bumper line
 	# Windows with pillars.
-	var g := Color(Color("3a4a62"), alpha)
+	var g := Color(WorldPalette.R0, alpha)
 	var win := PackedVector2Array([Vector2(hl - hood - 3, belt - 2), Vector2(hl - hood - wind + 1, top + 3),
 		Vector2(-hl + trunk + rear + 4, top + 3), Vector2(-hl + trunk + 3, belt - 2)])
 	ci.draw_colored_polygon(win, g)
@@ -91,23 +118,23 @@ static func car(ci: CanvasItem, style: int, c: Color, alpha: float, phase: float
 	ci.draw_rect(Rect2(mid + 5, belt + 4, 5, 1), c.darkened(0.4))
 	ci.draw_rect(Rect2(mid - 12, belt + 4, 5, 1), c.darkened(0.4))
 	ci.draw_rect(Rect2(hl - hood - 2, belt - 4, 4, 3), c.darkened(0.25))
-	ci.draw_rect(Rect2(hl - 5, belt + 3, 5, 4), Color(Color("f6e8b0"), alpha))
-	ci.draw_rect(Rect2(-hl, belt + 3, 3, 5), Color(Color("d83a2a"), alpha))
-	ci.draw_rect(Rect2(hl - 4, -sill - 6, 4, 3), Color(Color("f2c14a"), alpha))                                   # indicator
+	ci.draw_rect(Rect2(hl - 5, belt + 3, 5, 4), Color(WorldPalette.W4, alpha))
+	ci.draw_rect(Rect2(-hl, belt + 3, 3, 5), Color(WorldPalette.B2, alpha))
+	ci.draw_rect(Rect2(hl - 4, -sill - 6, 4, 3), Color(WorldPalette.O2, alpha))                                   # indicator
 	# Extras.
 	var x := absi(seed * 31) % 100
 	if style == Style.TAXI:
-		ci.draw_rect(Rect2(mid - 8, top - 6, 16, 6), Color(Color("f2c14a"), alpha))
+		ci.draw_rect(Rect2(mid - 8, top - 6, 16, 6), Color(WorldPalette.O2, alpha))
 		ci.draw_string(ThemeDB.fallback_font, Vector2(mid - 8, top - 1), "TAXI", HORIZONTAL_ALIGNMENT_CENTER, 16, 5, o)
 	elif x < 14:                                                                                                  # roof box
-		ci.draw_rect(Rect2(mid - 20, top - 7, 40, 6), Color(Color("2a2a2e"), alpha))
-		ci.draw_rect(Rect2(mid - 18, top - 7, 36, 1), Color(Color("4a4a50"), alpha))
+		ci.draw_rect(Rect2(mid - 20, top - 7, 40, 6), Color(WorldPalette.T0, alpha))
+		ci.draw_rect(Rect2(mid - 18, top - 7, 36, 1), Color(WorldPalette.R0, alpha))
 	elif x < 20:                                                                                                  # a bike on the roof
 		ci.draw_line(Vector2(mid - 22, top - 1), Vector2(mid + 22, top - 1), o, 1.0)
 		ci.draw_arc(Vector2(mid - 12, top - 9), 7, 0, TAU, 12, o, 1.0)
 		ci.draw_arc(Vector2(mid + 12, top - 9), 7, 0, TAU, 12, o, 1.0)
-		ci.draw_line(Vector2(mid - 12, top - 9), Vector2(mid, top - 16), Color(Color("c94a3d"), alpha), 1.0)
-		ci.draw_line(Vector2(mid, top - 16), Vector2(mid + 12, top - 9), Color(Color("c94a3d"), alpha), 1.0)
+		ci.draw_line(Vector2(mid - 12, top - 9), Vector2(mid, top - 16), Color(WorldPalette.B2, alpha), 1.0)
+		ci.draw_line(Vector2(mid, top - 16), Vector2(mid + 12, top - 9), Color(WorldPalette.B2, alpha), 1.0)
 	elif x < 28:                                                                                                  # racing stripe
 		ci.draw_rect(Rect2(-hl + 4, belt + 8, sp[0] - 10, 2), Color(Color.WHITE, 0.7 * alpha))
 	wheel(ci, wb, r, alpha, phase)
@@ -150,9 +177,9 @@ static func _beetle(ci: CanvasItem, c: Color, o: Color, hl: float, sill: float, 
 	_outline(ci, pts, o)
 	for fx in [wb, -wb]:                                          # round fenders
 		ci.draw_circle(Vector2(fx, -sill - 6), r + 5, c)
-	ci.draw_circle(Vector2(-6, -sill - 28), 13, Color(Color("3a4a62"), alpha))
+	ci.draw_circle(Vector2(-6, -sill - 28), 13, Color(WorldPalette.R0, alpha))
 	ci.draw_rect(Rect2(-7, -sill - 40, 3, 26), c)
-	ci.draw_rect(Rect2(-hl + 4, -sill - 3, hl * 2 - 8, 2), Color(Color("c9ccd2"), alpha))
-	ci.draw_rect(Rect2(hl - 8, -sill - 14, 4, 4), Color(Color("f6e8b0"), alpha))
+	ci.draw_rect(Rect2(-hl + 4, -sill - 3, hl * 2 - 8, 2), Color(WorldPalette.W3, alpha))
+	ci.draw_rect(Rect2(hl - 8, -sill - 14, 4, 4), Color(WorldPalette.W4, alpha))
 	wheel(ci, wb, r, alpha, phase)
 	wheel(ci, -wb, r, alpha, phase)

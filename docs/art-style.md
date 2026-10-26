@@ -119,3 +119,12 @@ Zoom changes ease (~1.6 s) when you enter or leave a zone. It's pixel-perfect at
 - **Black** (GDD: "Black Band Van") with a Dutch-orange/cream **retro stripe** and a small cat logo on the sliding door
 - Sheet: 4 frames of 112×56 px (wheels turn), facing right. Previews: `docs/art/band_van_preview_4x.png`, `docs/art/band_van_on_street_2x.png`. Drawn by `tools/van_sprite.gd`, so colours and details are easy to change
 - Next, if you like it: suspension bob, exhaust puff, brake light, open sliding door for boarding
+
+## 13. Refinement pass against the reference street scene (2026-10-25)
+Benchmark: a bright pixel street (clear azure sky, white clouds, hazy high-rises far behind, tidy street level). What changed:
+- **Camera**: walking zoom 1.5 (1.33 at full pace), bikes 1.4/1.2, van 1.33/1.1 (`map_camera_config.tres`). The whole house front, roofs and sky are in shot, like the reference; the old 2.5 cropped the roofs and gave uneven pixels.
+- **Order on the street**: in town the road lane and our van sit on the canal edge of the cobbles (`traffic.gd` LANE_Y, `vehicle_config.lane_town` 18), so car roofs stay below the band's knees. Only a few people walk on the quay side in front of the band (`people_config.front_share` 0.2).
+- **Depth**: the skyline layer draws a pale modern city far behind (towers with antennas and setbacks, blocks with rooftop tanks, chimneys, cranes, a gas holder) behind the hotels and from the outskirts to past the airport (`scenery.gd` `_far_city`, FAR_CITY_WEST / FAR_CITY_EAST). The old centre keeps its low roofline. At night it darkens to silhouettes with lit windows. The far polder fields no longer run under the town (they showed as green stripes between the industry buildings).
+- **Colour grade** (`shaders/color_grade.gdshader`, added by `world_map.gd` and the title): the palette's teal (sky, haze, water, teal facades) is turned towards azure; brick, wood, greens and the band stay. Daytime sky top is T4 (was T3). Strength 0 in the shader turns it off.
+- **Water**: calmer mirror (3-tap blur, ripple 0.45, more water colour).
+- **UI**: one pixel font for every Control (`scripts/ui/ui_font.gd`, the sign letters plus lower case; installed by the Game autoload), 1 px outlines and navy shadows; the map HUD is two small panels; time-skip buttons only in F3 developer mode; the controls line fades out after 10 s. Venue signs and the title screen use the same letters; the title shows the map's skyline, street and quay.

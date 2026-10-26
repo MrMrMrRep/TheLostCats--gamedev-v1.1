@@ -19,8 +19,8 @@ func _ready() -> void:
 
 func _draw() -> void:
 	for x in [-14.0, 10.0]:
-		draw_rect(Rect2(x, -18, 4, 18), Color("8a8a96"))
+		draw_rect(Rect2(x, -18, 4, 18), WorldPalette.R2)
 	for i in 6:
-		draw_rect(Rect2(-16 + i * 6, -16, 6, 5), Color("d83a32") if i % 2 == 0 else Color.WHITE)
-	draw_rect(Rect2(-22, -44, 44, 14), Color("e8c040"))
-	draw_string(ThemeDB.fallback_font, Vector2(-20, -34), text, HORIZONTAL_ALIGNMENT_CENTER, 40, 6, Color("1a1a1a"))
+		draw_rect(Rect2(-16 + i * 6, -16, 6, 5), WorldPalette.B2 if i % 2 == 0 else Color.WHITE)
+	draw_rect(Rect2(-22, -44, 44, 14), WorldPalette.O2)
+	PixelFont.draw_string(self, Vector2(-20, -34), text, HORIZONTAL_ALIGNMENT_CENTER, 40, 6, WorldPalette.T0)

@@ -44,9 +44,91 @@ func _clear(x: float, half: float) -> bool:
 func _draw() -> void:
 	if _glow:
 		_glow.clear()
+	if WorldPalette.V3:
+		var items := plan()
+		v3_art(items).draw(self)
+		if _glow:                           # lamp light at night (art px -> world px)
+			for it: Array in items:
+				if it[0] == "lamp":
+					_glow.add_lamp(Vector2(it[1] * 0.5, -66.0), 20.0, 0.0, 0.03 + NightGlow.spot_hash(it[1], 1.0) * 0.1)
+				elif it[0] == "tall_lamp":
+					_glow.add_lamp(Vector2(it[1] * 0.5 + 15.0, -78.0), 26.0, 0.0, 0.03 + NightGlow.spot_hash(it[1], 2.0) * 0.1, Color(1.0, 0.9, 0.7, 0.5))
+			_glow.queue_redraw()
+		return
 	_draw_life()
 	if _glow:
 		_glow.queue_redraw()
+
+
+## The stretch in the style v3 look (baked once, see V3Cache / V3Painter).
+func v3_art(items: Array = plan()) -> V3Art:
+	var key := "life%d_%d|%s|%s" % [kind, seed_value, length, keep_clear]
+	var paint := func() -> V3Art: return V3Painter.street_life(items, length, seed_value)
+	return V3Cache.art(key, paint)
+
+
+## What stands where, by the district rules: [piece, art x, extra].
+func plan() -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var out := []
+	var x := rng.randf_range(20, 80)
+	while x < length - 20:
+		var ax := x * 2.0
+		var r := rng.randf()
+		var step := 80.0
+		match kind:
+			Kind.CANAL:
+				if r < 0.45 and _clear(x, 30):
+					out.append(["tree", ax, rng.randf_range(0.85, 1.05)])
+					if rng.randf() < 0.5:
+						out.append(["rack", ax + 60, rng.randi_range(1, 2)])
+				elif r < 0.7 and _clear(x, 6):
+					out.append(["lamp", ax])
+					out.append(["bollards", ax + 24, rng.randi_range(2, 4)])
+				elif r < 0.8 and _clear(x, 16):
+					out.append(["bench", ax])
+					out.append(["bin", ax + 50])
+				elif r < 0.85 and _clear(x, 6):
+					out.append(["sign", ax])
+				elif _clear(x, 30):
+					out.append(["rack", ax, rng.randi_range(1, 3)])
+				step = rng.randf_range(55, 95)
+			Kind.OLD_TOWN:
+				if r < 0.3 and _clear(x, 6):
+					out.append(["lamp", ax])
+				elif r < 0.5 and _clear(x, 14):
+					out.append(["planter", ax])
+				elif r < 0.7 and _clear(x, 20):
+					out.append(["rack", ax, rng.randi_range(1, 2)])
+				elif r < 0.8 and _clear(x, 24):
+					out.append(["tree", ax, rng.randf_range(0.7, 0.85)])
+				else:
+					out.append(["bollards", ax, rng.randi_range(3, 5)])
+				step = rng.randf_range(50, 90)
+			Kind.RING:
+				if r < 0.5 and _clear(x, 20):
+					out.append(["tree", ax, rng.randf_range(0.6, 0.75)])
+				elif r < 0.7 and _clear(x, 6):
+					out.append(["lamp", ax])
+				elif r < 0.85 and _clear(x, 6):
+					out.append(["meter", ax])
+					out.append(["bin", ax + 24])
+				elif _clear(x, 20):
+					out.append(["rack", ax, rng.randi_range(1, 2)])
+				step = rng.randf_range(70, 110)
+			Kind.INDUSTRY:
+				if _clear(x, 8):
+					out.append(["tall_lamp", ax])
+				step = rng.randf_range(120, 160)
+			_:
+				if _clear(x, 8):
+					out.append(["tall_lamp", ax])
+				if r < 0.3 and _clear(x + 40, 10):
+					out.append(["flags", ax + 80])
+				step = rng.randf_range(110, 150)
+		x += step
+	return out
 
 
 func _draw_life() -> void:
@@ -134,14 +216,14 @@ func _airport(ax: float, rng: RandomNumberGenerator) -> float:
 # --- Pieces (art px, standing on y 0) ---------------------------------------
 
 func _lamp(x: float) -> void:
-	var post := Color("23302a")
+	var post := WorldPalette.T0
 	draw_rect(Rect2(x - 4, -8, 8, 8), post)                 # base
 	draw_rect(Rect2(x - 3, -10, 6, 2), post.lightened(0.2))
 	draw_rect(Rect2(x - 1, -80, 3, 72), post)
 	draw_rect(Rect2(x - 3, -50, 7, 2), post)
 	draw_rect(Rect2(x - 6, -96, 13, 3), post)               # lantern
-	draw_rect(Rect2(x - 5, -93, 11, 11), Color("f6d98a"))
-	draw_rect(Rect2(x - 5, -93, 11, 1), Color("fff3c4"))
+	draw_rect(Rect2(x - 5, -93, 11, 11), WorldPalette.O3)
+	draw_rect(Rect2(x - 5, -93, 11, 1), WorldPalette.W5)
 	draw_rect(Rect2(x, -93, 1, 11), post)
 	draw_rect(Rect2(x - 6, -82, 13, 2), post)
 	draw_rect(Rect2(x - 1, -100, 3, 4), post)
@@ -150,11 +232,11 @@ func _lamp(x: float) -> void:
 
 
 func _tall_lamp(x: float) -> void:
-	var post := Color("8a8f99")
+	var post := WorldPalette.R2
 	draw_rect(Rect2(x - 2, -150, 4, 150), post)
 	draw_rect(Rect2(x - 4, -4, 8, 4), post.darkened(0.2))
 	draw_rect(Rect2(x - 2, -150, 26, 3), post)
-	draw_rect(Rect2(x + 16, -148, 12, 4), Color("f6e8b0"))
+	draw_rect(Rect2(x + 16, -148, 12, 4), WorldPalette.W4)
 	if _glow:
 		_glow.add_lamp(Vector2(x * 0.5 + 11.0, -72.0), 26.0, 0.0, 0.03 + NightGlow.spot_hash(x, 2.0) * 0.1, Color(1.0, 0.9, 0.7, 0.5))
 
@@ -162,15 +244,15 @@ func _tall_lamp(x: float) -> void:
 func _bollards(x: float, n: int) -> void:
 	for k in n:
 		var bx := x + k * 14
-		draw_rect(Rect2(bx - 3, -22, 6, 22), Color("5a2a22"))
-		draw_rect(Rect2(bx - 2, -22, 2, 22), Color("7a3a2e"))
-		draw_rect(Rect2(bx - 4, -24, 8, 3), Color("4a221c"))
+		draw_rect(Rect2(bx - 3, -22, 6, 22), WorldPalette.B0)
+		draw_rect(Rect2(bx - 2, -22, 2, 22), WorldPalette.B1)
+		draw_rect(Rect2(bx - 4, -24, 8, 3), WorldPalette.B0)
 		for m in 3:                                        # the three crosses
-			draw_rect(Rect2(bx - 1, -18 + m * 5, 2, 2), Color("e8e0d0"))
+			draw_rect(Rect2(bx - 1, -18 + m * 5, 2, 2), WorldPalette.W4)
 
 
 func _bench(x: float) -> void:
-	var wood := Color("8a5a3a")
+	var wood := WorldPalette.W1
 	for k in 3:
 		draw_rect(Rect2(x, -18 - k * 5, 40, 3), wood if k > 0 else wood.darkened(0.15))
 	draw_rect(Rect2(x, -12, 40, 3), wood)
@@ -179,19 +261,19 @@ func _bench(x: float) -> void:
 
 
 func _bin(x: float) -> void:
-	draw_rect(Rect2(x, -18, 12, 18), Color("2f4f3a"))
-	draw_rect(Rect2(x - 1, -20, 14, 3), Color("23302a"))
-	draw_rect(Rect2(x + 3, -14, 6, 2), Color("1a2a20"))
+	draw_rect(Rect2(x, -18, 12, 18), WorldPalette.G0)
+	draw_rect(Rect2(x - 1, -20, 14, 3), WorldPalette.T0)
+	draw_rect(Rect2(x + 3, -14, 6, 2), WorldPalette.T0)
 
 
 func _bike_rack(x: float, n: int, rng: RandomNumberGenerator) -> void:
-	draw_rect(Rect2(x - 4, -12, n * 18 + 30, 2), Color("8a8f99"))
+	draw_rect(Rect2(x - 4, -12, n * 18 + 30, 2), WorldPalette.R2)
 	for k in n:
 		_bike(x + k * 18, rng)
 
 
 func _bike(x: float, rng: RandomNumberGenerator) -> void:
-	var fc: Color = [Color("2a2a2e"), Color("6b2a2a"), Color("2a4a6a"), Color("e8e0d0"), Color("2f4f3a")][rng.randi_range(0, 4)]
+	var fc: Color = [WorldPalette.T0, WorldPalette.B0, WorldPalette.T1, WorldPalette.W4, WorldPalette.G0][rng.randi_range(0, 4)]
 	draw_arc(Vector2(x, -10), 9, 0, TAU, 16, PixelArt.OUTLINE, 2.0)
 	draw_arc(Vector2(x + 30, -10), 9, 0, TAU, 16, PixelArt.OUTLINE, 2.0)
 	draw_line(Vector2(x, -10), Vector2(x + 12, -22), fc, 2.0)
@@ -200,35 +282,35 @@ func _bike(x: float, rng: RandomNumberGenerator) -> void:
 	draw_line(Vector2(x + 14, -10), Vector2(x, -10), fc, 2.0)
 	draw_line(Vector2(x + 26, -26), Vector2(x + 30, -10), fc, 2.0)
 	draw_rect(Rect2(x + 22, -28, 9, 2), PixelArt.OUTLINE)
-	draw_rect(Rect2(x + 9, -25, 7, 2), Color("3a2a22"))
+	draw_rect(Rect2(x + 9, -25, 7, 2), WorldPalette.W0)
 	if rng.randf() < 0.4:                                   # crate on the front
-		draw_rect(Rect2(x + 26, -36, 10, 8), Color("8a6a4a"))
+		draw_rect(Rect2(x + 26, -36, 10, 8), WorldPalette.W1)
 
 
 func _planter(x: float, rng: RandomNumberGenerator) -> void:
-	draw_rect(Rect2(x, -16, 28, 16), Color("6b4a32"))
-	draw_rect(Rect2(x - 1, -18, 30, 3), Color("8a6a4a"))
+	draw_rect(Rect2(x, -16, 28, 16), WorldPalette.W1)
+	draw_rect(Rect2(x - 1, -18, 30, 3), WorldPalette.W1)
 	for k in 6:
-		WorldPalette.disc(self, x + 3 + k * 4.5, -22, 3, Color("4f7a3a"))
+		WorldPalette.disc(self, x + 3 + k * 4.5, -22, 3, WorldPalette.T3)
 	for k in 5:
 		draw_rect(Rect2(x + 4 + k * 5, -26, 2, 2), CityBlock.FLOWERS[rng.randi_range(0, 4)])
 
 
 func _meter(x: float) -> void:
-	draw_rect(Rect2(x - 1, -30, 3, 30), Color("5a5a60"))
-	draw_rect(Rect2(x - 5, -40, 11, 12), Color("2a4ea0"))
-	draw_rect(Rect2(x - 3, -37, 7, 4), Color("cfe0ea"))
+	draw_rect(Rect2(x - 1, -30, 3, 30), WorldPalette.R1)
+	draw_rect(Rect2(x - 5, -40, 11, 12), WorldPalette.T1)
+	draw_rect(Rect2(x - 3, -37, 7, 4), WorldPalette.T7)
 
 
 ## kind 0: no motor vehicles (red ring, white), 1: a direction sign.
 func _sign(x: float, sign_kind: int) -> void:
-	draw_rect(Rect2(x - 1, -70, 3, 70), Color("8a8f99"))
+	draw_rect(Rect2(x - 1, -70, 3, 70), WorldPalette.R2)
 	if sign_kind == 0:
-		WorldPalette.disc(self, x, -76, 9, Color("c94a3d"))
-		WorldPalette.disc(self, x, -76, 6, Color("f2f2f2"))
+		WorldPalette.disc(self, x, -76, 9, WorldPalette.B2)
+		WorldPalette.disc(self, x, -76, 6, WorldPalette.W5)
 		draw_rect(Rect2(x - 4, -78, 8, 4), PixelArt.OUTLINE)    # car + bike symbol
 	else:
-		draw_rect(Rect2(x - 22, -86, 44, 14), Color("2a5bd7"))
+		draw_rect(Rect2(x - 22, -86, 44, 14), WorldPalette.T2)
 		draw_rect(Rect2(x - 22, -86, 44, 1), Color.WHITE)
 		draw_string(ThemeDB.fallback_font, Vector2(x - 22, -76), "A10 RING", HORIZONTAL_ALIGNMENT_CENTER, 44, 8, Color.WHITE)
 
@@ -236,5 +318,5 @@ func _sign(x: float, sign_kind: int) -> void:
 func _flags(x: float, rng: RandomNumberGenerator) -> void:
 	for k in 3:
 		var fx := x + k * 16
-		draw_rect(Rect2(fx, -120, 2, 120), Color("c9ccd2"))
-		draw_rect(Rect2(fx + 2, -118, 12, 30), [Color("c94a3d"), Color("f2f2f2"), Color("2a4ea0")][(k + rng.randi_range(0, 2)) % 3])
+		draw_rect(Rect2(fx, -120, 2, 120), WorldPalette.W3)
+		draw_rect(Rect2(fx + 2, -118, 12, 30), [WorldPalette.B2, WorldPalette.W5, WorldPalette.T1][(k + rng.randi_range(0, 2)) % 3])

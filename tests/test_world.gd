@@ -217,7 +217,7 @@ func _test_bikes() -> void:
 
 func _test_van() -> void:
 	var van = _place("Van")
-	_check(not map.in_town(van.global_position.x), "the van waits out of town (x %.0f)" % van.global_position.x)
+	_check(map.at_parking(van.global_position.x), "the van waits at a P spot (x %.0f, by the storage)" % van.global_position.x)
 	van.global_position.x = _place("ParkingStudio").global_position.x
 	await _place_leader(van.global_position.x)
 	await _tap("interact")

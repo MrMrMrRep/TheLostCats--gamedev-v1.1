@@ -32,7 +32,7 @@ func _ready() -> void:
 		_band.active.set_active(false)
 	var dim := ColorRect.new()
 	dim.color = Color(0.03, 0.03, 0.06, 0.7)
-	dim.size = Vector2(640, 360)
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 	var panel := ColorRect.new()
 	panel.color = Color("2a2230")
@@ -49,6 +49,9 @@ func _ready() -> void:
 	_note = _label("", Vector2(200, 226), 8, Color(1, 0.6, 0.5), 240)
 	_label("1-5 or click: in / out", Vector2(200, 246), 8, Color(1, 1, 1, 0.7), 240)
 	_label("E: done     Esc: cancel", Vector2(200, 258), 8, Color(1, 1, 1, 0.7), 240)
+	for c in get_children():                # centred on wide screens
+		if c is Control and c != dim:
+			ScreenFit.pin(c, 0.5)
 	_refresh()
 
 

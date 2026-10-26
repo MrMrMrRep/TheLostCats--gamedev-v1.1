@@ -11,9 +11,9 @@ extends Node2D
 ## pockets deep inside, branches showing in the gaps, loose leaves at the
 ## edges. Built once per seed (cached). Origin = street line, cluster centre.
 
-const PALETTE := [Color("17301f"), Color("24482c"), Color("356a36"), Color("4f8d3b"), Color("79b444"), Color("b4d860")]
-const SHADOW_BLUE := Color("2f4f63")
-const BRANCH := Color("3a2c22")
+const PALETTE := [WorldPalette.T0, WorldPalette.G0, WorldPalette.G1, WorldPalette.T3, WorldPalette.G2, WorldPalette.T6]
+const SHADOW_BLUE := WorldPalette.R0
+const BRANCH := WorldPalette.W0
 const HEIGHT := 460                         # art px, from just above the road to below the view
 const TOP_PAD := 30                         # art px above the street line the crowns may reach
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]

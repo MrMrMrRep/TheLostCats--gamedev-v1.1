@@ -10,9 +10,11 @@ extends Node2D
 ## the view height follows, so the canal stays in shot.
 
 const GROUND_Y := 288.0
+const COLOR_GRADE := preload("res://scripts/world/color_grade.gd")
 const INTERACT_COOLDOWN := 0.3
+const FEET_DROP := 3.0                      # world px the band is drawn below the street line (they walk on the pavement)
 const EDGE_MARGIN := 30.0                   # vehicles stop this far from a road block
-const WATER_LINE := GROUND_Y + 22.0         # top of the canal
+const WATER_LINE := GROUND_Y + 36.0         # top of the canal (a brick quay wall shows above it)
 # Tuning lives in resources/config/ (edit in the inspector, see
 # docs/editing-the-world.md): the camera in map_camera_config.tres, the band's
 # walk in band_map_config.tres, the bikes and the van in vehicle_config.tres.
@@ -78,6 +80,9 @@ static func of(node: Node) -> WorldMap:
 
 func _ready() -> void:
 	add_to_group(&"world_map")
+	var keep: Array[Node] = [band]
+	WorldPalette.snap_tree(self, keep)      # style v3: everything on the 32 colours (not the band)
+	COLOR_GRADE.attach(self)                # teal sky and haze towards a clear azure
 	Audio.music(&"map_calm")
 	if not InputMap.has_action(&"sprint"):  # hold left Shift to sprint on the map
 		InputMap.add_action(&"sprint")
@@ -127,9 +132,11 @@ func _ready() -> void:
 		m.show_name_tag = false
 		m.name_tag.visible = false
 		BikeRiders.ensure(m)                # bike_pedal / bike_roll for everyone
+		m.sprite.position.y += FEET_DROP    # feet on the pavement, not on its back edge
 		var bike := BikeSprite.new()
 		bike.z_index = 1
 		bike.visible = false
+		bike.position.y += FEET_DROP
 		m.add_child(bike)
 		_bikes[m] = bike
 		_lamps[m] = NightGlow.attach(m)     # bike lights at night
@@ -148,6 +155,11 @@ func _ready() -> void:
 			_max_x = minf(_max_x, b.global_position.x - EDGE_MARGIN)
 	for v in vehicles():
 		v.restore_position()
+		if v.kind == Vehicle.Kind.VAN:      # on the road, in front of the band and the pavement
+			v.z_index = 1
+			if v.global_position.x >= road_from and v.global_position.x <= town.y:
+				v.global_position.y = GROUND_Y + veh_cfg.lane_town
+				_lane_y = veh_cfg.lane_town
 	var spawn := _spawn_from_router()
 	if spawn == null:
 		spawn = get_node(start_spawn)
@@ -155,6 +167,7 @@ func _ready() -> void:
 	_apply_zoom()
 	place_band(spawn.global_position.x, 1.0)
 	_update_vehicle_hint()
+	MapCapture.from_args(self)              # dev: -- --capture=3:11800,... (screenshots, then quit)
 
 
 func _physics_process(delta: float) -> void:
@@ -215,7 +228,7 @@ func _tempo_zoom() -> float:
 	var c := cam_cfg
 	var near := c.zoom_bike_slow if on_bikes else c.zoom_walk
 	var far := c.zoom_bike if on_bikes else c.zoom_walk_moving
-	return minf(lerpf(near, far, _tempo), 640.0 / (_spread + c.fit_margin))
+	return minf(lerpf(near, far, _tempo), ScreenFit.width(self) / (_spread + c.fit_margin))
 
 
 ## The camera aims at the middle of the group (members within focus_cap of the
@@ -238,7 +251,7 @@ func _update_focus(delta: float, instant := false) -> void:
 	var want_drift := 0.0
 	if _idle_cam > c.idle_after:
 		var t := _idle_cam - c.idle_after
-		var room := maxf(0.0, 640.0 / zoom / 2.0 - 40.0)
+		var room := maxf(0.0, ScreenFit.width(self) / zoom / 2.0 - 40.0)
 		want_drift = sin(t * TAU / c.drift_period) * minf(room, c.drift_max) * clampf(t / 20.0, 0.0, 1.0)
 	_drift = 0.0 if instant else lerpf(_drift, want_drift, 1.0 - exp(-delta * c.drift_ease))
 	goal += _drift
@@ -422,7 +435,7 @@ func _drive(delta: float) -> void:
 	if vehicle.kind == Vehicle.Kind.VAN:
 		var vx := vehicle.global_position.x
 		var vc := veh_cfg
-		var lane := 0.0
+		var lane := vc.lane_town
 		if vx < road_from or vx > town.y:
 			lane = vc.lane_east if vehicle.facing > 0.0 else vc.lane_west
 		_lane_y = move_toward(_lane_y, lane, vc.lane_change * delta)

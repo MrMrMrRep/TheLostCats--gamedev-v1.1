@@ -7,6 +7,7 @@ extends Resource
 const PATH := "res://resources/config/people_config.tres"
 
 @export var busy_scale := 1.0               ## multiplies every zone's people count (0 = nobody)
+@export_range(0.0, 1.0) var front_share := 0.2  ## people on the quay side (walking past in front of the band), relative to the facade side
 @export var walk_speed := Vector2(16, 28)   ## px/s, random in range
 @export_range(0.0, 1.0) var kids := 0.12    ## share of kids
 @export var kid_speed := 0.8                ## kids walk this fraction of the speed

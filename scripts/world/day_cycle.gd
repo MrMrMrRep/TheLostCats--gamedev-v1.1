@@ -12,6 +12,7 @@ extends Node
 signal hour_changed(hour: float)
 
 static var night_now := 0.0                 # 0 by day .. 1 at night (new glows read it)
+static var tint_now := Color.WHITE          # the street's tint right now (the unshaded water copies it)
 
 var paused := false                         # e.g. during a conversation
 var sleeping := false                       # fading through a sleep()
@@ -58,7 +59,7 @@ func sleep(hours: float) -> void:
 	add_child(layer)
 	var black := ColorRect.new()
 	black.color = Color(0.02, 0.02, 0.05, 0.0)
-	black.size = Vector2(640, 360)
+	black.set_anchors_preset(Control.PRESET_FULL_RECT)
 	black.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(black)
 	var text := Label.new()
@@ -67,6 +68,7 @@ func sleep(hours: float) -> void:
 	text.position = Vector2(0, 170)
 	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text.add_theme_font_size_override("font_size", 12)
+	ScreenFit.full_width(text)
 	text.modulate.a = 0.0
 	layer.add_child(text)
 	var tw := create_tween()
@@ -96,6 +98,7 @@ func apply() -> void:
 	var h := Game.time_of_day
 	var tint := cfg.tint(h)
 	_tint.color = tint
+	tint_now = tint
 	var night := cfg.night(h)
 	if _sky:
 		_sky.set_time(h, cfg.sky(h), night, tint.lerp(Color.WHITE, 0.1))

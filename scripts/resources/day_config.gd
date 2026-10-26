@@ -123,11 +123,11 @@ static func default_gradient(which: StringName) -> Gradient:
 	if _defaults.has(which):
 		return _defaults[which]
 	var p := WorldPalette
-	var night := {&"tint": Color(0.30, 0.33, 0.55), &"top": Color("0b1030"), &"mid": Color("161d42"), &"low": Color("23285a")}
-	var dawn := {&"tint": Color(0.62, 0.52, 0.66), &"top": Color("3a4479"), &"mid": Color("c98a8a"), &"low": Color("f2b48a")}
+	var night := {&"tint": Color(0.30, 0.33, 0.55), &"top": p.T0, &"mid": p.T0, &"low": p.T1}
+	var dawn := {&"tint": Color(0.62, 0.52, 0.66), &"top": p.P0, &"mid": p.B3, &"low": p.B4}
 	var day := {&"tint": Color.WHITE, &"top": p.SKY_TOP, &"mid": p.SKY_MID, &"low": p.SKY_LOW}
-	var gold := {&"tint": Color(1.0, 0.86, 0.70), &"top": Color("5a7fb8"), &"mid": Color("f0b878"), &"low": Color("ffc070")}
-	var dusk := {&"tint": Color(0.62, 0.50, 0.68), &"top": Color("2a2f66"), &"mid": Color("8a5a8a"), &"low": Color("e07a5a")}
+	var gold := {&"tint": Color(1.0, 0.86, 0.70), &"top": p.T3, &"mid": p.O2, &"low": p.O3}
+	var dusk := {&"tint": Color(0.62, 0.50, 0.68), &"top": p.T1, &"mid": p.P0, &"low": p.B3}
 	var keys := [[0.0, night], [4.5, night], [5.75, dawn], [7.25, day], [16.75, day], [18.75, gold],
 		[20.5, dusk], [22.0, night], [24.0, night]]
 	var g := Gradient.new()

@@ -7,7 +7,7 @@ extends Interactable
 ## the tour-day-1 quest (get to Café De Kat, play, come back); he shows "!"
 ## when he has it for you and "?" when you've done it.
 
-const MARKER_COLOR := Color("ffd36b")
+const MARKER_COLOR := WorldPalette.O3
 
 @export var speaker := "Geordie"            ## name shown in the dialogue box
 @export var tint := Color(0.75, 0.6, 0.45):  ## colour of the placeholder sprite

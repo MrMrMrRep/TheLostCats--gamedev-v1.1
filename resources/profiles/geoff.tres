@@ -2,8 +2,7 @@
 
 [ext_resource type="Script" uid="uid://hsujlvahca0" path="res://scripts/resources/movement_profile.gd" id="1_pro8b"]
 [ext_resource type="Script" uid="uid://ban1ifxokyctx" path="res://scripts/abilities/geoff_ability.gd" id="1_xuvdh"]
-
-[ext_resource type="SpriteFrames" path="res://assets/sprites/characters/_temp/singer_geoff/singer_geoff_frames.tres" id="9_frames"]
+[ext_resource type="SpriteFrames" uid="uid://ceulwev5jrrqg" path="res://assets/sprites/characters/singer_geoff/singer_geoff_frames.tres" id="9_frames"]
 
 [resource]
 script = ExtResource("1_pro8b")
@@ -11,10 +10,9 @@ id = &"geoff"
 display_name = "Geoff"
 tint = Color(0.7882353, 0.627451, 1, 1)
 max_hp = 1
-sprite_frames = ExtResource("9_frames")
-sprite_scale = 0.75
-sprite_offset = Vector2(0, -27)
 ability = ExtResource("1_xuvdh")
+sprite_frames = ExtResource("9_frames")
+sprite_data = "res://assets/sprites/characters/singer_geoff/singer_geoff.json"
 run_speed_tiles = 5.5
 jump_height_tiles = 1.3
 time_to_apex = 0.224

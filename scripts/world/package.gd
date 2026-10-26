@@ -33,7 +33,7 @@ func collect(by: BandMember) -> void:
 	Game.set_flag(_flag())
 	Game.add_coins(coins)
 	Audio.sfx(&"coin")
-	by.show_text("+%d coins" % coins, Color("ffd36b"))
+	by.show_text("+%d coins" % coins, WorldPalette.O3)
 	_hide()
 
 
@@ -48,6 +48,6 @@ func _hide() -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(-7, -10, 14, 10), Color("b8864e"))
-	draw_rect(Rect2(-7, -10, 14, 10), Color("6a4a2a"), false, 1.0)
-	draw_line(Vector2(0, -10), Vector2(0, 0), Color("e8d8a8"), 2.0)
+	draw_rect(Rect2(-7, -10, 14, 10), WorldPalette.W2)
+	draw_rect(Rect2(-7, -10, 14, 10), WorldPalette.W1, false, 1.0)
+	draw_line(Vector2(0, -10), Vector2(0, 0), WorldPalette.G4, 2.0)
