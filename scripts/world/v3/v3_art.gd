@@ -42,5 +42,14 @@ func add_glow(glow: NightGlow, at := Vector2.ZERO) -> void:
 	for w: Array in windows:
 		var r: Rect2i = w[0]
 		var rr := Rect2(at + Vector2(r.position) * 0.5 + Vector2(1, 1), Vector2(r.size) * 0.5 - Vector2(2, 2))
-		if rr.size.x > 0.0 and rr.size.y > 0.0:
+		if w.size() >= 3:                       # a coloured light (De Wallen's red neon): on early, with a halo
+			var c: Color = w[2]
+			var full := Rect2(at + Vector2(r.position) * 0.5, Vector2(r.size) * 0.5)
+			glow.add_window(full.grow(-1.5), 0.02, Color(c, 0.22))               # soft light through the curtains
+			for e: Rect2 in [Rect2(full.position, Vector2(full.size.x, 1)), Rect2(full.position + Vector2(0, full.size.y - 1), Vector2(full.size.x, 1)),
+					Rect2(full.position, Vector2(1, full.size.y)), Rect2(full.position + Vector2(full.size.x - 1, 0), Vector2(1, full.size.y))]:
+				glow.add_window(e, 0.02, Color(1.0, 0.35, 0.45, 0.95))         # the neon tube
+			glow.add_halo(full.get_center(), maxf(full.size.x, full.size.y) * 1.3, 0.02, Color(c, 0.35))
+			glow.add_halo(Vector2(full.get_center().x, at.y), full.size.x * 1.6, 0.02, Color(c, 0.25), 0.25)  # on the pavement
+		elif rr.size.x > 0.0 and rr.size.y > 0.0:
 			glow.add_window(rr, NightGlow.window_threshold(r.position.x, r.position.y, bool(w[1])))
