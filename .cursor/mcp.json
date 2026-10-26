@@ -1,8 +1,10 @@
 {
   "mcpServers": {
     "spritecook": {
-      "type": "http",
-      "url": "https://mcp.spritecook.ai/mcp/cursor"
+      "url": "https://api.spritecook.ai/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${env:SPRITECOOK_API_KEY}"
+      }
     },
     "summer-engine": {
       "type": "stdio",
@@ -12,9 +14,8 @@
         "summer-engine@latest",
         "mcp",
         "--project",
-        "/Users/jaya/Documents/Games/the-lost-cats--gamedev-v-1.1"
+        "${workspaceFolder}"
       ]
     }
   }
 }
-
