@@ -120,7 +120,8 @@ func _draw() -> void:
 	if _glow:
 		_glow.clear()
 	if WorldPalette.V3:
-		var art := v3_art()
+		var refined := refined_art()
+		var art := refined if refined else v3_art()
 		art.draw(self)
 		art.add_glow(_glow)
 		if _glow:
@@ -138,6 +139,26 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 	if _glow:
 		_glow.queue_redraw()
+
+
+const REFINED_DIR := "res://assets/sprites/world/blocks/"
+
+var _refined: V3Art
+var _refined_checked := false
+
+
+## A hand-refined version of this row (the painted art touched up per
+## district, e.g. with SpriteCook; see tools/spritecook/), saved as
+## REFINED_DIR/<node name>.res with its own origin and windows. When there is
+## none, the painted art is used.
+func refined_art() -> V3Art:
+	if _refined_checked:
+		return _refined
+	_refined_checked = true
+	var path := REFINED_DIR + String(name) + ".res"
+	if ResourceLoader.exists(path):
+		_refined = load(path) as V3Art   # kept: its texture must outlive the draw call
+	return _refined
 
 
 ## The row in the style v3 look (baked once, see V3Cache / V3Painter).

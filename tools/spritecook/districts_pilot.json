@@ -1,0 +1,10 @@
+[
+ {"id": "W1", "district": "wallen", "a": 17514, "b": 17886},
+ {"id": "W2", "district": "wallen", "a": 17886, "b": 18110},
+ {"id": "J1", "district": "jordaan", "a": 19876, "b": 20276},
+ {"id": "J2", "district": "jordaan", "a": 20524, "b": 20818},
+ {"id": "G1", "district": "gracht", "a": 24588, "b": 24868},
+ {"id": "G2", "district": "gracht", "a": 25132, "b": 25518},
+ {"id": "P1", "district": "pijp", "a": 27928, "b": 28206},
+ {"id": "P2", "district": "pijp", "a": 28206, "b": 28594}
+]
