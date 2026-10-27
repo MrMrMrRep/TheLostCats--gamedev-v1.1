@@ -59,6 +59,10 @@ var SCHEMES := {
 	"coral": [B3, B2, B4, W5, W3, B1, false], "mustard": [O2, O1, O3, W5, W3, W1, false],
 	"plum": [P0, T0, R1, W4, W3, T0, false],
 }
+# While a house is painted, nothing may land outside its plot. Neighbouring
+# sprites then meet on a shared party wall instead of overlapping eaves.
+var plot_l := -1000000
+var plot_r := 1000000
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 const FONT5 := {
 	"A": "01110100011000111111100011000110001", "B": "11110100011000111110100011000111110",
@@ -386,6 +390,8 @@ func _house(hs: Dictionary) -> void:
 	var floors: int = hs["f"]
 	var top := GY - GF - ST * (floors - 1)
 	rng.seed = x * 7 + 1
+	plot_l = x
+	plot_r = x + w
 	_wall(x, top, w, GY - top)
 	_gable(x, w, top, hs["g"])
 	# Corner quoins.
@@ -440,6 +446,9 @@ func _house(hs: Dictionary) -> void:
 		_door_front(x, w, hs)
 	else:
 		_shop_front(x, w, hs)
+	_seal(x, w)
+	plot_l = -1000000
+	plot_r = 1000000
 
 
 func _wall(x: int, y: int, w: int, h: int) -> void:
@@ -504,7 +513,8 @@ func _gable(x: int, w: int, top: int, kind: String) -> void:
 		"spout":
 			var gh := w / 2 + 10
 			for yy in gh:
-				var half := int(w / 2.0 * (1.0 - float(yy) / gh))
+				# Leave two pixels inside the plot for the lit and shaded edges.
+				var half := mini(int(w / 2.0 * (1.0 - float(yy) / gh)), w / 2 - 2)
 				_wall(cx - half, top - yy - 1, half * 2, 1)
 				_rect(cx - half - 1, top - yy - 1, 3, 1, ct)
 				_px(cx - half - 2, top - yy - 1, T0)
@@ -556,6 +566,7 @@ func _gable(x: int, w: int, top: int, kind: String) -> void:
 			for yy in gh:
 				var t := float(yy) / gh
 				var half := int(w / 2.0 * (0.92 - 0.5 * t + 0.25 * sin(t * PI)) * (1.0 - t * t * 0.55))
+				half = mini(half, w / 2 - 4)
 				_wall(cx - half, top - yy - 1, half * 2, 1)
 				_rect(cx - half - 3, top - yy - 1, 3, 1, ct)
 				_px(cx - half - 3, top - yy - 1, W5 if ct != T1 else T2)
@@ -569,12 +580,13 @@ func _gable(x: int, w: int, top: int, kind: String) -> void:
 			WDisc.draw(self, cx, top - gh - 6, 4, ct)
 			_window(cx - 11, top - 46, 22, 34, false, true)
 		"mansard":
-			_rect(x - 3, top - 10, w + 6, 10, ct)
-			_rect(x - 3, top - 10, w + 6, 1, T0)
-			_rect(x - 3, top - 9, w + 6, 1, W5 if ct != T1 else T2)
+			# Cornice stays inside the plot so it meets the neighbour, it does not cover it.
+			_rect(x, top - 10, w, 10, ct)
+			_rect(x, top - 10, w, 1, T0)
+			_rect(x, top - 9, w, 1, W5 if ct != T1 else T2)
 			for dx in range(x, x + w, 6):
 				_rect(dx, top - 5, 3, 3, cts)
-			_rect(x - 3, top - 2, w + 6, 1, cts)
+			_rect(x, top - 2, w, 1, cts)
 			_rect(x, top, w, 2, cs)
 			var rh := 40
 			for yy in rh:
@@ -1647,13 +1659,42 @@ func _bevel(x: int, y: int, w: int, h: int, base: Color, hi: Color, sh: Color) -
 	_rect(x + w - 1, y, 1, h, sh)
 
 
+func _seal(x: int, w: int) -> void:
+	# Party wall only as tall as the roof is at that edge, so a gable peak
+	# does not leave a line of sky beside the neighbour.
+	if w < 3:
+		return
+	var y_l := _edge_top(x)
+	var y_r := _edge_top(x + w - 2)
+	for yy in range(y_l, GY):
+		_px(x, yy, T0)
+	for yy in range(y_r, GY):
+		_px(x + w - 1, yy, T0)
+
+
+func _edge_top(xx: int) -> int:
+	for yy in range(maxi(0, GY - 560), GY):
+		if img.get_pixel(xx, yy).a > 0.2 or img.get_pixel(xx + 1, yy).a > 0.2:
+			return yy
+	return GY
+
+
 func _px(x: int, y: int, c: Color) -> void:
+	if x < plot_l or x >= plot_r:
+		return
 	if x >= 0 and y >= 0 and x < W and y < H:
 		img.set_pixel(x, y, c)
 
 
 func _rect(x: int, y: int, w: int, h: int, c: Color) -> void:
 	if w <= 0 or h <= 0:
+		return
+	if x < plot_l:
+		w -= plot_l - x
+		x = plot_l
+	if x + w > plot_r:
+		w = plot_r - x
+	if w <= 0:
 		return
 	var r := Rect2i(x, y, w, h).intersection(Rect2i(0, 0, W, H))
 	if r.size.x > 0 and r.size.y > 0:

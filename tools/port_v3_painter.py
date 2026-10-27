@@ -39,12 +39,16 @@ b = b.replace("const H := 720", "var H := 720                                # c
 b = drop_funcs(b, {"_initialize", "_frame", "_band", "_render"})
 b = common(b)
 b = b.replace('''func _px(x: int, y: int, c: Color) -> void:
+	if x < plot_l or x >= plot_r:
+		return
 	if x >= 0 and y >= 0 and x < W and y < H:
 		_put_px(x, y, c)''', '''func _inside(x: int, y: int) -> bool:
 	return x >= OX and y >= 0 and x < OX + W and y < H
 
 
 func _put_px(x: int, y: int, c: Color) -> void:
+	if x < plot_l or x >= plot_r:
+		return
 	if x >= OX and y >= 0 and x < OX + W and y < H:
 		img.set_pixel(x - OX, y, c)
 
@@ -56,6 +60,8 @@ func _get_px(x: int, y: int) -> Color:
 
 
 func _px(x: int, y: int, c: Color) -> void:
+	if x < plot_l or x >= plot_r:
+		return
 	if x >= OX and y >= 0 and x < OX + W and y < H:
 		img.set_pixel(x - OX, y, c)''')
 b = b.replace('''	var r := Rect2i(x, y, w, h).intersection(Rect2i(0, 0, W, H))

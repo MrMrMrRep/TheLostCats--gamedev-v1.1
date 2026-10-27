@@ -133,22 +133,14 @@ func _birds(x: int, y: int) -> void:
 
 
 func _poplar(x: int, base: int, h: int) -> void:
-	var lean := -1 if _hash(x, 2) < 0.5 else 1
-	var spread := 6.0 + _hash(x, 8) * 4.0
-	_rect(x, base - 18, 3, 18, W0)
-	_rect(x, base - 18, 1, 18, W1)
+	_rect(x, base - 12, 2, 12, W0)
 	for yy in h:
 		var t := float(yy) / h
-		var half := int(spread * sin(t * PI) * (1.0 - t * 0.22)) + 1
-		var ox := int(lean * t * 5.0)
+		var half := int(7.0 * sin(t * PI) * (1.0 - t * 0.3)) + 1
 		for xx in range(-half, half + 1):
-			var l := -float(xx) / float(half) * 0.75 + (_hash(x + xx, int(yy / 2)) - 0.5) * 0.95
-			var c := G0 if l < -0.35 else (G1 if l < -0.05 else (G2 if l < 0.4 else (G3 if l < 0.72 else G4)))
-			if _hash(x + xx, yy + 3) > 0.97:
-				c = T0
-			_px(x + ox + xx, base - 14 - yy, c)
-	_line(x, base - int(h / 3.0), x - 9 * lean, base - int(h / 3.0) - 12, W0)
-	_line(x + 1, base - int(h * 2 / 3.0), x + 8 * lean, base - int(h * 2 / 3.0) - 8, W1)
+			var l := -float(xx) / half * 0.6 + (_hash(x + xx, yy / 2) - 0.5) * 0.8
+			_px(x + xx, base - 10 - yy, G1 if l < -0.2 else (G2 if l < 0.35 else G3))
+	_rect(x + 1, base - 12, 1, 12, W1)
 
 
 func _tree_small(x: int, base: int, s: float) -> void:
@@ -485,15 +477,12 @@ func _willow(x: int, base: int) -> void:
 		_rect(x - 2 + int(_hash(x, yy) * 6.0), yy, 2, 4, T0)
 	WDisc.draw(self, x, base - 54, 13, W0)
 	WDisc.draw(self, x - 4, base - 58, 6, W1)
-	_rect(x - 2, base - 48, 4, 8, T0)                 # a hollow
-	for k in 22:
-		var a := deg_to_rad(190.0 + k * 8.0 + _hash(k, x) * 6.0)
-		var len := 22 + int(_hash(k, x) * 42.0)
+	for k in 16:
+		var a := deg_to_rad(200.0 + k * 9.0)
+		var len := 30 + int(_hash(k, x) * 30.0)
 		var e := Vector2(x, base - 60) + Vector2(cos(a), sin(a)) * len
-		_line(x, base - 60, int(e.x), int(e.y), W1 if k % 3 else W0)
-		if k % 2 == 0:
-			_leaves(int(e.x), int(e.y) - 2, 4 + int(_hash(k, x + 1) * 4.0))
-	for c in [[0, -96, 14], [-22, -78, 12], [20, -84, 13], [-8, -110, 10], [16, -108, 11]]:
+		_line(x, base - 60, int(e.x), int(e.y), W1 if k % 2 else W0)
+	for c in [[0, -90, 16], [-24, -80, 13], [24, -82, 14], [-12, -104, 12], [14, -104, 12]]:
 		_leaves(x + c[0], base + c[1], c[2])
 
 
@@ -1147,6 +1136,7 @@ func _airport_hotel(x: int, w: int) -> void:
 	_rect(x + w / 2 - 1, GY - 70, 2, 70, W1)
 	_topiary(x + 30, GY)
 	_topiary(x + w - 30, GY)
+	_seal(x, w)
 
 
 func _airport_fence(x0: int) -> void:
@@ -1299,7 +1289,6 @@ func _hotel(x: int, w: int) -> void:
 				_rect(xx + 1, yy + 3, 14, 15, O2)
 			_px(xx + 1, yy + 1, T5)
 		_rect(x, yy + 20, w, 2, R3)
-	_rect(x + w - 8, top, 8, GY - top, T1)
 	_rect(x, top, w, 4, R3)
 	_rect(x + 40, top - 40, 180, 34, T0)
 	_rect(x + 42, top - 38, 176, 30, B2)
@@ -1317,6 +1306,9 @@ func _hotel(x: int, w: int) -> void:
 		_px(x + 110 + k, GY - 10 - k * 3, T5)
 	_topiary(x + 80, GY)
 	_topiary(x + 196, GY)
+	ch = T3
+	cs = T1
+	_seal(x, w)
 
 
 func _bus_stop(x: int) -> void:
@@ -1378,26 +1370,25 @@ func _outline_lit(x: int, top: int, w: int) -> void:
 
 
 func _course(x: int, y: int, w: int) -> void:
-	# A stone string course / cornice band with a drop shadow.
-	_rect(x - 2, y, w + 4, 1, T0)
-	_rect(x - 2, y + 1, w + 4, 1, W5 if ct != T1 else T2)
-	_rect(x - 2, y + 2, w + 4, 3, ct)
-	_rect(x - 2, y + 5, w + 4, 1, cts)
+	# A stone string course. It stops on the party wall, same as the roof edge.
+	_rect(x, y, w, 1, T0)
+	_rect(x, y + 1, w, 1, W5 if ct != T1 else T2)
+	_rect(x, y + 2, w, 3, ct)
+	_rect(x, y + 5, w, 1, cts)
 	_rect(x, y + 6, w, 2, cs)
 
 
 func _cornice(x: int, top: int, w: int) -> void:
-	# A deep flat cornice on brackets (19th-century blocks, hotels).
-	_rect(x - 6, top - 14, w + 12, 1, T0)
-	_rect(x - 6, top - 13, w + 12, 1, W5 if ct != T1 else T2)
-	_rect(x - 6, top - 12, w + 12, 5, ct)
-	_rect(x - 6, top - 7, w + 12, 1, cts)
-	_rect(x - 4, top - 6, w + 8, 1, T0)
-	for bx in range(x + 2, x + w - 4, 12):
-		_bevel(bx, top - 6, 4, 7, ct, W5, cts)
-	for dx in range(x - 4, x + w + 4, 4):
-		_px(dx, top - 9, cts)
-	_rect(x, top + 1, w, 2, cs)
+	# The same flat roof edge on every block: stone lip, dentils, shadow under.
+	# Nothing sticks into the next sprite.
+	_rect(x, top - 8, w, 1, T0)
+	_rect(x, top - 7, w, 1, W5 if ct != T1 else T2)
+	_rect(x + 1, top - 6, w - 2, 4, ct)
+	_rect(x, top - 2, w, 1, cts)
+	_rect(x, top - 1, w, 1, T0)
+	for bx in range(x + 4, x + w - 8, 14):
+		_bevel(bx, top - 1, 4, 6, ct, W5, cts)
+	_rect(x + 1, top + 1, w - 2, 2, cs)
 
 
 const PARKED := [["hatch", "coral"], ["wagon", "teal"], ["sedan", "cream"], ["mpv", "silver"],
@@ -1654,6 +1645,7 @@ func _grand_hotel(x: int, w: int) -> void:
 	_topiary(ex - 16, GY)
 	_topiary(ex + 96, GY)
 	_plinth(x, w)
+	_seal(x, w)
 
 
 func _hotel_70s(x: int, w: int) -> void:
@@ -1662,9 +1654,9 @@ func _hotel_70s(x: int, w: int) -> void:
 	var top := GY - 380
 	_wall(x, top, w, GY - top)
 	_outline_lit(x, top, w)
-	_rect(x - 2, top - 8, w + 4, 8, R3)
-	_rect(x - 2, top - 8, w + 4, 1, W5)
-	_rect(x - 2, top - 1, w + 4, 1, R1)
+	_rect(x, top - 8, w, 8, R3)
+	_rect(x, top - 8, w, 1, W5)
+	_rect(x, top - 1, w, 1, R1)
 	var fh := 44
 	for f in 7:
 		var fy := top + 12 + f * fh
@@ -1708,6 +1700,7 @@ func _hotel_70s(x: int, w: int) -> void:
 	_rect(x + 2, GY - 92, w - 4, 12, T1)
 	_text5(x + 20, GY - 89, _sign("HOTEL ZUID"), W5)
 	_plinth(x, w)
+	_seal(x, w)
 
 
 # =============================================================================
@@ -2266,6 +2259,8 @@ func _ring_block(x: int, w: int, floors: int, scheme: String, balconies: bool, s
 	# A wide 1890s block (ring style): flat cornice, 4-5 bays, iron balconies,
 	# a portiek door with a stair, basement windows.
 	_scheme(scheme)
+	plot_l = x
+	plot_r = x + w
 	var top := GY - GF - ST * (floors - 1)
 	_wall(x, top, w, GY - top)
 	_outline_lit(x, top, w)
@@ -2299,6 +2294,9 @@ func _ring_block(x: int, w: int, floors: int, scheme: String, balconies: bool, s
 	_plinth(x, w)
 	if shop != "":
 		_shop_front(x + 4, w - 8, {"sign": shop, "shop": "bakker", "fascia": T1, "awn": [T2, W5]})
+		_seal(x, w)
+		plot_l = -1000000
+		plot_r = 1000000
 		return
 	# Portiek: a deep doorway with steps and three bells.
 	var dx := x + 10
@@ -2323,10 +2321,15 @@ func _ring_block(x: int, w: int, floors: int, scheme: String, balconies: bool, s
 		_rect(wx - 2, GY - 22, 28, 12, T0)               # basement grille
 		for k in range(wx, wx + 24, 4):
 			_rect(k, GY - 21, 1, 10, R1)
+	_seal(x, w)
+	plot_l = -1000000
+	plot_r = 1000000
 
 
 func _new_block(x: int, w: int) -> void:
 	# A 2010s apartment block: brick plinth, wood-clad upper floors, glass balconies.
+	plot_l = x
+	plot_r = x + w
 	var floors := 6
 	var fh := 62
 	var top := GY - floors * fh - 20
@@ -2400,21 +2403,23 @@ func _new_block(x: int, w: int) -> void:
 	_rect(x + 264, gy + 32, 46, GY - gy - 32, G1)
 	_rect(x + 264, gy + 32, 1, GY - gy - 32, G2)
 	_text3(x + 270, gy + 20, "102", T0)
+	_seal(x, w)
+	plot_l = -1000000
+	plot_r = 1000000
 
 
 func _young_tree(x: int) -> void:
-	# A young street tree in a pit with a wooden stake. Crown leans one way.
+	# A young street tree in a pit with a wooden stake.
 	var b := GY + 6
-	var side := -1 if _hash(x, 6) < 0.5 else 1
 	_rect(x - 2, b - 70, 4, 70, W0)
 	_rect(x - 2, b - 70, 1, 70, W1)
-	_rect(x + 5 * side, b - 50, 2, 50, W2)
-	_rect(x + 2 * side, b - 40, 4, 1, T0)
+	_rect(x + 5, b - 50, 2, 50, W2)
+	_rect(x + 2, b - 40, 4, 1, T0)
 	_rect(x - 12, b - 2, 24, 3, T0)
 	for k in range(x - 11, x + 12, 3):
 		_px(k, b - 2, R1)
-	for c in [[0, -90, 16], [-12, -80, 11], [12, -82, 12], [-4, -104, 11], [8, -102, 10], [0, -74, 10], [18, -88, 8]]:
-		_leaves(x + c[0] * side, b + c[1], c[2] + int(_hash(x, c[1]) * 3.0))
+	for c in [[0, -90, 16], [-12, -80, 11], [12, -82, 12], [-4, -104, 11], [8, -102, 10], [0, -74, 10]]:
+		_leaves(x + c[0], b + c[1], c[2])
 
 
 func _bike_shed(x: int) -> void:

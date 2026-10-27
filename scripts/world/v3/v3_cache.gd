@@ -8,7 +8,7 @@ extends RefCounted
 ## Bump VERSION when the painter changes, then run the bake tool again.
 
 const DIR := "res://assets/sprites/world/v3/"
-const VERSION := 8                          # 8: bridges half under water, see-through mirror
+const VERSION := 11                         # 11: party walls stop at the roof edge, they do not stick into the sky
 
 static var save_to_disk := false            ## the bake tool turns this on
 static var used: Dictionary = {}            ## file names asked for this run (the bake tool prunes the rest)
