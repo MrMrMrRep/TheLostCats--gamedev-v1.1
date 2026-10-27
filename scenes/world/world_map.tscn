@@ -370,6 +370,7 @@ texture_repeat = 2
 position = Vector2(9574, 288)
 script = ExtResource("6_1co5k")
 seed_value = 40
+style = 1
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
 [node name="CanalBelt" type="Node2D" parent="Buildings" unique_id=1315734540]
@@ -466,6 +467,7 @@ position = Vector2(13275, 288)
 script = ExtResource("6_1co5k")
 houses = 3
 seed_value = 100
+style = 2
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
 [node name="Block110_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1739841857]
@@ -474,6 +476,7 @@ position = Vector2(13605, 288)
 script = ExtResource("6_1co5k")
 houses = 3
 seed_value = 110
+style = 2
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
 [node name="Block120_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1179198626]
@@ -490,6 +493,7 @@ position = Vector2(14482, 288)
 script = ExtResource("6_1co5k")
 houses = 5
 seed_value = 130
+style = 2
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
 [node name="Block140_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1434786599]
@@ -497,6 +501,7 @@ texture_repeat = 2
 position = Vector2(14975, 288)
 script = ExtResource("6_1co5k")
 seed_value = 140
+style = 2
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
 
 [node name="Flats" type="Node2D" parent="Buildings" unique_id=1308969535]

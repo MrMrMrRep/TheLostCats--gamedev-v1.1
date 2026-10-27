@@ -30,6 +30,25 @@ func _snap(c: Color) -> Color:
 			best = p
 	_memo[key] = best
 	return best
+
+
+## Square crop, same shape. A plate that is already 460×460 is used as-is.
+## A long or tall plate is scaled evenly (nearest) until it covers the crop,
+## then the centre is kept. It is never squashed to fit.
+func _fit_square(raw: Image) -> Image:
+	if raw.get_width() == SIDE and raw.get_height() == SIDE:
+		return raw
+	var rw := float(maxi(raw.get_width(), 1))
+	var rh := float(maxi(raw.get_height(), 1))
+	var scale := maxf(float(SIDE) / rw, float(SIDE) / rh)
+	var nw := maxi(SIDE, int(round(rw * scale)))
+	var nh := maxi(SIDE, int(round(rh * scale)))
+	raw.resize(nw, nh, Image.INTERPOLATE_NEAREST)
+	var out := Image.create(SIDE, SIDE, false, Image.FORMAT_RGBA8)
+	out.blit_rect(raw, Rect2i((raw.get_width() - SIDE) / 2, (raw.get_height() - SIDE) / 2, SIDE, SIDE), Vector2i.ZERO)
+	return out
+
+
 func _run() -> void:
 	var sd := OS.get_environment("STRIPDIR")
 	var strip := Image.load_from_file(sd + "/strip.png")
@@ -55,7 +74,7 @@ func _run() -> void:
 			continue
 		var raw := Image.load_from_file(path)
 		raw.convert(Image.FORMAT_RGBA8)
-		raw.resize(SIDE, SIDE, Image.INTERPOLATE_LANCZOS)
+		raw = _fit_square(raw)
 		var cx0: int = x0s[c.id]
 		for sx in range(int(c.a) - a0, int(c.b) - a0):
 			var inside := false
