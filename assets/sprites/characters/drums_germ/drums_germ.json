@@ -26,145 +26,145 @@
    {
     "name": "idle_instrument_in",
     "from": 8,
-    "to": 9,
-    "direction": "forward"
-   },
-   {
-    "name": "idle_instrument_loop",
-    "from": 10,
     "to": 15,
     "direction": "forward"
    },
    {
-    "name": "idle_instrument_out",
+    "name": "idle_instrument_loop",
     "from": 16,
-    "to": 21,
+    "to": 23,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_instrument_out",
+    "from": 24,
+    "to": 31,
     "direction": "forward"
    },
    {
     "name": "idle_drinking",
-    "from": 22,
-    "to": 37,
+    "from": 32,
+    "to": 47,
     "direction": "forward"
    },
    {
     "name": "idle_smoking_in",
-    "from": 38,
-    "to": 44,
+    "from": 48,
+    "to": 54,
     "direction": "forward"
    },
    {
     "name": "idle_smoking_loop",
-    "from": 45,
-    "to": 50,
+    "from": 55,
+    "to": 60,
     "direction": "forward"
    },
    {
     "name": "idle_smoking_out",
-    "from": 51,
-    "to": 55,
+    "from": 61,
+    "to": 65,
     "direction": "forward"
    },
    {
     "name": "walk",
-    "from": 56,
-    "to": 63,
-    "direction": "forward"
-   },
-   {
-    "name": "run",
-    "from": 64,
+    "from": 66,
     "to": 73,
     "direction": "forward"
    },
    {
-    "name": "crouch",
+    "name": "run",
     "from": 74,
-    "to": 76,
+    "to": 83,
+    "direction": "forward"
+   },
+   {
+    "name": "crouch",
+    "from": 84,
+    "to": 86,
     "direction": "forward"
    },
    {
     "name": "crouch_hold",
-    "from": 77,
-    "to": 80,
-    "direction": "forward"
-   },
-   {
-    "name": "wall_slide",
-    "from": 81,
-    "to": 84,
-    "direction": "forward"
-   },
-   {
-    "name": "wall_jump",
-    "from": 85,
-    "to": 88,
-    "direction": "forward"
-   },
-   {
-    "name": "jump_rise",
-    "from": 89,
-    "to": 89,
-    "direction": "forward"
-   },
-   {
-    "name": "jump_apex",
-    "from": 90,
+    "from": 87,
     "to": 90,
     "direction": "forward"
    },
    {
-    "name": "jump_fall",
+    "name": "wall_slide",
     "from": 91,
-    "to": 91,
+    "to": 94,
     "direction": "forward"
    },
    {
-    "name": "jump_land",
-    "from": 92,
-    "to": 93,
+    "name": "wall_jump",
+    "from": 95,
+    "to": 98,
     "direction": "forward"
    },
    {
-    "name": "use",
-    "from": 94,
+    "name": "jump_rise",
+    "from": 99,
     "to": 99,
     "direction": "forward"
    },
    {
-    "name": "attack_punch",
+    "name": "jump_apex",
     "from": 100,
-    "to": 107,
+    "to": 100,
+    "direction": "forward"
+   },
+   {
+    "name": "jump_fall",
+    "from": 101,
+    "to": 101,
+    "direction": "forward"
+   },
+   {
+    "name": "jump_land",
+    "from": 102,
+    "to": 103,
+    "direction": "forward"
+   },
+   {
+    "name": "use",
+    "from": 104,
+    "to": 109,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_punch",
+    "from": 110,
+    "to": 117,
     "direction": "forward"
    },
    {
     "name": "attack_throw",
-    "from": 108,
-    "to": 115,
+    "from": 118,
+    "to": 125,
     "direction": "forward"
    },
    {
     "name": "attack_special_a",
-    "from": 116,
-    "to": 129,
+    "from": 126,
+    "to": 139,
     "direction": "forward"
    },
    {
     "name": "attack_special_a_air",
-    "from": 130,
-    "to": 136,
+    "from": 140,
+    "to": 146,
     "direction": "forward"
    },
    {
     "name": "attack_special_b",
-    "from": 137,
-    "to": 140,
+    "from": 147,
+    "to": 150,
     "direction": "forward"
    },
    {
     "name": "attack_special_b_up",
-    "from": 141,
-    "to": 144,
+    "from": 151,
+    "to": 154,
     "direction": "forward"
    }
   ]
@@ -260,6 +260,60 @@
    },
    "duration": 100
   },
+  "idle_instrument_in_03": {
+   "frame": {
+    "x": 192,
+    "y": 96,
+    "w": 96,
+    "h": 96
+   },
+   "duration": 100
+  },
+  "idle_instrument_in_04": {
+   "frame": {
+    "x": 288,
+    "y": 96,
+    "w": 96,
+    "h": 96
+   },
+   "duration": 100
+  },
+  "idle_instrument_in_05": {
+   "frame": {
+    "x": 384,
+    "y": 96,
+    "w": 96,
+    "h": 96
+   },
+   "duration": 100
+  },
+  "idle_instrument_in_06": {
+   "frame": {
+    "x": 480,
+    "y": 96,
+    "w": 96,
+    "h": 96
+   },
+   "duration": 100
+  },
+  "idle_instrument_in_07": {
+   "frame": {
+    "x": 576,
+    "y": 96,
+    "w": 96,
+    "h": 96
+   },
+   "duration": 100
+  },
+  "idle_instrument_in_08": {
+   "frame": {
+    "x": 672,
+    "y": 96,
+    "w": 96,
+    "h": 96
+   },
+   "duration": 100
+  },
   "idle_instrument_loop_01": {
    "frame": {
     "x": 0,
@@ -314,6 +368,24 @@
    },
    "duration": 100
   },
+  "idle_instrument_loop_07": {
+   "frame": {
+    "x": 576,
+    "y": 192,
+    "w": 96,
+    "h": 96
+   },
+   "duration": 100
+  },
+  "idle_instrument_loop_08": {
+   "frame": {
+    "x": 672,
+    "y": 192,
+    "w": 96,
+    "h": 96
+   },
+   "duration": 100
+  },
   "idle_instrument_out_01": {
    "frame": {
     "x": 0,
@@ -362,6 +434,24 @@
   "idle_instrument_out_06": {
    "frame": {
     "x": 480,
+    "y": 288,
+    "w": 96,
+    "h": 96
+   },
+   "duration": 100
+  },
+  "idle_instrument_out_07": {
+   "frame": {
+    "x": 576,
+    "y": 288,
+    "w": 96,
+    "h": 96
+   },
+   "duration": 100
+  },
+  "idle_instrument_out_08": {
+   "frame": {
+    "x": 672,
     "y": 288,
     "w": 96,
     "h": 96

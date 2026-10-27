@@ -232,5 +232,20 @@
   "walkable_street": {
     "asset_id": "90959471-f033-4b96-a709-41e6e9442b90",
     "label": "walkable canal street, pavement camera"
+  },
+  "instrument_anim_2026_10": {
+    "note": "Play loops for everyone except Joep. Energy only while playing. Sheets updated in assets/sprites/characters.",
+    "jay_loop": "bffd38bb-ff29-479e-b1f7-9069826ba17c",
+    "jay_in": "e2140d5b-49b6-420a-9e8b-53630708fc9a",
+    "jay_out": "337cc8a3-34dd-4d2f-9449-453f5a2e4273",
+    "nikki_loop": "293854cb-e602-43cb-b4cf-0ea19110b3d4",
+    "nikki_in": "cf9f9aca-40ec-4c34-8fa5-3619aa82c942",
+    "nikki_out": "9776158b-ff53-4d93-9b1f-d3f58ec568e9",
+    "germ_loop": "98b0af5d-3676-4cbb-8ade-9157de9b71a4",
+    "germ_in": "c6056d9f-55d8-4793-b19b-3b5ff953beef",
+    "germ_out": "f2641d64-3a38-4e42-82ac-fa75fb6b3787",
+    "geoff_loop": "e614086a-babf-4517-9331-4349b778fe34",
+    "geoff_in": "5c7e4c59-1548-417e-8a49-6d3f1dfcae3c",
+    "geoff_out": "7c59887c-eca8-4103-96c8-62366ec3d3bf"
   }
 }
