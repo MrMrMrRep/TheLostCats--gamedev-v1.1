@@ -33,7 +33,13 @@ const FACADE_BRICK := preload("res://assets/sprites/world/canal/brick.png")
 const FACADE_CREAM := preload("res://assets/sprites/world/canal/cream.png")
 const FACADE_ORANGE := preload("res://assets/sprites/world/canal/orange.png")
 const FACADE_SHOP := preload("res://assets/sprites/world/canal/shop.png")
-const FACADES: Array[Texture2D] = [FACADE_BRICK, FACADE_CREAM, FACADE_ORANGE]
+const FACADE_STEP := preload("res://assets/sprites/world/canal/step.png")
+const FACADE_BELL := preload("res://assets/sprites/world/canal/bell.png")
+const FACADE_RED := preload("res://assets/sprites/world/canal/red.png")
+const FACADE_NARROW := preload("res://assets/sprites/world/canal/narrow.png")
+const SIDE_WALL := preload("res://assets/sprites/world/canal/side.png")
+const FACADES: Array[Texture2D] = [FACADE_BRICK, FACADE_CREAM, FACADE_ORANGE, FACADE_STEP, FACADE_BELL, FACADE_RED, FACADE_NARROW]
+const SIDE_W := 24.0
 
 @export var houses := 6:
 	set(value):
@@ -125,11 +131,15 @@ func width() -> float:
 
 
 ## Houses from the SpriteCook reference set. Each facade fills its slot
-## exactly, so the row stays flush with no gaps.
+## exactly, so the row stays flush with no gaps. A side wall is drawn only on
+## an end that meets a side canal, side street, alley or steeg.
 func _draw_reference_row() -> void:
 	var x := 0.0
 	var rows := layout()
 	var mid := rows.size() / 2
+	var ends := _opening_ends()
+	var first_h := 0.0
+	var last_h := 0.0
 	for i in rows.size():
 		var d: Dictionary = rows[i]
 		var w: float = d.w
@@ -140,11 +150,53 @@ func _draw_reference_row() -> void:
 		var left := 0.0 if i == 0 else 3.0
 		var right := 0.0 if i == rows.size() - 1 else 3.0
 		draw_texture_rect(tex, Rect2(x - left, -h, w + left + right, h), false)
+		if i == 0:
+			first_h = h
+		if i == rows.size() - 1:
+			last_h = h
 		if i == mid and sign_text != "":
 			var board := Rect2(x + 3.0, -GROUND + 8.0, w - 6.0, 9.0)
 			draw_rect(board, Color("1d2838"))
 			PixelFont.draw_string(self, Vector2(board.position.x, board.position.y + 7.0), sign_text, HORIZONTAL_ALIGNMENT_CENTER, board.size.x, 6, Color("f2bc58"))
 		x += w
+	if ends.x == 1:
+		_draw_side(3.0, first_h, true)
+	if ends.y == 1:
+		_draw_side(x - 3.0, last_h, false)
+
+
+## 1 on an end that touches a SideOpening slot. The houses between openings stay flat.
+func _opening_ends() -> Vector2i:
+	if not is_inside_tree():
+		return Vector2i.ZERO
+	var tree := get_tree()
+	if tree == null:
+		return Vector2i.ZERO
+	var root: Node = tree.edited_scene_root if Engine.is_editor_hint() else tree.current_scene
+	if root == null:
+		return Vector2i.ZERO
+	var x0 := global_position.x
+	var x1 := x0 + width()
+	var left := 0
+	var right := 0
+	for o in root.find_children("*", "SideOpening", true, false):
+		var op := o as SideOpening
+		var slot_l := op.global_position.x - op.width * 0.5
+		var slot_r := op.global_position.x + op.width * 0.5
+		if absf(x1 - slot_l) <= 6.0:
+			right = 1
+		if absf(x0 - slot_r) <= 6.0:
+			left = 1
+	return Vector2i(left, right)
+
+
+func _draw_side(edge: float, house_h: float, to_the_left: bool) -> void:
+	if to_the_left:
+		draw_set_transform(Vector2(edge, 0.0), 0.0, Vector2(-1.0, 1.0))
+		draw_texture_rect(SIDE_WALL, Rect2(0.0, -house_h, SIDE_W, house_h), false)
+		draw_set_transform(Vector2.ZERO)
+	else:
+		draw_texture_rect(SIDE_WALL, Rect2(edge, -house_h, SIDE_W, house_h), false)
 
 
 func _draw() -> void:

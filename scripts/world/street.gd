@@ -17,6 +17,7 @@ const ROAD_H := 27.0                        # outside town: carriageway + hard s
 const VERGE_H := 11.0                       # grass verge from the guardrail down to the ditch
 const ROAD_WATER := ROAD_H + VERGE_H        # outside town the ditch starts this far down
 const COBBLE := preload("res://assets/sprites/world/canal/cobble.png")
+const QUAY := preload("res://assets/sprites/world/canal/quay.png")
 
 
 func _ready() -> void:
@@ -73,12 +74,32 @@ func _draw() -> void:
 		_motorway_details(x0, seg.y)
 
 
-## SpriteCook setts, one band tall, repeated along the town road. Covers the
-## pavement and the quay top so the ground matches the canal terrace; the
-## motorway outside town is left alone.
+## SpriteCook setts along the town. The old town and the canal belt (the centre)
+## use the quay from the canal reference; the rest of town keeps the plainer cobble.
 func _draw_town_cobble(a: float, b: float) -> void:
 	var th := float(COBBLE.get_height())
 	draw_texture_rect(COBBLE, Rect2(a, 0.0, b - a, th), true)
+	var centre := _centre_span()
+	var qh := float(QUAY.get_height())
+	draw_texture_rect(QUAY, Rect2(centre.x, 0.0, centre.y - centre.x, qh), true)
+
+
+func _centre_span() -> Vector2:
+	var a := town.x
+	var b := town.y
+	var found := false
+	if is_inside_tree():
+		for z in WorldZone.all(self):
+			if String(z.name) in ["OldTown", "CanalBelt"]:
+				var r: Vector2 = z.span()
+				if not found:
+					a = r.x
+					b = r.y
+					found = true
+				else:
+					a = minf(a, r.x)
+					b = maxf(b, r.y)
+	return Vector2(a, b)
 
 
 const STREET_PAINTER := preload("res://scripts/world/v3/v3_street.gd")
