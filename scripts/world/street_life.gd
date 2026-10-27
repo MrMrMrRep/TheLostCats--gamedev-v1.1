@@ -29,6 +29,8 @@ enum Kind { CANAL, OLD_TOWN, RING, INDUSTRY, AIRPORT }
 
 var _glow: NightGlow                        # lamp light at night (game only)
 
+const CANAL_TREE := preload("res://assets/sprites/world/canal/tree.png")
+
 
 func _ready() -> void:
 	_glow = NightGlow.attach(self)
@@ -152,7 +154,7 @@ func _draw_life() -> void:
 func _canal(ax: float, rng: RandomNumberGenerator) -> float:
 	var r := rng.randf()
 	if r < 0.45 and _clear(ax / 2.0, 30):
-		PixelArt.tree(self, ax, 0, rng.randf_range(50, 64), rng)
+		_reference_tree(ax, 0.0, rng.randf_range(50, 64))
 		if rng.randf() < 0.5:
 			_bike_rack(ax + 30, rng.randi_range(2, 4), rng)
 	elif r < 0.7 and _clear(ax / 2.0, 6):
@@ -177,7 +179,7 @@ func _old_town(ax: float, rng: RandomNumberGenerator) -> float:
 	elif r < 0.7 and _clear(ax / 2.0, 20):
 		_bike_rack(ax, rng.randi_range(2, 4), rng)
 	elif r < 0.8 and _clear(ax / 2.0, 24):
-		PixelArt.tree(self, ax, 0, rng.randf_range(40, 50), rng)
+		_reference_tree(ax, 0.0, rng.randf_range(44, 56))
 	else:
 		_bollards(ax, rng.randi_range(3, 5))
 	return rng.randf_range(50, 90)
@@ -211,6 +213,13 @@ func _airport(ax: float, rng: RandomNumberGenerator) -> float:
 	if rng.randf() < 0.3 and _clear(ax / 2.0 + 40, 10):
 		_flags(ax + 80, rng)
 	return rng.randf_range(110, 150)
+
+
+## The reference canal tree, in art px. `size` matches the old crown radius.
+func _reference_tree(x: float, base: float, size: float) -> void:
+	var h := size * 3.0
+	var w := h * float(CANAL_TREE.get_width()) / float(CANAL_TREE.get_height())
+	draw_texture_rect(CANAL_TREE, Rect2(x - w * 0.5, base - h, w, h), false)
 
 
 # --- Pieces (art px, standing on y 0) ---------------------------------------

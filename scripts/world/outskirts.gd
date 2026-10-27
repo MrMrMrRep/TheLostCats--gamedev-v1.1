@@ -25,6 +25,13 @@ const CONCRETE_DARK := WorldPalette.R2
 const STEEL := WorldPalette.W3
 const SHOP_SIGNS := ["SUPER", "FIETS", "PIZZA", "DIER", "BOEK", "VERF"]
 const CAR_COLOURS := [WorldPalette.B2, WorldPalette.T3, WorldPalette.W5, WorldPalette.T0, WorldPalette.O2, WorldPalette.G2]
+## Same SpriteCook terrace as the house rows. A hotel front is several of
+## these side by side, feet on the street, so it matches the canal.
+const FACADE_BRICK := preload("res://assets/sprites/world/canal/brick.png")
+const FACADE_CREAM := preload("res://assets/sprites/world/canal/cream.png")
+const FACADE_ORANGE := preload("res://assets/sprites/world/canal/orange.png")
+const FACADE_SHOP := preload("res://assets/sprites/world/canal/shop.png")
+const HOTEL_FACADES: Array[Texture2D] = [FACADE_BRICK, FACADE_CREAM, FACADE_ORANGE]
 
 @export var kind := Kind.MALL:
 	set(value):
@@ -126,13 +133,40 @@ func _draw() -> void:
 		_glow.clear()
 	if WorldPalette.V3:
 		var art := v3_art()
-		art.draw(self)
+		if kind == Kind.HOTEL:
+			_draw_hotel_facades()
+		else:
+			art.draw(self)
 		art.add_glow(_glow)
 		_district_stories()
 	else:
 		_draw_kind()
 	if _glow:
 		_glow.queue_redraw()
+
+
+## A hotel front in the canal-terrace style: a few facades across the slab,
+## overlapping a little so the walls meet, with the name on the ground floor.
+func _draw_hotel_facades() -> void:
+	var w := width()
+	var n := maxi(2, int(round(w / 78.0)))
+	var sw := w / float(n)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var x := 0.0
+	for i in n:
+		var tex: Texture2D = FACADE_SHOP if i == n / 2 else HOTEL_FACADES[posmod(rng.randi(), HOTEL_FACADES.size())]
+		var sz := tex.get_size()
+		var h := sw * sz.y / sz.x
+		var left := 0.0 if i == 0 else 3.0
+		var right := 0.0 if i == n - 1 else 3.0
+		draw_texture_rect(tex, Rect2(x - left, -h, sw + left + right, h), false)
+		x += sw
+	if sign_text != "":
+		var board_w := minf(w - 8.0, 96.0)
+		var board := Rect2((w - board_w) * 0.5, -36.0, board_w, 9.0)
+		draw_rect(board, Color("1d2838"))
+		PixelFont.draw_string(self, Vector2(board.position.x, board.position.y + 7.0), sign_text, HORIZONTAL_ALIGNMENT_CENTER, board.size.x, 6, Color("f2bc58"))
 
 
 ## The building in the style v3 look (baked once, see V3Cache / V3Painter).
