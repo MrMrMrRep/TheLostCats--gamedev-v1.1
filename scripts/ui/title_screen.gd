@@ -16,7 +16,7 @@ const NAME_COLOR := Color("ffd36b")
 const NAME_DIM := Color(1, 1, 1, 0.55)
 const INK := Color("1d2838")
 ## Commit time of this build (day/month and 24h), so a browser load can be checked.
-const BUILT := "27/10  21:55"
+const BUILT := "27/10  22:20"
 
 var _menu: MenuList
 var _sprites: Array[AnimatedSprite2D] = []
