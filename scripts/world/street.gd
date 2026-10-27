@@ -12,12 +12,26 @@ extends Node2D
 @export var town := Vector2(1100, 3640)
 
 const STREET_H := 14.0
-const EDGE_H := 36.0                        # town: street + curb + quay wall down to the water
+const EDGE_H := 36.0                        # town: sidewalk + curb + quay wall, down to the water
 const ROAD_H := 27.0                        # outside town: carriageway + hard shoulder
 const VERGE_H := 11.0                       # grass verge from the guardrail down to the ditch
 const ROAD_WATER := ROAD_H + VERGE_H        # outside town the ditch starts this far down
-const COBBLE := preload("res://assets/sprites/world/canal/cobble.png")
-const QUAY := preload("res://assets/sprites/world/canal/quay.png")
+## SpriteCook strips, 1 texel = 1 world px, tiled along the street.
+const SETTS := preload("res://assets/sprites/world/canal/setts.png")
+const CURB_SETT := preload("res://assets/sprites/world/canal/curb.png")
+const WALL := preload("res://assets/sprites/world/canal/wall.png")
+const PAVER := preload("res://assets/sprites/world/canal/paver.png")
+const CURB_ROAD := preload("res://assets/sprites/world/canal/curb_road.png")
+const ASPHALT := preload("res://assets/sprites/world/canal/asphalt.png")
+const BRIDGE := preload("res://assets/sprites/world/canal/bridge_span.png")
+const SETTS_H := 16.0
+const CURB_H := 4.0
+const WALL_H := 16.0
+const PAVER_H := 10.0
+const ROAD_CURB_H := 3.0
+const ASPHALT_H := 7.0                      # 10 + 3 + 7 + 16 = the 36 down to the water
+const BRIDGE_DECK := 25.0                   # source row that sits on the street line
+const BRIDGE_ARCH := 51.0                   # source row where the arch opens
 
 
 func _ready() -> void:
@@ -37,7 +51,7 @@ func _draw() -> void:
 			if t:
 				draw_texture(t, Vector2(seg.origin))
 		draw_set_transform(Vector2.ZERO)
-		_draw_town_cobble(a, b)
+		_draw_town_surfaces(a, b)
 	else:
 		_draw_town_legacy(a, b)
 	# Outside town: motorway proportions. Behind us the opposite carriageway
@@ -74,14 +88,128 @@ func _draw() -> void:
 		_motorway_details(x0, seg.y)
 
 
-## SpriteCook setts along the town. The old town and the canal belt (the centre)
-## use the quay from the canal reference; the rest of town keeps the plainer cobble.
-func _draw_town_cobble(a: float, b: float) -> void:
-	var th := float(COBBLE.get_height())
-	draw_texture_rect(COBBLE, Rect2(a, 0.0, b - a, th), true)
+## Cobble setts along the old town and the canal belt, concrete pavers and
+## asphalt on the ring, and the same stone quay wall wherever the canal is.
+## A canal opening is a bridge (iron rail, one arch) instead of the wall.
+func _draw_town_surfaces(a: float, b: float) -> void:
+	var holes := _bridge_spans()
 	var centre := _centre_span()
-	var qh := float(QUAY.get_height())
-	draw_texture_rect(QUAY, Rect2(centre.x, 0.0, centre.y - centre.x, qh), true)
+	var canal := _canal_span()
+	var cuts: Array[float] = [a, b, centre.x, centre.y, canal.x, canal.y]
+	for hole: Vector2 in holes:
+		cuts.append(hole.x)
+		cuts.append(hole.y)
+	cuts.sort()
+	var xs: Array[float] = []
+	for x: float in cuts:
+		if xs.is_empty() or x > xs[-1] + 0.5:
+			xs.append(x)
+	for i in xs.size() - 1:
+		var x0 := xs[i]
+		var x1 := xs[i + 1]
+		if x1 - x0 < 1.0 or _covered(x0, holes):
+			continue
+		_draw_piece(x0, x1, centre, canal)
+	for hole: Vector2 in holes:
+		var x0 := maxf(hole.x, a)
+		var x1 := minf(hole.y, b)
+		if x1 - x0 > 1.0:
+			_draw_bridge(x0, x1)
+
+
+func _covered(x: float, holes: Array) -> bool:
+	for hole: Vector2 in holes:
+		if x >= hole.x and x < hole.y:
+			return true
+	return false
+
+
+func _draw_piece(a: float, b: float, centre: Vector2, canal: Vector2) -> void:
+	if b - a < 1.0:
+		return
+	var mid := (a + b) * 0.5
+	var on_centre := mid >= centre.x and mid < centre.y
+	var on_canal := mid >= canal.x and mid < canal.y
+	if on_centre:
+		_tile(SETTS, a, 0.0, b - a, SETTS_H)
+		_tile(CURB_SETT, a, SETTS_H, b - a, CURB_H)
+		_tile(WALL, a, SETTS_H + CURB_H, b - a, WALL_H)
+	elif on_canal:
+		_tile(PAVER, a, 0.0, b - a, PAVER_H)
+		_tile(CURB_ROAD, a, PAVER_H, b - a, ROAD_CURB_H)
+		_tile(ASPHALT, a, PAVER_H + ROAD_CURB_H, b - a, ASPHALT_H)
+		_tile(WALL, a, EDGE_H - WALL_H, b - a, WALL_H)
+	else:
+		_tile(PAVER, a, 0.0, b - a, 12.0)
+		_tile(CURB_ROAD, a, 12.0, b - a, 4.0)
+		_tile(ASPHALT, a, 16.0, b - a, EDGE_H - 16.0)
+
+
+func _tile(tex: Texture2D, x: float, y: float, w: float, h: float) -> void:
+	draw_texture_rect(tex, Rect2(x, y, w, h), true)
+
+
+## One arch module stretched across the opening. The deck is the street line;
+## the railing stands above it and the arch meets the water.
+func _draw_bridge(a: float, b: float) -> void:
+	var bh := float(BRIDGE.get_height())
+	var scale := EDGE_H / (bh - BRIDGE_DECK)
+	var arch_y := (BRIDGE_ARCH - BRIDGE_DECK) * scale
+	draw_rect(Rect2(a, arch_y, b - a, EDGE_H - arch_y), WorldPalette.T1)
+	draw_rect(Rect2(a, arch_y + 4.0, b - a, 2.0), WorldPalette.T2)
+	var saved := texture_repeat
+	texture_repeat = CanvasItem.TEXTURE_REPEAT_DISABLED
+	draw_texture_rect(BRIDGE, Rect2(a - 2.0, -BRIDGE_DECK * scale, b - a + 4.0, bh * scale), false)
+	texture_repeat = saved
+
+
+var _bridges: Array[Vector2] = []
+var _bridges_ready := false
+var _canal := Vector2(-1, -1)
+
+
+func _bridge_spans() -> Array[Vector2]:
+	if _bridges_ready:
+		return _bridges
+	_bridges_ready = true
+	var root := _map_root()
+	if root == null:
+		return _bridges
+	for o in root.find_children("*", "SideOpening", true, false):
+		var op := o as SideOpening
+		if op.kind != SideOpening.Kind.CANAL:
+			continue
+		var c := op.global_position.x - global_position.x
+		var half := op.open_width * 0.5
+		_bridges.append(Vector2(c - half, c + half))
+	_bridges.sort_custom(func(p: Vector2, q: Vector2) -> bool: return p.x < q.x)
+	return _bridges
+
+
+func _canal_span() -> Vector2:
+	if _canal.x >= 0.0:
+		return _canal
+	_canal = Vector2(7092.0, town.y)
+	var root := _map_root()
+	if root == null:
+		return _canal
+	var canal := root.find_child("Canal", true, false)
+	if canal is ColorRect:
+		var rect := canal as ColorRect
+		var origin := 0.0
+		if canal.get_parent() is Node2D:
+			origin = (canal.get_parent() as Node2D).global_position.x
+		_canal = Vector2(origin + rect.offset_left, origin + rect.offset_right)
+	return _canal
+
+
+func _map_root() -> Node:
+	if not is_inside_tree():
+		return null
+	var n: Node = self
+	while n.get_parent():
+		n = n.get_parent()
+	return n
 
 
 func _centre_span() -> Vector2:

@@ -82,6 +82,10 @@ func _ready() -> void:
 	add_to_group(&"world_map")
 	var keep: Array[Node] = [band]
 	WorldPalette.snap_tree(self, keep)      # style v3: everything on the 32 colours (not the band)
+	if get_node_or_null("Buildings/Backyard") == null:
+		var yard := WorldBackyard.new()
+		yard.name = "Backyard"
+		$Buildings.add_child(yard)
 	COLOR_GRADE.attach(self)                # teal sky and haze towards a clear azure
 	Audio.music(&"map_calm")
 	if not InputMap.has_action(&"sprint"):  # hold left Shift to sprint on the map

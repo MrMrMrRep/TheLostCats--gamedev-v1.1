@@ -57,10 +57,11 @@ func _changed() -> void:
 		_front.queue_redraw()
 		if not Engine.is_editor_hint() and _glow == null:
 			_glow = NightGlow.attach(_front)
-			if _glow:                       # the bulbs along the arches light up at night
-				for wnd: Array in bridge_art().windows:
-					var r: Rect2i = wnd[0]
-					_glow.add_lamp(Vector2(r.position) * 0.5 + Vector2(0.75, 0.75), 3.0, NAN, 0.02, Color(1.0, 0.8, 0.45, 0.7))
+			if _glow:                       # bulbs along the new railing
+				var n := 3
+				for i in n:
+					var x := -open_width * 0.5 + open_width * (float(i) + 0.5) / float(n)
+					_glow.add_lamp(Vector2(x, -6.0), 3.0, NAN, 0.02, Color(1.0, 0.8, 0.45, 0.7))
 
 
 func _draw() -> void:
@@ -91,8 +92,8 @@ var _refined_checked := false
 
 
 func _draw_front() -> void:
-	if WorldPalette.V3 and _front:
-		bridge_art().draw(_front)
+	# The street draws the SpriteCook arch. This node only keeps the night bulbs.
+	pass
 
 
 ## The opening + its houses (baked once, see V3Cache).
