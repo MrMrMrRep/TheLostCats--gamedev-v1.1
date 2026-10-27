@@ -1,12 +1,27 @@
 extends Node2D
 ## The title screen: sky, the band lined up, the name, and a small menu
 ## (start the tour on the world map, go to the base, quit).
+## Click a cat, or press 1-5 / left-right, to pick who leads the tour.
+## The picked cat plays their instrument; the others idle or smoke.
 
 const MAP := "res://scenes/world/world_map.tscn"
 const BASE := "res://scenes/levels/base.tscn"
 const PROFILES := ["joep", "jay", "nikki", "germ", "geoff"]
+## Jay, The Germ and Geoff smoke while they wait; Joep and Nikki just idle.
+const SMOKE := [false, true, false, true, true]
+const STEP := 108.0
+const FEET_Y := 250.0
+const CENTER_X := 320.0
+const NAME_COLOR := Color("ffd36b")
+const NAME_DIM := Color(1, 1, 1, 0.55)
+const INK := Color("1d2838")
+## Commit time of this build (day/month and 24h), so a browser load can be checked.
+const BUILT := "27/10  21:06"
 
 var _menu: MenuList
+var _sprites: Array[AnimatedSprite2D] = []
+var _names: PackedStringArray = []
+var _picked := 0
 
 
 func _ready() -> void:
@@ -16,22 +31,13 @@ func _ready() -> void:
 	cam.position = ScreenFit.BASE / 2.0
 	add_child(cam)
 	_backdrop()
-	for i in PROFILES.size():                    # the band, idling
-		var prof: MovementProfile = load("res://resources/profiles/%s.tres" % PROFILES[i])
-		var s := AnimatedSprite2D.new()
-		s.sprite_frames = prof.sprite_frames
-		s.scale = Vector2.ONE * prof.sprite_scale * 2.0
-		s.offset = prof.sprite_offset
-		s.position = Vector2(200 + i * 60, 250)
-		if s.sprite_frames:
-			var anim := &"idle_breathing" if s.sprite_frames.has_animation(&"idle_breathing") else &"idle"
-			if s.sprite_frames.has_animation(anim):
-				s.play(anim)
-		add_child(s)
+	_line_up()
 	var ui := CanvasLayer.new()
 	add_child(ui)
 	ui.add_child(_text("THE LOST CATS", Vector2(0, 30), 32, Color("f2bc58")))
 	ui.add_child(_text("Nine Lives on the Road", Vector2(0, 70), 16, Color("fff7df")))
+	ui.add_child(_text("Click a cat    ·    1-5", Vector2(0, 98), 8, Color(1, 1, 1, 0.75)))
+	ui.add_child(_built_stamp())
 	_menu = MenuList.new()
 	_menu.position = Vector2(170, 282)
 	_menu.size = Vector2(300, 70)
@@ -41,6 +47,142 @@ func _ready() -> void:
 	ScreenFit.pin(_menu, 0.5)
 	_menu.set_options(["Start the tour", "Go to the base", "Quit"])
 	_menu.chosen.connect(_on_chosen)
+	_select(0)
+
+
+## The five cats, feet on the quay. Spread so a click lands on one of them
+## and an instrument doesn't sit inside the next cat.
+func _line_up() -> void:
+	for i in PROFILES.size():
+		var prof: MovementProfile = load("res://resources/profiles/%s.tres" % PROFILES[i])
+		var s := AnimatedSprite2D.new()
+		s.sprite_frames = prof.sprite_frames
+		s.scale = Vector2.ONE * prof.sprite_scale * 2.0
+		s.offset = prof.sprite_offset
+		s.position = _slot(i)
+		s.animation_finished.connect(_on_anim_finished.bind(s))
+		add_child(s)
+		_sprites.append(s)
+		_names.append(prof.display_name)
+
+
+func _slot(i: int) -> Vector2:
+	return Vector2(CENTER_X + (i - 2) * STEP, FEET_Y)
+
+
+func _select(i: int) -> void:
+	_picked = wrapi(i, 0, PROFILES.size())
+	for k in _sprites.size():
+		var s := _sprites[k]
+		var on := k == _picked
+		s.z_index = 1 if on else 0
+		s.modulate = Color.WHITE if on else Color(0.82, 0.82, 0.86)
+		s.position = _slot(k) + Vector2(0, -4 if on else 0)
+		if on:
+			_play_instrument(s)
+		else:
+			_play_rest(s, k)
+	queue_redraw()
+
+
+## Pick up the instrument, then hold the playing loop (the sheet's _in is one shot).
+func _play_instrument(s: AnimatedSprite2D) -> void:
+	var frames := s.sprite_frames
+	if frames == null:
+		return
+	if frames.has_animation(&"idle_instrument_in"):
+		s.play(&"idle_instrument_in")
+	elif frames.has_animation(&"idle_instrument_loop"):
+		s.play(&"idle_instrument_loop")
+	elif frames.has_animation(&"idle_instrument"):
+		s.play(&"idle_instrument")
+
+
+## Waiting: breathe, or smoke when this cat's sheet has a smoking loop.
+func _play_rest(s: AnimatedSprite2D, i: int) -> void:
+	var frames := s.sprite_frames
+	if frames == null:
+		return
+	var anim := &"idle"
+	if i < SMOKE.size() and SMOKE[i]:
+		if frames.has_animation(&"idle_smoking_loop"):
+			anim = &"idle_smoking_loop"
+		elif frames.has_animation(&"idle_smoking"):
+			anim = &"idle_smoking"
+		elif frames.has_animation(&"idle_breathing"):
+			anim = &"idle_breathing"
+	elif frames.has_animation(&"idle_breathing"):
+		anim = &"idle_breathing"
+	if not frames.has_animation(anim):
+		return
+	if s.animation == anim and s.is_playing():
+		return
+	s.play(anim)
+
+
+func _on_anim_finished(s: AnimatedSprite2D) -> void:
+	var i := _sprites.find(s)
+	if i < 0 or s.sprite_frames == null:
+		return
+	if i == _picked and s.animation == &"idle_instrument_in":
+		if s.sprite_frames.has_animation(&"idle_instrument_loop"):
+			s.play(&"idle_instrument_loop")
+		return
+	# Switched away mid-intro: the one-shot ended, so drop back to waiting.
+	if i != _picked and not s.sprite_frames.get_animation_loop(s.animation):
+		_play_rest(s, i)
+
+
+func _process(_delta: float) -> void:
+	if not is_visible_in_tree() or _sprites.is_empty():
+		return
+	if Input.is_action_just_pressed("move_left") or Input.is_action_just_pressed("ui_left"):
+		_select(_picked - 1)
+	elif Input.is_action_just_pressed("move_right") or Input.is_action_just_pressed("ui_right"):
+		_select(_picked + 1)
+	else:
+		for i in PROFILES.size():
+			if Input.is_action_just_pressed("select_%d" % (i + 1)):
+				_select(i)
+				return
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _sprites.is_empty():
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var hit := _hit(get_global_mouse_position())
+		if hit >= 0:
+			_select(hit)
+			get_viewport().set_input_as_handled()
+
+
+## A column around each cat, from the head down through the name.
+func _hit(at: Vector2) -> int:
+	if at.y < FEET_Y - 104.0 or at.y > FEET_Y + 20.0:
+		return -1
+	var best := -1
+	var best_dx := STEP * 0.5 + 1.0
+	for i in _sprites.size():
+		var dx := absf(at.x - _slot(i).x)
+		if dx < best_dx:
+			best = i
+			best_dx = dx
+	return best
+
+
+func _draw() -> void:
+	if _names.is_empty():
+		return
+	var font := UiFont.font()
+	for i in _names.size():
+		var on := i == _picked
+		var x := _sprites[i].position.x
+		var y := FEET_Y + 14.0
+		draw_string(font, Vector2(x - 46, y + 1), _names[i], HORIZONTAL_ALIGNMENT_CENTER, 92, 8, INK)
+		draw_string(font, Vector2(x - 46, y), _names[i], HORIZONTAL_ALIGNMENT_CENTER, 92, 8, NAME_COLOR if on else NAME_DIM)
+		if on:
+			draw_rect(Rect2(x - 12, y + 3, 24, 1), NAME_COLOR)
 
 
 ## The world map's look behind the band: hazy skyline and canal houses, the
@@ -95,11 +237,26 @@ func _text(t: String, pos: Vector2, size: int, color: Color) -> Label:
 	return l
 
 
+## Quiet corner stamp: the commitment's day/month and time.
+func _built_stamp() -> Label:
+	var l := Label.new()
+	l.text = BUILT
+	l.position = Vector2(8, 4)
+	l.size = Vector2(120, 14)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	l.add_theme_font_size_override("font_size", 8)
+	l.add_theme_color_override("font_color", Color(1, 1, 1, 0.8))
+	l.add_theme_color_override("font_outline_color", INK)
+	l.add_theme_constant_override("outline_size", 1)
+	return l
+
+
 func _on_chosen(i: int) -> void:
 	match i:
-		0:                                  # the tour starts with Joep alone (the others join at the base)
-			Game.party.assign([&"joep"])
-			Game.active_member = 0
+		0:
+			# The tour is this one cat. The others stay at the base.
+			Game.party.assign([StringName(PROFILES[_picked])])
+			Game.active_member = _picked
 			SceneRouter.go_to(MAP, &"")
 		1: SceneRouter.go_to(BASE, &"BaseEntry")
 		_: get_tree().quit()
