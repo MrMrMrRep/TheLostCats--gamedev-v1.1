@@ -14,8 +14,8 @@ const T0 := Color("1d2838")
 const T1 := Color("2c4152")
 const T2 := Color("35606c")
 const T3 := Color("4b8189")
-const T4 := Color("64a2a6")
-const T5 := Color("86c1bb")
+const T4 := Color("48c1ca")                 # the reference canal sky: a flat bright cyan
+const T5 := Color("7ec8c4")
 const T6 := Color("b0dcc9")
 const T7 := Color("dcefd2")
 const W0 := Color("4a3434")
@@ -45,9 +45,9 @@ const P0 := Color("4e3f5c")
 const PALETTE := [T0, T1, T2, T3, T4, T5, T6, T7, W0, W1, W2, W3, W4, W5,
 	B0, B1, B2, B3, B4, O1, O2, O3, G0, G1, G2, G3, G4, R0, R1, R2, R3, P0]
 
-const SKY_TOP := T4                         # (was T3; brighter, closer to the reference street scene)
-const SKY_MID := T5
-const SKY_LOW := T7
+const SKY_TOP := T4                         # flat cyan, like the canal reference, not a tall gradient
+const SKY_MID := T4
+const SKY_LOW := T5
 const CLOUD := W5
 const CLOUD_SHADE := T7
 const CLOUD_DARK := T6

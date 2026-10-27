@@ -26,6 +26,14 @@ const CURTAINS := [WorldPalette.W4, WorldPalette.B2, WorldPalette.G2, WorldPalet
 const FLOWERS := [WorldPalette.B2, WorldPalette.O2, WorldPalette.W4, WorldPalette.B2, WorldPalette.O1]
 const GOODS := [WorldPalette.O2, WorldPalette.B2, WorldPalette.T5, WorldPalette.W4, WorldPalette.T3, WorldPalette.B3, WorldPalette.W1]
 const STREETS := ["Prinsengracht", "Herengracht", "Keizersgracht", "Spiegelstraat", "Leidsestraat", "Runstraat"]
+## SpriteCook facades in the canal-reference style. Every house row (canal,
+## old town and the ring road) is built from these, one per house, flush,
+## feet on the street.
+const FACADE_BRICK := preload("res://assets/sprites/world/canal/brick.png")
+const FACADE_CREAM := preload("res://assets/sprites/world/canal/cream.png")
+const FACADE_ORANGE := preload("res://assets/sprites/world/canal/orange.png")
+const FACADE_SHOP := preload("res://assets/sprites/world/canal/shop.png")
+const FACADES: Array[Texture2D] = [FACADE_BRICK, FACADE_CREAM, FACADE_ORANGE]
 
 @export var houses := 6:
 	set(value):
@@ -116,13 +124,35 @@ func width() -> float:
 	return w
 
 
+## Houses from the SpriteCook reference set. Each facade fills its slot
+## exactly, so the row stays flush with no gaps.
+func _draw_reference_row() -> void:
+	var x := 0.0
+	var rows := layout()
+	var mid := rows.size() / 2
+	for i in rows.size():
+		var d: Dictionary = rows[i]
+		var w: float = d.w
+		var tex: Texture2D = FACADE_SHOP if d.shop else FACADES[posmod(int(d.salt), FACADES.size())]
+		var sz := tex.get_size()
+		var h := w * sz.y / sz.x
+		# A couple of pixels of overlap so neighbouring facades meet, the way the terrace does.
+		var left := 0.0 if i == 0 else 3.0
+		var right := 0.0 if i == rows.size() - 1 else 3.0
+		draw_texture_rect(tex, Rect2(x - left, -h, w + left + right, h), false)
+		if i == mid and sign_text != "":
+			var board := Rect2(x + 3.0, -GROUND + 8.0, w - 6.0, 9.0)
+			draw_rect(board, Color("1d2838"))
+			PixelFont.draw_string(self, Vector2(board.position.x, board.position.y + 7.0), sign_text, HORIZONTAL_ALIGNMENT_CENTER, board.size.x, 6, Color("f2bc58"))
+		x += w
+
+
 func _draw() -> void:
 	if _glow:
 		_glow.clear()
 	if WorldPalette.V3:
-		var refined := refined_art()
-		var art := refined if refined else v3_art()
-		art.draw(self)
+		var art := v3_art()
+		_draw_reference_row()
 		art.add_glow(_glow)
 		if _glow:
 			_glow.queue_redraw()

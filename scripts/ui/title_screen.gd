@@ -16,7 +16,7 @@ const NAME_COLOR := Color("ffd36b")
 const NAME_DIM := Color(1, 1, 1, 0.55)
 const INK := Color("1d2838")
 ## Commit time of this build (day/month and 24h), so a browser load can be checked.
-const BUILT := "27/10  21:06"
+const BUILT := "27/10  21:55"
 
 var _menu: MenuList
 var _sprites: Array[AnimatedSprite2D] = []
@@ -210,10 +210,12 @@ func _backdrop() -> void:
 			street.draw_texture_rect(tile, Rect2(0, 0, 2560, WorldStreet.EDGE_H * 2.0), true))
 	street.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
 	add_child(street)
-	var water := ColorRect.new()
-	water.color = WorldPalette.WATER
-	water.position = Vector2(-320, 250 + WorldStreet.EDGE_H)
-	water.size = Vector2(1280, 120)
+	var water := WorldWater.new()
+	water.water_color = Color("3a8f9a")
+	water.deep_color = Color("1c5560")
+	water.street_gap = WorldStreet.EDGE_H
+	water.position = Vector2(-640, 250 + WorldStreet.EDGE_H)
+	water.size = Vector2(1920, 160)
 	add_child(water)
 	var shine := ColorRect.new()                 # the dark line along the quay
 	shine.color = WorldPalette.T0
