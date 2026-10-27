@@ -488,7 +488,7 @@ const V3_SPRITES := ["farm", "mill", "cow0", "cow1", "sheep", "poplar0", "poplar
 
 
 static func v3_sprite(name: String) -> V3Art:
-	return V3Cache.art("scenery_" + name, func() -> V3Art: return V3Painter.scenery(name))
+	return V3Cache.art("scenery_%s_t2" % name, func() -> V3Art: return V3Painter.scenery(name))
 
 
 ## The bake tool calls this so the game only loads them.

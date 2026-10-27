@@ -62,7 +62,7 @@ func _draw() -> void:
 
 ## The stretch in the style v3 look (baked once, see V3Cache / V3Painter).
 func v3_art(items: Array = plan()) -> V3Art:
-	var key := "life%d_%d|%s|%s" % [kind, seed_value, length, keep_clear]
+	var key := "life%d_%d|%s|%s|t2" % [kind, seed_value, length, keep_clear]
 	var paint := func() -> V3Art: return V3Painter.street_life(items, length, seed_value)
 	return V3Cache.art(key, paint)
 
