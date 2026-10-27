@@ -11,9 +11,13 @@ extends "res://scripts/world/v3/v3_zones.gd"
 ##   Summer --headless --path . --script res://tools/style_mock_v3_alleys.gd
 
 var bridges: Array = []                     # [x, w] of canal openings (bridge in front)
+var side_l_scheme := ""                     # facade of the house to the left of an opening
+var side_r_scheme := ""
 
 
-func _side_street(x0: int, w: int, kind: String, poort: bool) -> void:
+func _side_street(x0: int, w: int, kind: String, poort: bool, left_scheme: String = "", right_scheme: String = "") -> void:
+	side_l_scheme = left_scheme
+	side_r_scheme = right_scheme
 	var vx := x0 + w * 0.5
 	var vy := float(GY - {"steeg": 70, "alley": 90, "street": 110, "canal": 160}[kind])
 	var s_end: float = {"steeg": 0.2, "alley": 0.3, "street": 0.34, "canal": 0.3}[kind]
@@ -83,19 +87,26 @@ func _fog(c: Color, x: int, y: int, s: float, s_end: float, kind: String, lit: b
 
 func _wall_px(x: int, y: int, s: float, d: float, hl: float, hh: float, hidx: int,
 		lit: bool, kind: String, s_end: float) -> Color:
-	var pal: Array = [[B2, B1], [T3, T2], [W4, W3], [O2, O1], [B3, B2], [T2, T1], [P0, T0]]
-	var pair: Array = pal[int(_hash(hidx, int(vx_seed(kind))) * pal.size()) % pal.size()]
-	var c: Color = pair[0] if lit else pair[1]
+	var scheme_name := side_r_scheme if lit else side_l_scheme
+	var pair: Array = []
 	var trim := W4 if lit else W3
-	var brick: bool = kind == "alley" or pair[0] == B2
+	if scheme_name != "" and SCHEMES.has(scheme_name):
+		var sc: Array = SCHEMES[scheme_name]
+		pair = [sc[0], sc[1]]
+		trim = sc[3]
+	else:
+		var pal: Array = [[B2, B1], [T3, T2], [W4, W3], [O2, O1], [B3, B2], [T2, T1], [P0, T0]]
+		pair = pal[int(_hash(hidx, int(vx_seed(kind))) * pal.size()) % pal.size()]
+	var c: Color = pair[0] if lit else pair[1]
+	var brick: bool = kind == "alley" or kind == "steeg" or pair[0] == B2
 	if kind == "steeg":
-		c = T1 if lit else T0
-		trim = T2 if lit else T1
+		c = _dark(c)
+		trim = _dark(trim)
 		brick = true
 	if brick and int(hl) % 4 == 3 and s > 0.45:
 		c = pair[1] if lit else T0
 		if kind == "steeg":
-			c = T0
+			c = _dark(c)
 	# House seams, cornice, string course.
 	if fmod(d, 0.9) < 0.03:
 		c = T0

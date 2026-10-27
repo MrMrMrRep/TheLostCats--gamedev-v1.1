@@ -61,6 +61,10 @@ var SCHEMES := {
 	"coral": [B3, B2, B4, W5, W3, B1, false], "mustard": [O2, O1, O3, W5, W3, W1, false],
 	"plum": [P0, T0, R1, W4, W3, T0, false],
 }
+# While a house is painted, nothing may land outside its plot. Neighbouring
+# sprites then meet on a shared party wall instead of overlapping eaves.
+var plot_l := -1000000
+var plot_r := 1000000
 const BAYER := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
 const FONT5 := {
 	"J": "00111000100001000010000101001001100", "X": "10001100010101000100010101000110001",
@@ -318,6 +322,8 @@ func _house(hs: Dictionary) -> void:
 	var floors: int = hs["f"]
 	var top := GY - GF - ST * (floors - 1)
 	rng.seed = x * 7 + 1
+	plot_l = x
+	plot_r = x + w
 	_wall(x, top, w, GY - top)
 	_gable(x, w, top, hs["g"])
 	# Corner quoins.
@@ -372,6 +378,9 @@ func _house(hs: Dictionary) -> void:
 		_door_front(x, w, hs)
 	else:
 		_shop_front(x, w, hs)
+	_seal(x, w)
+	plot_l = -1000000
+	plot_r = 1000000
 
 
 func _wall(x: int, y: int, w: int, h: int) -> void:
@@ -436,7 +445,8 @@ func _gable(x: int, w: int, top: int, kind: String) -> void:
 		"spout":
 			var gh := w / 2 + 10
 			for yy in gh:
-				var half := int(w / 2.0 * (1.0 - float(yy) / gh))
+				# Leave two pixels inside the plot for the lit and shaded edges.
+				var half := mini(int(w / 2.0 * (1.0 - float(yy) / gh)), w / 2 - 2)
 				_wall(cx - half, top - yy - 1, half * 2, 1)
 				_rect(cx - half - 1, top - yy - 1, 3, 1, ct)
 				_px(cx - half - 2, top - yy - 1, T0)
@@ -488,6 +498,7 @@ func _gable(x: int, w: int, top: int, kind: String) -> void:
 			for yy in gh:
 				var t := float(yy) / gh
 				var half := int(w / 2.0 * (0.92 - 0.5 * t + 0.25 * sin(t * PI)) * (1.0 - t * t * 0.55))
+				half = mini(half, w / 2 - 4)
 				_wall(cx - half, top - yy - 1, half * 2, 1)
 				_rect(cx - half - 3, top - yy - 1, 3, 1, ct)
 				_px(cx - half - 3, top - yy - 1, W5 if ct != T1 else T2)
@@ -501,12 +512,13 @@ func _gable(x: int, w: int, top: int, kind: String) -> void:
 			WDisc.draw(self, cx, top - gh - 6, 4, ct)
 			_window(cx - 11, top - 46, 22, 34, false, true)
 		"mansard":
-			_rect(x - 3, top - 10, w + 6, 10, ct)
-			_rect(x - 3, top - 10, w + 6, 1, T0)
-			_rect(x - 3, top - 9, w + 6, 1, W5 if ct != T1 else T2)
+			# Cornice stays inside the plot so it meets the neighbour, it does not cover it.
+			_rect(x, top - 10, w, 10, ct)
+			_rect(x, top - 10, w, 1, T0)
+			_rect(x, top - 9, w, 1, W5 if ct != T1 else T2)
 			for dx in range(x, x + w, 6):
 				_rect(dx, top - 5, 3, 3, cts)
-			_rect(x - 3, top - 2, w + 6, 1, cts)
+			_rect(x, top - 2, w, 1, cts)
 			_rect(x, top, w, 2, cs)
 			var rh := 40
 			for yy in rh:
@@ -1351,79 +1363,45 @@ func _book_stand(x: int) -> void:
 
 
 func _tree(x: int, s: float) -> void:
-	# Five street trees from the same x, so a row is never one stamp:
-	# elm, plane, pollard, leaning elm, ivy elm.
-	var kind := int(_hash(x, 91) * 5.0)
-	var lean := 0
-	if kind == 3:
-		lean = -1 if _hash(x, 3) < 0.5 else 1
 	var base := GY + 6
-	var th := int((78 if kind == 2 else 150) * s)
-	var tw := 14 if kind == 1 else (8 if kind == 4 else 10)
-	tw = int(tw * clampf(s, 0.7, 1.3))
-	if tw < 6:
-		tw = 6
-	for yy in range(base - th, base):
-		var t := float(base - yy) / float(th)
-		var bow := int(sin(t * 1.4) * lean * 7.0)
-		var tx := x + bow
-		_rect(tx - int(tw / 2), yy, tw, 1, W0)
-		_rect(tx - int(tw / 2), yy, maxi(int(tw / 3), 2), 1, W1)
-		if (yy - base) % 5 == 0:
-			_px(tx - int(tw / 2) + 1 + int(_hash(x, yy) * float(tw - 2)), yy, T0)
-		if kind == 4 and _hash(x, int(yy / 3)) < 0.55 and t < 0.85:
-			_px(tx + int(tw / 2) - 1, yy, G0 if yy % 2 else G1)
-			if _hash(x + 1, yy) < 0.3:
-				_px(tx + int(tw / 2), yy, G2)
-	# Root flare, grate, and (on the tall trees) an iron guard.
-	_rect(x - int(tw / 2) - 3, base - 7, tw + 6, 5, W0)
-	_rect(x - int(tw / 2) - 3, base - 7, 2, 5, W1)
+	var th := int(150 * s)
+	# Trunk with bark, a tree grate and an iron guard.
+	_rect(x - 5, base - th, 10, th, W0)
+	_rect(x - 5, base - th, 3, th, W1)
+	for yy in range(base - th, base, 5):
+		_rect(x - 1 + int(_hash(x, yy) * 3.0), yy, 1, 3, T0)
 	_rect(x - 14, base - 2, 28, 3, T0)
 	for k in range(x - 13, x + 14, 3):
 		_px(k, base - 2, R1)
-	if kind != 2:
-		var gy := base - int(30 * s)
-		_rect(x - 9, gy, 1, base - 2 - gy, T0)
-		_rect(x + 9, gy, 1, base - 2 - gy, T0)
-		_rect(x - 9, gy, 19, 1, T0)
-	if kind == 1:
-		_px(x + 1, base - int(th / 2), W2)
-		_px(x + 2, base - int(th / 2), T0)
-	var cy := base - th - (6 if kind == 2 else 20)
-	var cx := x + lean * int(14 * s)
-	_line(x, base - th + 18, cx - int(30 * s), cy + 8, W0)
-	_line(x, base - th + 18, cx + int(34 * s), cy + 4, W0)
-	_line(x, base - th + 10, cx - int(8 * s), cy - int(28 * s), W0)
-	_line(x + 1, base - th + 10, cx + int(12 * s), cy - int(32 * s), W1)
-	if kind == 2:
-		WDisc.draw(self, x - 6, base - th, 5, W0)
-		WDisc.draw(self, x + 7, base - th + 2, 4, W1)
-	var sets := [
-		[[0, -8, 34], [-32, 6, 24], [32, 4, 26], [-16, -34, 22], [18, -36, 24], [-46, -16, 16], [46, -18, 16], [2, -56, 18], [-4, 18, 22], [-24, 24, 14], [26, 22, 16]],
-		[[0, 2, 28], [-44, 4, 26], [46, 2, 28], [-18, -18, 18], [22, -20, 20], [-68, 8, 14], [70, 6, 14], [0, -30, 14], [-26, 18, 12], [28, 16, 12]],
-		[[0, 6, 26], [-20, 2, 18], [22, 0, 20], [-6, -14, 16], [10, -16, 14], [0, 18, 14], [-32, 12, 11], [34, 10, 11]],
-		[[-10, -4, 32], [-42, 10, 24], [14, 4, 20], [-22, -30, 18], [6, -28, 16], [-54, -6, 13], [26, -10, 13], [-2, 18, 16]],
-		[[0, 10, 24], [-20, 22, 14], [22, 20, 16], [-6, -16, 16], [10, -20, 14], [-34, 32, 11], [36, 30, 11], [0, -36, 11], [-14, 4, 12]],
-	]
-	var clumps: Array = sets[kind]
+	_rect(x - 9, base - 30, 1, 28, T0)
+	_rect(x + 9, base - 30, 1, 28, T0)
+	_rect(x - 9, base - 30, 19, 1, T0)
+	# Branches.
+	var cy := base - th - 20
+	_line(x, base - th + 30, x - 34, cy + 10, W0)
+	_line(x, base - th + 30, x + 38, cy + 6, W0)
+	_line(x, base - th + 20, x - 10, cy - 30, W0)
+	_line(x + 1, base - th + 20, x + 14, cy - 34, W0)
+	# Canopy of many small leaf clusters, lit from the top-left.
+	var clumps := [[0, -8, 34], [-32, 6, 24], [32, 4, 26], [-16, -34, 22], [18, -36, 24],
+		[-46, -16, 16], [46, -18, 16], [2, -56, 18], [-4, 18, 22], [-24, 24, 14], [26, 22, 16]]
 	var light := Vector3(-0.55, -0.65, 0.52).normalized()
 	var m := {}
 	for c in clumps:
-		var ox: int = int(c[0] * s) + (lean * 8 if kind == 3 else 0)
-		var oy: int = int(c[1] * s)
 		var r: float = c[2] * s
-		var cc := Vector2(cx + ox, cy + oy)
+		var cc := Vector2(x + c[0] * s, cy + c[1] * s)
 		for yy in range(int(cc.y - r - 3), int(cc.y + r + 4)):
 			for xx in range(int(cc.x - r - 3), int(cc.x + r + 4)):
 				var p := Vector2i(xx, yy)
-				var rr := r + (_hash(xx / 3, yy / 3 + kind) - 0.5) * 6.0
+				var rr := r + (_hash(xx / 3, yy / 3) - 0.5) * 5.0
 				var d := Vector2(xx, yy) - cc
 				if d.length() > rr:
 					continue
 				var n := d / rr
 				var big := Vector3(n.x, n.y, sqrt(maxf(1.0 - n.length_squared(), 0.0))).dot(light)
+				# Small leaf clusters: a sphere per 5x4 cell.
 				var cell := Vector2i(int(floor(xx / 5.0)), int(floor(yy / 4.0)))
-				var jx := _hash(cell.x + kind, cell.y) * 2.0
+				var jx := _hash(cell.x, cell.y) * 2.0
 				var local := Vector2(xx - cell.x * 5 - 2.5 - jx + 1.0, yy - cell.y * 4 - 2.0) / 3.2
 				var small := Vector3(local.x, local.y, sqrt(maxf(1.0 - local.length_squared(), 0.0))).dot(light)
 				var l := big * 0.75 + small * 0.4 - 0.05
@@ -1436,36 +1414,21 @@ func _tree(x: int, s: float) -> void:
 					v = 4
 				if l < -0.25:
 					v = 0
-				if not m.has(p) or int(m[p]) < v:
+				if not m.has(p) or int(m[p]) < v or true:
 					m[p] = v
 	var cols := [G0, G1, G2, G3, G4]
 	for p: Vector2i in m:
 		var v: int = m[p]
 		if not m.has(p + Vector2i(0, 1)) or not m.has(p + Vector2i(1, 1)):
-			v = mini(v, 1)
+			v = 0
 		_px(p.x, p.y, cols[v])
-	var holes := 8 + kind * 2
-	for i in holes:
-		var hx := cx + int((_hash(i, kind + 1) - 0.5) * 64 * s)
-		var hy := cy + int((_hash(kind, i) - 0.35) * 46 * s)
-		if m.has(Vector2i(hx, hy)):
-			_rect(hx, hy, 3 + i % 2, 2, G0)
+	# Holes where branches show through.
+	for i in 14:
+		var hx := x + int((_hash(i, 1) - 0.5) * 70 * s)
+		var hy := cy + int((_hash(1, i) - 0.3) * 50 * s)
+		if m.has(Vector2i(hx, hy)) and m.has(Vector2i(hx + 3, hy + 3)):
+			_rect(hx, hy, 3, 2, G0)
 			_px(hx + 1, hy, W0)
-	if kind == 0 or kind == 1:
-		for i in 10:
-			var lx := cx + int((_hash(i + 9, x) - 0.2) * 40 * s)
-			var ly := cy + int((_hash(x, i + 4) - 0.6) * 30 * s)
-			if m.has(Vector2i(lx, ly)) and int(m[Vector2i(lx, ly)]) >= 3:
-				_px(lx, ly, O2 if i % 2 else G4)
-	var side := 1 if lean >= 0 else -1
-	_line(cx, cy + 6, cx + int(48 * s) * side, cy + int(22 * s), W0)
-	_line(cx - int(10 * s), cy - int(8 * s), cx - int(36 * s) * side, cy - int(4 * s), W1)
-	if _hash(x, 404) < 0.14:
-		var bx := cx + int((_hash(x, 2) - 0.5) * 24 * s)
-		var by := cy - int(12 * s)
-		_px(bx, by, T0)
-		_px(bx + 1, by, T0)
-		_px(bx + 2, by - 1, O1)
 
 
 func _houseboat(x: int) -> void:
@@ -1615,11 +1578,33 @@ func _bevel(x: int, y: int, w: int, h: int, base: Color, hi: Color, sh: Color) -
 	_rect(x + w - 1, y, 1, h, sh)
 
 
+func _seal(x: int, w: int) -> void:
+	# Party wall only as tall as the roof is at that edge, so a gable peak
+	# does not leave a line of sky beside the neighbour.
+	if w < 3:
+		return
+	var y_l := _edge_top(x)
+	var y_r := _edge_top(x + w - 2)
+	for yy in range(y_l, GY):
+		_px(x, yy, T0)
+	for yy in range(y_r, GY):
+		_px(x + w - 1, yy, T0)
+
+
+func _edge_top(xx: int) -> int:
+	for yy in range(maxi(0, GY - 560), GY):
+		if _get_px(xx, yy).a > 0.2 or _get_px(xx + 1, yy).a > 0.2:
+			return yy
+	return GY
+
+
 func _inside(x: int, y: int) -> bool:
 	return x >= OX and y >= 0 and x < OX + W and y < H
 
 
 func _put_px(x: int, y: int, c: Color) -> void:
+	if x < plot_l or x >= plot_r:
+		return
 	if x >= OX and y >= 0 and x < OX + W and y < H:
 		img.set_pixel(x - OX, y, c)
 
@@ -1631,12 +1616,21 @@ func _get_px(x: int, y: int) -> Color:
 
 
 func _px(x: int, y: int, c: Color) -> void:
+	if x < plot_l or x >= plot_r:
+		return
 	if x >= OX and y >= 0 and x < OX + W and y < H:
 		img.set_pixel(x - OX, y, c)
 
 
 func _rect(x: int, y: int, w: int, h: int, c: Color) -> void:
 	if w <= 0 or h <= 0:
+		return
+	if x < plot_l:
+		w -= plot_l - x
+		x = plot_l
+	if x + w > plot_r:
+		w = plot_r - x
+	if w <= 0:
 		return
 	var r := Rect2i(x, y, w, h).intersection(Rect2i(OX, 0, W, H))
 	if r.size.x > 0 and r.size.y > 0:

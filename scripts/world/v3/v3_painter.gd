@@ -345,11 +345,14 @@ static func side_opening(kind: String, slot_w: float, open_w: float, seed_value:
 	var x0 := bx - tw / 2
 	p.begin(x0 - 8, tw + 16)
 	var left := (tw - ow) / 2
-	p._side_street(x0 + left, ow, kind, poort)
 	var r := RandomNumberGenerator.new()
 	r.seed = seed_value * 17 + 3
-	p._flank_houses(r, x0, left)
-	p._flank_houses(r, x0 + left + ow, tw - left - ow)
+	# Houses first, so the opening can take their facade colours and cover any eave that would spill in.
+	var left_s: Array = p._flank_houses(r, x0, left)
+	var right_s: Array = p._flank_houses(r, x0 + left + ow, tw - left - ow)
+	var ls := "" if left_s.is_empty() else String(left_s[left_s.size() - 1])
+	var rs := "" if right_s.is_empty() else String(right_s[0])
+	p._side_street(x0 + left, ow, kind, poort, ls, rs)
 	return p.finish(bx)
 
 
@@ -486,9 +489,11 @@ func _amsterdam_bridge(x0: int, w: int, seed_value: int) -> void:
 
 
 ## Canal houses filling `w` art px from `x` (beside an opening).
-func _flank_houses(r: RandomNumberGenerator, x: int, w: int) -> void:
+## Returns the facade schemes in order, so the opening's side walls can match.
+func _flank_houses(r: RandomNumberGenerator, x: int, w: int) -> Array:
+	var schemes_used: Array = []
 	if w < 40:
-		return
+		return schemes_used
 	var n := maxi(1, roundi(w / 130.0))
 	var last := ""
 	var shops := [["cafe", "CAFE"], ["bakker", "BAKKER"], ["bloem", "BLOEMEN"], ["boek", "BOEKEN"], ["vis", "VIS"], ["koffie", "KOFFIE"]]
@@ -498,6 +503,7 @@ func _flank_houses(r: RandomNumberGenerator, x: int, w: int) -> void:
 		if scheme == last:
 			scheme = CANAL_SCHEMES[(CANAL_SCHEMES.find(scheme) + 1) % CANAL_SCHEMES.size()]
 		last = scheme
+		schemes_used.append(scheme)
 		var hs := {"x": x, "w": hw, "f": r.randi_range(3, 4), "s": scheme, "g": _pick_gable(r, 0)}
 		if r.randf() < 0.5:
 			var sh: Array = shops[r.randi_range(0, shops.size() - 1)]
@@ -514,6 +520,7 @@ func _flank_houses(r: RandomNumberGenerator, x: int, w: int) -> void:
 		hs.pipe = r.randf() < 0.35
 		_house(hs)
 		x += hw
+	return schemes_used
 
 
 func _block(bx: int, rows: Array, style: int, sign_text: String, shop_signs: PackedStringArray, seed_value: int) -> void:
@@ -524,6 +531,10 @@ func _block(bx: int, rows: Array, style: int, sign_text: String, shop_signs: Pac
 	var x := bx
 	var mid := rows.size() / 2
 	var furniture := []                     # pavement things go in front of all houses
+	var open_gap := 0
+	var open_x := 0
+	var open_poort := false
+	var open_left := ""
 	for i in rows.size():
 		var d: Dictionary = rows[i]
 		var w := int(d.w) * 2
@@ -532,6 +543,10 @@ func _block(bx: int, rows: Array, style: int, sign_text: String, shop_signs: Pac
 		if scheme == last:
 			scheme = schemes[(schemes.find(scheme) + 1) % schemes.size()]
 		last = scheme
+		if open_gap > 0:
+			# Side walls take the colour of the houses they belong to.
+			_side_street(open_x, open_gap, "steeg", open_poort, open_left, scheme)
+			open_gap = 0
 		var signed := sign_text != "" and i == mid
 		# Now and then a narrow alley (steeg) or a covered gateway next to the
 		# house; its own dice, so the rest of the row keeps its look.
@@ -599,7 +614,10 @@ func _block(bx: int, rows: Array, style: int, sign_text: String, shop_signs: Pac
 			furniture.append(["bin", x + w - 18])
 		x += w
 		if gap > 0:
-			_side_street(x, gap, "steeg", poort)
+			open_gap = gap
+			open_x = x
+			open_poort = poort
+			open_left = scheme
 			x += gap
 	for f: Array in furniture:
 		match f[0]:
@@ -716,6 +734,8 @@ static func building_front(kind: int, width: float, seed_value: int) -> V3Art:
 
 func _building(x: int, w: int, kind: int, sign_text: String, seed_value: int) -> void:
 	var up := sign_text.to_upper()
+	plot_l = x
+	plot_r = x + w
 	match kind:
 		0:                                  # MALL
 			_new_block(x, w / 2)
@@ -795,6 +815,8 @@ func _building(x: int, w: int, kind: int, sign_text: String, seed_value: int) ->
 			_service_station(x, w)
 		_:
 			pass
+	plot_l = -1000000
+	plot_r = 1000000
 
 
 func _park(x: int, w: int) -> void:
