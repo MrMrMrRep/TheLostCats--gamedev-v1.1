@@ -72,7 +72,7 @@ func _add_front() -> void:
 
 ## The church square in the style v3 look (baked once, see V3Cache / V3Painter).
 func front_art() -> V3Art:
-	var key := "front%d_%d|%.1f" % [kind, seed_value, width()]
+	var key := "front%d_%d|%.1f|t2" % [kind, seed_value, width()]
 	var paint := func() -> V3Art: return V3Painter.building_front(kind, width(), seed_value)
 	return V3Cache.art(key, paint)
 
@@ -137,7 +137,7 @@ func _draw() -> void:
 
 ## The building in the style v3 look (baked once, see V3Cache / V3Painter).
 func v3_art() -> V3Art:
-	var key := "bld%d_%d|%s|%.1f" % [kind, seed_value, sign_text, width()]
+	var key := "bld%d_%d|%s|%.1f|t2" % [kind, seed_value, sign_text, width()]
 	var paint := func() -> V3Art: return V3Painter.building(kind, width(), sign_text, seed_value)
 	return V3Cache.art(key, paint)
 

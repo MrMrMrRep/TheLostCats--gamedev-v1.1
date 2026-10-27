@@ -133,14 +133,22 @@ func _birds(x: int, y: int) -> void:
 
 
 func _poplar(x: int, base: int, h: int) -> void:
-	_rect(x, base - 12, 2, 12, W0)
+	var lean := -1 if _hash(x, 2) < 0.5 else 1
+	var spread := 6.0 + _hash(x, 8) * 4.0
+	_rect(x, base - 18, 3, 18, W0)
+	_rect(x, base - 18, 1, 18, W1)
 	for yy in h:
 		var t := float(yy) / h
-		var half := int(7.0 * sin(t * PI) * (1.0 - t * 0.3)) + 1
+		var half := int(spread * sin(t * PI) * (1.0 - t * 0.22)) + 1
+		var ox := int(lean * t * 5.0)
 		for xx in range(-half, half + 1):
-			var l := -float(xx) / half * 0.6 + (_hash(x + xx, yy / 2) - 0.5) * 0.8
-			_px(x + xx, base - 10 - yy, G1 if l < -0.2 else (G2 if l < 0.35 else G3))
-	_rect(x + 1, base - 12, 1, 12, W1)
+			var l := -float(xx) / float(half) * 0.75 + (_hash(x + xx, int(yy / 2)) - 0.5) * 0.95
+			var c := G0 if l < -0.35 else (G1 if l < -0.05 else (G2 if l < 0.4 else (G3 if l < 0.72 else G4)))
+			if _hash(x + xx, yy + 3) > 0.97:
+				c = T0
+			_px(x + ox + xx, base - 14 - yy, c)
+	_line(x, base - int(h / 3.0), x - 9 * lean, base - int(h / 3.0) - 12, W0)
+	_line(x + 1, base - int(h * 2 / 3.0), x + 8 * lean, base - int(h * 2 / 3.0) - 8, W1)
 
 
 func _tree_small(x: int, base: int, s: float) -> void:
@@ -477,12 +485,15 @@ func _willow(x: int, base: int) -> void:
 		_rect(x - 2 + int(_hash(x, yy) * 6.0), yy, 2, 4, T0)
 	WDisc.draw(self, x, base - 54, 13, W0)
 	WDisc.draw(self, x - 4, base - 58, 6, W1)
-	for k in 16:
-		var a := deg_to_rad(200.0 + k * 9.0)
-		var len := 30 + int(_hash(k, x) * 30.0)
+	_rect(x - 2, base - 48, 4, 8, T0)                 # a hollow
+	for k in 22:
+		var a := deg_to_rad(190.0 + k * 8.0 + _hash(k, x) * 6.0)
+		var len := 22 + int(_hash(k, x) * 42.0)
 		var e := Vector2(x, base - 60) + Vector2(cos(a), sin(a)) * len
-		_line(x, base - 60, int(e.x), int(e.y), W1 if k % 2 else W0)
-	for c in [[0, -90, 16], [-24, -80, 13], [24, -82, 14], [-12, -104, 12], [14, -104, 12]]:
+		_line(x, base - 60, int(e.x), int(e.y), W1 if k % 3 else W0)
+		if k % 2 == 0:
+			_leaves(int(e.x), int(e.y) - 2, 4 + int(_hash(k, x + 1) * 4.0))
+	for c in [[0, -96, 14], [-22, -78, 12], [20, -84, 13], [-8, -110, 10], [16, -108, 11]]:
 		_leaves(x + c[0], base + c[1], c[2])
 
 
@@ -2392,17 +2403,18 @@ func _new_block(x: int, w: int) -> void:
 
 
 func _young_tree(x: int) -> void:
-	# A young street tree in a pit with a wooden stake.
+	# A young street tree in a pit with a wooden stake. Crown leans one way.
 	var b := GY + 6
+	var side := -1 if _hash(x, 6) < 0.5 else 1
 	_rect(x - 2, b - 70, 4, 70, W0)
 	_rect(x - 2, b - 70, 1, 70, W1)
-	_rect(x + 5, b - 50, 2, 50, W2)
-	_rect(x + 2, b - 40, 4, 1, T0)
+	_rect(x + 5 * side, b - 50, 2, 50, W2)
+	_rect(x + 2 * side, b - 40, 4, 1, T0)
 	_rect(x - 12, b - 2, 24, 3, T0)
 	for k in range(x - 11, x + 12, 3):
 		_px(k, b - 2, R1)
-	for c in [[0, -90, 16], [-12, -80, 11], [12, -82, 12], [-4, -104, 11], [8, -102, 10], [0, -74, 10]]:
-		_leaves(x + c[0], b + c[1], c[2])
+	for c in [[0, -90, 16], [-12, -80, 11], [12, -82, 12], [-4, -104, 11], [8, -102, 10], [0, -74, 10], [18, -88, 8]]:
+		_leaves(x + c[0] * side, b + c[1], c[2] + int(_hash(x, c[1]) * 3.0))
 
 
 func _bike_shed(x: int) -> void:
