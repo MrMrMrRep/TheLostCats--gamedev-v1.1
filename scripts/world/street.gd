@@ -113,7 +113,7 @@ func segments() -> Array:
 	while x < b:
 		var w := mini(SEGMENT, b - x)
 		var x0 := x
-		var key := "street_seg|%d|%d|%s" % [x0, w, spec.md5_text()]
+		var key := "street_seg|%d|%d|%s|cobble2" % [x0, w, spec.md5_text()]
 		var art := V3Cache.art(key, func() -> V3Art:
 			return STREET_PAINTER.street_segment(x0, w, zones, bridges, mouths))
 		art.origin = Vector2i(x0, 0)
