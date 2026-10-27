@@ -290,10 +290,12 @@ func _details() -> void:
 			for d: int in [-2, 0, 2]:
 				_px(gx + 6 + d, cy, R2)
 				_px(gx + 6 + d, cy - 2, R2)
-		elif h < 0.22 and k == Kind.OLD:     # a puddle with sky in it
-			for dy in 3:
-				var half: int = [5, 8, 5][dy]
-				_rect(gx + 8 - half, road_y + 15 + dy, half * 2, 1, T3 if dy != 1 else T4)
+		elif h < 0.26 and k == Kind.OLD:     # a puddle with sky in it
+			for dy in 5:
+				var half: int = [4, 9, 12, 9, 5][dy]
+				_rect(gx + 10 - half, road_y + 14 + dy, half * 2, 1, T4 if dy == 2 else T3)
+				if dy == 2:
+					_rect(gx + 10 - 4, road_y + 14 + dy, 5, 1, T5)
 		elif h < 0.27 and k == Kind.NEW:     # a bike symbol on the red lane
 			var by := road_y + 1
 			WDisc.ring(self, gx + 2, by + 3, 2, W5)
