@@ -159,13 +159,13 @@ Not in M8: day/night and police, studio interior and upgrades, shops that sell, 
 
 ### M9 — The slice level "Café De Kat"
 Blockout with grey tiles first, then dress with the amwoods tileset. One new idea per room, then combine (level-design skill: teach → test → twist).
-- [ ] **R1 Back entrance:** movement basics, Nikki double jump/hover, Joep wall-jump. Checkpoint
-- [ ] **R2 Storage:** Jay pushes crates and throws The Germ up. The Germ smashes crates. Rats. Beer pickup
-- [ ] **R3 Bar & bouncer:** Geoff persuades the bouncer. Electric floor, Joep hacks the fuse box. Keycard behind glass (Jay's bass wave), Give the keycard to the member at the door
-- [ ] **R4 Backstage:** combines all of the above. Split the team over two paths
-- [ ] **Finale "Where is Geoff?":** Geoff is asleep in the drum case on top of the stage rig. The other four reach him (no Geoff abilities needed), then the rolling papers lure him to the exit
-- [ ] Hidden extra NPC (Gwinny) with a faint sound cue, counts for "Completed"
-- [ ] End screen: Finished / Completed (NPCs x/y), back to the world map → Geordie completes the quest
+- [x] **R1 Back entrance:** movement basics, Nikki double jump/hover, Joep wall-jump. Checkpoint
+- [x] **R2 Storage:** Jay pushes crates and throws The Germ up. The Germ smashes crates. Rats. Beer pickup
+- [x] **R3 Bar & bouncer:** Geoff persuades the bouncer. Electric floor, Joep hacks the fuse box. Keycard behind glass (Jay's bass wave), Give the keycard to the member at the door
+- [x] **R4 Backstage:** combines all of the above. Split the team over two paths
+- [x] **Finale "Where is Geoff?":** Geoff is asleep in the drum case on top of the stage rig. The other four reach him (no Geoff abilities needed), then the rolling papers lure him to the exit
+- [x] Hidden extra NPC (Gwinny) with a faint sound cue, counts for "Completed"
+- [x] End screen: Finished / Completed (NPCs x/y), back to the world map → Geordie completes the quest
 
 ### M10 — Pace, audio & juice
 - [ ] Two music loops (calm world map / tense level), 1.5 s crossfade on door transitions

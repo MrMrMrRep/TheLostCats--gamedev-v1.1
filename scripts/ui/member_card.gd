@@ -7,15 +7,15 @@ extends Control
 ## member's card) and name.
 ## The active member's card is highlighted, the others are dimmed.
 
-const SIZE := Vector2(58, 50)
+const SIZE := Vector2(52, 32)
 const SHEET := preload("res://public/assets/amwoods/character/char_blue.png")
 const PORTRAIT_REGION := Rect2(18, 24, 22, 32)   # idle frame 0 body (assets.json body_bounds)
 const ITEM_SLOTS := 3
 const ACTIVE_COLOR := Color("ffd36b")
 const HP_COLOR := Color("e05a4f")
-const SLOT := 8.0
-const SLOT_X := 29.0
-const SLOT_Y := 21.0
+const SLOT := 6.0
+const SLOT_X := 20.0
+const SLOT_Y := 14.0
 
 var member: BandMember
 var active := false
@@ -35,23 +35,23 @@ func bind(m: BandMember, index: int) -> void:
 		portrait.texture = own
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		portrait.position = Vector2(2, 2)
-		portrait.size = Vector2(26, 34)
+		portrait.position = Vector2(2, 1)
+		portrait.size = Vector2(16, 20)
 	else:
 		var atlas := AtlasTexture.new()
 		atlas.atlas = SHEET
 		atlas.region = PORTRAIT_REGION
 		portrait.texture = atlas
-		portrait.position = Vector2(4, 3)
+		portrait.position = Vector2(2, 2)
 		portrait.modulate = m.profile.tint
 	add_child(portrait)
-	add_child(_label(str(index + 1), Vector2(50, 0), Vector2(8, 10)))
-	var name_label := _label(m.profile.display_name, Vector2(0, 37), Vector2(SIZE.x, 10))
+	add_child(_label(str(index + 1), Vector2(42, 0), Vector2(8, 8)))
+	var name_label := _label(m.profile.display_name, Vector2(0, 22), Vector2(SIZE.x, 10))
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(name_label)
 	var bar := StaminaBar.new()
-	bar.bar_size = Vector2(25, 3)
-	bar.position = Vector2(29, 14)
+	bar.bar_size = Vector2(20, 2)
+	bar.position = Vector2(20, 11)
 	add_child(bar)
 	bar.bind(m.stamina)
 	m.health.health_changed.connect(func(_hp: int, _max: int) -> void: queue_redraw())
@@ -92,7 +92,7 @@ func _draw() -> void:
 		return
 	for i in member.health.max_hp:
 		var filled := i < member.health.hp
-		draw_rect(Rect2(29 + i * 7, 6, 5, 5), HP_COLOR if filled else Color(1, 1, 1, 0.15))
+		draw_rect(Rect2(20 + i * 6, 3, 4, 4), HP_COLOR if filled else Color(1, 1, 1, 0.15))
 	for i in ITEM_SLOTS:
 		var r := Rect2(SLOT_X + i * (SLOT + 1), SLOT_Y, SLOT, SLOT)
 		draw_rect(r, Color(0, 0, 0, 0.35))

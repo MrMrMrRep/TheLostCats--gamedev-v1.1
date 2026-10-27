@@ -184,6 +184,10 @@ func go_through(door: Door, member: BandMember) -> void:
 		return
 	if door.target_scene != "":
 		is_busy = true
+		if door.set_flag == &"cafe_finished":
+			get_tree().paused = true
+			await GigResult.present(self)
+			get_tree().paused = false
 		SceneRouter.go_to(door.target_scene, door.target_spawn)
 		return
 	var target := door.get_node_or_null(door.target_door) as Door

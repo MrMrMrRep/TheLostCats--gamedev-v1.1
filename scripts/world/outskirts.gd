@@ -128,6 +128,7 @@ func _draw() -> void:
 		var art := v3_art()
 		art.draw(self)
 		art.add_glow(_glow)
+		_district_stories()
 	else:
 		_draw_kind()
 	if _glow:
@@ -139,6 +140,65 @@ func v3_art() -> V3Art:
 	var key := "bld%d_%d|%s|%.1f" % [kind, seed_value, sign_text, width()]
 	var paint := func() -> V3Art: return V3Painter.building(kind, width(), sign_text, seed_value)
 	return V3Cache.art(key, paint)
+
+
+## Small street stories on the districts the house-row pass didn't cover:
+## hotels, the park, the industrial edge and the airport. Drawn over the
+## baked art, in the same palette, so the cache stays valid.
+func _district_stories() -> void:
+	var p := WorldPalette
+	match kind:
+		Kind.HOTEL, Kind.ROUND_HOTEL:
+			_suitcase(22, p)
+			_bay_tree(width() - 16, p)
+		Kind.PARK:
+			_lost_poster(48, -58, p)
+		Kind.GARAGE, Kind.SELF_STORAGE, Kind.PETROL, Kind.MALL:
+			_drum(16, p)
+			_crate(width() - 28, p)
+		Kind.TERMINAL:
+			_departures(36, -86, p)
+		_:
+			pass
+
+
+func _suitcase(x: float, p) -> void:
+	draw_rect(Rect2(x, -11, 9, 7), p.W0)
+	draw_rect(Rect2(x + 1, -10, 7, 5), p.O2)
+	draw_rect(Rect2(x + 3, -13, 3, 3), p.W0)
+
+
+func _bay_tree(x: float, p) -> void:
+	draw_rect(Rect2(x, -8, 6, 6), p.B1)
+	draw_rect(Rect2(x - 2, -16, 10, 8), p.G1)
+	draw_rect(Rect2(x, -20, 6, 5), p.G2)
+
+
+func _lost_poster(x: float, y: float, p) -> void:
+	draw_rect(Rect2(x, y, 16, 20), p.W5)
+	draw_rect(Rect2(x, y, 16, 20), p.T0, false, 1.0)
+	draw_rect(Rect2(x + 5, y + 3, 6, 5), p.O2)
+	draw_rect(Rect2(x + 4, y + 2, 2, 2), p.T0)
+	draw_rect(Rect2(x + 10, y + 2, 2, 2), p.T0)
+	PixelFont.draw_string(self, Vector2(x + 1, y + 16), "LOST", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, p.B0)
+
+
+func _drum(x: float, p) -> void:
+	draw_rect(Rect2(x, -12, 8, 10), p.B2)
+	draw_rect(Rect2(x, -12, 8, 2), p.R0)
+	draw_rect(Rect2(x, -4, 8, 2), p.R0)
+
+
+func _crate(x: float, p) -> void:
+	draw_rect(Rect2(x, -10, 12, 8), p.W1)
+	draw_line(Vector2(x, -10), Vector2(x + 12, -2), p.W0, 1.0)
+	draw_line(Vector2(x + 12, -10), Vector2(x, -2), p.W0, 1.0)
+
+
+func _departures(x: float, y: float, p) -> void:
+	draw_rect(Rect2(x, y, 54, 16), p.T0)
+	draw_rect(Rect2(x, y, 54, 16), p.T3, false, 1.0)
+	PixelFont.draw_string(self, Vector2(x + 3, y + 11), "AMS  ON TIME", HORIZONTAL_ALIGNMENT_LEFT, -1, 8, p.G3)
 
 
 func _draw_kind() -> void:

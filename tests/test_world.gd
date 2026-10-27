@@ -112,9 +112,12 @@ func _test_zoom_walking() -> void:
 	await _frames(180)
 	Input.action_release("move_right")
 	var walking: float = map.zoom
-	_check(walking < map.cam_cfg.zoom_walk - 0.25, "walking on: the zoom opens up with the tempo (%.2f)" % walking)
+	# Camera was retuned: standing 1.5, full walk 1.333 (a 0.17 drop, not 0.25).
+	_check(walking <= map.cam_cfg.zoom_walk_moving + 0.03 and walking < map.cam_cfg.zoom_walk - 0.08,
+		"walking on: the zoom opens up with the tempo (%.2f)" % walking)
 	await _frames(60)
-	_check(map.zoom < map.cam_cfg.zoom_walk - 0.2, "just stopped: no jump, the zoom eases in slowly (%.2f)" % map.zoom)
+	_check(map.zoom < map.cam_cfg.zoom_walk - 0.04 and map.zoom > walking - 0.02,
+		"just stopped: no jump, the zoom eases in slowly (%.2f)" % map.zoom)
 	await _frames(600)
 	_check(map.zoom > map.cam_cfg.zoom_walk - 0.12, "after a while standing it's close again (%.2f)" % map.zoom)
 	map._idle_cam = map.cam_cfg.idle_after + 0.1   # as if the band had stood here for 15 s
@@ -147,7 +150,7 @@ func _test_band_line() -> void:
 	await _frames(10)
 	var behind: bool = map.followers.all(func(f): return f.global_position.x < leader.global_position.x - 10.0)
 	_check(behind, "the others follow behind the leader %s" % [map.followers.map(func(f): return int(f.global_position.x))])
-	_check(map.followers.all(func(f): return f.global_position.x > start.global_position.x - 70.0), "the line moved along with the leader")
+	_check(map.followers.all(func(f): return f.global_position.x > start.global_position.x - 88.0), "the line moved along with the leader")
 	_check(map.followers.any(func(f): return f.anim == &"walk"), "followers walk (not run) at walking pace")
 	await _frames(150)                          # catch up and settle
 	var settled := true

@@ -22,6 +22,7 @@
 [ext_resource type="Script" uid="uid://d3828dtw4q33x" path="res://scripts/venue/finale_exit.gd" id="20_vgmig"]
 [ext_resource type="PackedScene" uid="uid://5kg36m4l2u54" path="res://scenes/characters/band.tscn" id="21_oexko"]
 [ext_resource type="PackedScene" uid="uid://716uph60xpmh" path="res://scenes/ui/hud.tscn" id="23_87y4s"]
+[ext_resource type="Script" path="res://scripts/venue/gwinny.gd" id="26_gwinny"]
 [ext_resource type="PackedScene" uid="uid://1hjoq3evq167" path="res://scenes/ui/debug_overlay.tscn" id="25_n3xfh"]
 
 [node name="VenuePuzzle" type="Node2D" unique_id=1855761311]
@@ -371,6 +372,13 @@ monitorable = false
 script = ExtResource("8_vbwm5")
 targets = Array[NodePath]([NodePath("../LowerGate")])
 area_size = Vector2(28, 36)
+
+[node name="Gwinny" type="Area2D" parent="Rooms/Backstage" unique_id=1748392201]
+position = Vector2(3920, 144)
+collision_layer = 32
+collision_mask = 4
+monitorable = false
+script = ExtResource("26_gwinny")
 
 [node name="ToFinale" type="Area2D" parent="Rooms/Backstage" unique_id=675473781]
 position = Vector2(4500, 288)

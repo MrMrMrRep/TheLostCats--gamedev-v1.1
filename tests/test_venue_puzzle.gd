@@ -8,7 +8,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 11
+const EXPECTED_CHECKS := 14
 
 var failures := 0
 var checks := 0
@@ -80,6 +80,16 @@ func _run() -> void:
 	await _frames(3)
 	_check(not sleeper.is_asleep() and band.following.get(geoff) == carrier,
 		"the rolling papers wake him: he follows whoever carries them")
+
+	var gwinny = level.get_node_or_null("Rooms/Backstage/Gwinny")
+	var game = root.get_node("Game")
+	_check(gwinny != null and not game.get_flag(&"gwinny_met"), "Gwinny hides on the backstage catwalk")
+	_check(GigResult.verdict().title == "FINISHED" and GigResult.verdict().npcs == "0/1",
+		"leave without her: Finished, NPCs 0/1")
+	gwinny.interact(band.active, level)
+	var done: Dictionary = GigResult.verdict()
+	_check(game.get_flag(&"gwinny_met") and done.title == "COMPLETED" and done.npcs == "1/1",
+		"talk to Gwinny: Completed, NPCs 1/1")
 
 	if checks != EXPECTED_CHECKS:
 		print("  FAIL ran %d of %d checks (script error?)" % [checks, EXPECTED_CHECKS])
