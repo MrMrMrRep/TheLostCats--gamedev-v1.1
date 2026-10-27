@@ -16,7 +16,7 @@ const NAME_COLOR := Color("ffd36b")
 const NAME_DIM := Color(1, 1, 1, 0.55)
 const INK := Color("1d2838")
 ## Commit time of this build (day/month and 24h), so a browser load can be checked.
-const BUILT := "27/10  23:33"
+const BUILT := "28/10  00:17"
 
 var _menu: MenuList
 var _sprites: Array[AnimatedSprite2D] = []
@@ -259,6 +259,6 @@ func _on_chosen(i: int) -> void:
 			# The tour is this one cat. The others stay at the base.
 			Game.party.assign([StringName(PROFILES[_picked])])
 			Game.active_member = _picked
-			SceneRouter.go_to(MAP, &"")
-		1: SceneRouter.go_to(BASE, &"BaseEntry")
+			SceneRouter.go_to(MAP, &"", "Loading the tour")
+		1: SceneRouter.go_to(BASE, &"BaseEntry", "Loading the base")
 		_: get_tree().quit()
