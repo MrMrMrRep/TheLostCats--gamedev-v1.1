@@ -220,5 +220,17 @@
   "district_G22_source": {
     "asset_id": "377116d0-8fa2-4f43-a5a7-67d23bb38d86",
     "label": "district G22 source"
+  },
+  "canal_street_plate": {
+    "asset_id": "0531df2c-83b5-46d3-a36b-609282966577",
+    "label": "canal street plate, first pass (has a stray number; superseded)"
+  },
+  "canal_street_plate_v2": {
+    "asset_id": "6b9b7e38-a131-45df-9dad-c4a182963adc",
+    "label": "canal street plate, wide view, letters removed"
+  },
+  "walkable_street": {
+    "asset_id": "90959471-f033-4b96-a709-41e6e9442b90",
+    "label": "walkable canal street, pavement camera"
   }
 }
