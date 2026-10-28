@@ -87,8 +87,8 @@ position = Vector2(72, 288)
 position = Vector2(100, 168)
 script = ExtResource("6_enbc3")
 title = "BACK ENTRANCE"
-hint = "Over the wall: Nikki double-jumps, Joep climbs, Jay throws.
-Pull the lever up there to open the gate for the others."
+hint = "Over the wall: Nikki plays a ramp of notes (up + L) onto the shelf,
+then jump on up, or Jay throws someone. Pull the lever to open the gate."
 
 [node name="Block14_8" type="Node2D" parent="Rooms/BackEntrance" unique_id=1489256110]
 position = Vector2(336, 192)
@@ -168,8 +168,8 @@ target_door = NodePath("../../BackEntrance/ToStorage")
 position = Vector2(1300, 168)
 script = ExtResource("6_enbc3")
 title = "STORAGE"
-hint = "The Germ smashes the crates. Only Jay pushes the flight case:
-The Germ and Geoff need it as a step up."
+hint = "The Germ's rage punch (K) smashes the crates. Only Jay moves the case
+(push it, or lift and throw it with K): The Germ and Geoff need a step up."
 
 [node name="Rat" type="CharacterBody2D" parent="Rooms/Storage" unique_id=321418991]
 position = Vector2(1420, 288)
@@ -250,8 +250,8 @@ target_door = NodePath("../../Storage/ToBar")
 position = Vector2(2500, 168)
 script = ExtResource("6_enbc3")
 title = "BAR"
-hint = "Joep hacks the fuse box. Jay's bass wave breaks the glass.
-Geoff talks to the bouncer. Give the keycard to whoever's at the door."
+hint = "Joep hacks the fuse box (K). Jay's slap bass (L) breaks the glass.
+Geoff charms the bouncer (L). Give the keycard to whoever's at the door."
 
 [node name="FuseBox" type="Area2D" parent="Rooms/Bar" unique_id=298602384]
 position = Vector2(2550, 288)
@@ -419,8 +419,8 @@ target_door = NodePath("../../Backstage/ToFinale")
 position = Vector2(4884, 200)
 script = ExtResource("6_enbc3")
 title = "WHERE IS GEOFF?"
-hint = "He's asleep up on the stage rig. Take him the rolling papers:
-he follows whoever carries them. Then everyone out together."
+hint = "He's asleep up on the stage rig: Nikki's ramp gets Jay onto the step,
+Jay throws someone up. Take him the rolling papers, then all out together."
 
 [node name="RollingPapers" type="Area2D" parent="Rooms/Finale" unique_id=625083319]
 position = Vector2(4930, 288)

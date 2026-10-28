@@ -44,6 +44,16 @@ func trigger() -> void:
 	solid = not solid
 
 
+## A gate opens / a bridge extends (for switches that only ever open).
+func open() -> void:
+	solid = style == Style.BRIDGE
+
+
+## An alarm shuts the gate (security camera).
+func close() -> void:
+	solid = style == Style.GATE
+
+
 func reset_state() -> void:
 	solid = _start_solid
 

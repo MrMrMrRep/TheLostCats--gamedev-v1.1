@@ -24,6 +24,7 @@ const RESPAWN_GRACE := 1.0                  # i-frames after a respawn
 
 var current_room: Room                      # the active member's room
 var is_busy := false                        # dying or going through a door
+var time_control: TimeControl               # The Germ's Drumbeat Master
 
 var _member_room := {}                      # BandMember -> Room
 var _checkpoints := {}                      # Room -> {position, hp: {BandMember: int}, node}
@@ -41,6 +42,9 @@ static func of(node: Node) -> Level:
 
 func _ready() -> void:
 	add_to_group(&"level")
+	time_control = TimeControl.new()
+	time_control.name = "TimeControl"
+	add_child(time_control)
 	if party_only:
 		band.keep_only(Game.party)
 	Audio.music(&"level_tense" if party_only else &"map_calm")   # the base is calm
@@ -104,6 +108,7 @@ func kill(member: BandMember, cause: StringName = &"hazard") -> void:
 	if is_busy:
 		return
 	is_busy = true
+	time_control.end()
 	member_died.emit(member, cause)
 	Audio.sfx(&"death", 0.0)
 	get_tree().paused = true
@@ -123,6 +128,7 @@ func restart_room() -> void:
 	if is_busy:
 		return
 	is_busy = true
+	time_control.end()
 	get_tree().paused = true
 	await SceneRouter.fade_out()
 	_respawn(room_of_member(band.active))
@@ -196,6 +202,7 @@ func go_through(door: Door, member: BandMember) -> void:
 		return
 	var group := door_group(member)
 	var room := _room_of(target)
+	time_control.end()
 	Audio.sfx(&"door")
 	is_busy = true
 	get_tree().paused = true

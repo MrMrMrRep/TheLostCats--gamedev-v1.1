@@ -7,6 +7,7 @@ signal flag_changed(flag: StringName, value: Variant)
 signal coins_changed(amount: int)
 
 const MEMBERS: Array[StringName] = [&"joep", &"jay", &"nikki", &"germ", &"geoff"]
+const CHARM_DISCOUNT := 0.7                 # Geoff selected: everything costs 30% less
 
 var active_member: int = 0
 var coins: int = 0
@@ -50,3 +51,8 @@ func in_party(id: StringName) -> bool:
 func add_coins(amount: int) -> void:
 	coins = max(coins + amount, 0)
 	coins_changed.emit(coins)
+
+
+## What `base` coins costs for the member buying (Geoff's charm: better prices).
+func price(base: int, buyer: StringName) -> int:
+	return ceili(base * CHARM_DISCOUNT) if buyer == &"geoff" else base

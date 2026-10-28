@@ -1,7 +1,7 @@
 extends Node2D
 ## Dev/test room: clamps the band camera to the room and wires the HUD and the
 ## F3 debug overlay to the active member. Hold F4 to drain the active member's
-## stamina (hover rate). Replaced by the Room framework in M5.
+## stamina (45/s). Replaced by the Room framework in M5.
 
 @export var bounds := Rect2i(0, 0, 1440, 180)   ## playable area in pixels
 
@@ -25,4 +25,4 @@ func _ready() -> void:
 
 func _physics_process(delta: float) -> void:
 	if Input.is_key_pressed(KEY_F4) and band.active.stamina_config:
-		band.active.stamina.spend(band.active.stamina_config.hover_per_sec * delta)
+		band.active.stamina.spend(45.0 * delta)

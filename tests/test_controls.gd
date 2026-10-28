@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 27
+const EXPECTED_CHECKS := 29
 # Every action the game reads, with the keys the controls screen promises.
 const BINDINGS := {
 	"move_left": [KEY_A, KEY_LEFT], "move_right": [KEY_D, KEY_RIGHT], "move_up": [KEY_W, KEY_UP],
@@ -14,6 +14,7 @@ const BINDINGS := {
 	"action_b": [KEY_K, KEY_Z], "interact": [KEY_E], "use_item": [KEY_R], "give": [KEY_F],
 	"drop_item": [KEY_V], "item_next": [KEY_T], "gather": [KEY_G], "switch_next": [KEY_TAB],
 	"switch_prev": [KEY_Q], "select_1": [KEY_1], "select_3": [KEY_3], "pause": [KEY_ESCAPE, KEY_P],
+	"sprint": [KEY_SHIFT], "instrument": [KEY_L],
 }
 
 var failures := 0
@@ -74,13 +75,19 @@ func _test_member_keys() -> void:
 		_check(is_equal_approx(m.get(k[1]), k[2]), "%s -> %s %.0f" % [OS.get_keycode_string(k[0]), k[1], k[2]])
 		_key(k[0], false)
 		await _frames(2)
-	for k in [[KEY_SPACE, "in_jump_held"], [KEY_J, "in_a_held"], [KEY_X, "in_a_held"], [KEY_K, "in_b_held"], [KEY_Z, "in_b_held"]]:
+	for k in [[KEY_SPACE, "in_jump_held"], [KEY_J, "in_a_held"], [KEY_X, "in_a_held"], [KEY_K, "in_b_held"], [KEY_Z, "in_b_held"], [KEY_SHIFT, "in_run_held"]]:
 		_key(k[0], true)
 		await physics_frame
 		await physics_frame
 		_check(m.get(k[1]), "%s -> %s" % [OS.get_keycode_string(k[0]), k[1]])
 		_key(k[0], false)
 		await _frames(6)
+	# L plays the instrument: Joep's shockwave costs stamina.
+	m.stamina.refill()
+	await _press(KEY_L)
+	_key(KEY_L, false)
+	await _frames(2)
+	_check(m.stamina.current_stamina < m.stamina.max_stamina, "L -> instrument skill")
 
 
 func _test_band_keys() -> void:

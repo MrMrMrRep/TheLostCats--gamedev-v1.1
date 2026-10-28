@@ -2,14 +2,20 @@ class_name BandMember
 extends CharacterBody2D
 ## One band member: Celeste-style platformer controller plus health, stamina,
 ## a 3-slot Inventory and a MemberAbility (from the profile). All feel numbers come from the
-## MovementProfile: run accel/decel, derived gravity, fall multiplier, apex hang,
+## MovementProfile: walk accel/decel, derived gravity, fall multiplier, apex hang,
 ## coyote time, jump buffer, variable jump cut, corner and ledge correction,
-## fast fall and drop-through on one-way platforms (down + jump). The ability
-## hooks in at fixed points: air jump, gravity, horizontal lock, full movement
+## fast fall and drop-through on one-way platforms (down + jump).
+## Moves everyone has: walk, run (hold Shift: faster, costs stamina), crouch
+## (hold down on the ground: half height, slow, fits under 1-tile gaps) and
+## wall-slide (push into a wall while falling: slow slide). Punch, the special
+## skill (B) and the instrument skill (L) live in the MemberAbility, which hooks
+## in at fixed points: air jump, gravity, horizontal lock, full movement
 ## takeover, after-move and damage blocking. Only the active member reads player
 ## input; the Band steers inactive members through `ai_dir` / ai_jump() (gather,
-## following the rolling papers). Items: R uses, F gives to a member within 1
-## tile, V drops, T selects the next slot; B quick-drinks a beer.
+## following the rolling papers). Items: R (or E with nothing near) uses the
+## selected item (a beer is drunk), F gives it to a member within 1 tile, V
+## drops it, T selects the next slot. On the world map (`map_mode`) only
+## walking and jumping work.
 
 signal jumped
 signal landed(fall_speed: float)
@@ -24,6 +30,12 @@ const DEATH_ANIM_SPEED := 2.0               # 12-frame death anim in 0.5 s
 const GIVE_RANGE := 24.0                    # 1 tile
 const KEY_RANGE := 32.0                     # how close a locked door must be to use a key
 const BEER := preload("res://resources/items/beer.tres")
+const RUN_MULT := 1.35                      # running speed vs walking
+const CROUCH_MULT := 0.45                   # crawling speed vs walking
+const STAND_HEIGHT := 28.0
+const CROUCH_HEIGHT := 14.0
+const WALL_SLIDE_SPEED := 40.0              # px/s max fall while sliding down a wall
+const WALL_CHECK := 2.0                     # px probe for a wall beside the member
 const PLACEHOLDER_OFFSET := Vector2(0, -28)
 const FIDGET_TIME := 6.0                    # idle this long -> play an instrument, drink or smoke
 const FIDGET_LENGTH := 5.0                  # drinking / smoking lasts this long (the instrument until you move)
@@ -40,6 +52,11 @@ const ANIM_ALIASES := {
 	&"fall": [&"jump_fall", &"jump"],
 	&"land": [&"jump_land", &"crouch"],
 	&"wall_slide": [&"fall"],
+	&"crouch": [&"crouch_hold", &"crouch", &"jump_land"],
+	&"punch": [&"attack_punch", &"use", &"attack"],
+	&"special": [&"attack_special_a", &"use", &"attack"],
+	&"instrument": [&"idle_instrument_loop", &"use", &"attack"],
+	&"throw": [&"attack_throw", &"use", &"attack"],
 	&"attack": [&"attack_special_a", &"attack_special"],
 	&"air_attack": [&"attack_punch"],
 	&"hurt": [&"jump_fall", &"jump"],
@@ -53,9 +70,14 @@ var facing := 1.0
 var is_active := false
 var ai_dir := 0.0                           # horizontal input while inactive (-1..1)
 var show_name_tag := true                   # the zoomed-out world map hides it
-var anim_override: StringName = &""         # ability animation (climb, hover, shield)
+var anim_override: StringName = &""         # ability animation (swing, carry...)
 var anim: StringName = &"idle"              # logical animation playing (see ANIM_ALIASES)
 var speed_scale := 1.0                      # world map: a calm walk instead of the level run
+var map_mode := false                       # world map: walk and jump only (no run, crouch or skills)
+var crouching := false
+var running := false
+var wall_sliding := false
+var shield_left := 0.0                      # Jay's bass bubble: hits bounce off while > 0
 var fidget_after := FIDGET_TIME             # idle this long before an instrument / drink / smoke
 var sprite_data: JTCSpriteData              # boxes and spawn events of a band sheet, else null
 var ability: MemberAbility
@@ -70,6 +92,8 @@ var in_a_pressed := false
 var in_a_held := false
 var in_b_pressed := false
 var in_b_held := false
+var in_instrument_pressed := false
+var in_run_held := false
 var in_use_pressed := false
 var in_give_pressed := false
 var in_drop_pressed := false
@@ -110,9 +134,12 @@ var _fidget_time := 0.0
 @onready var stamina: StaminaComponent = $Stamina
 @onready var health: HealthComponent = $Health
 @onready var name_tag: Label = $NameTag
+@onready var _collision: CollisionShape2D = $Collision
 
 
 func _ready() -> void:
+	_collision.shape = _collision.shape.duplicate()   # crouching resizes it per member
+	add_to_group(&"band_member")
 	inventory = Inventory.new()
 	inventory.name = "Inventory"
 	add_child(inventory)
@@ -177,9 +204,21 @@ func _update_name_tag() -> void:
 		name_tag.modulate = Color("ffd36b")
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	# Blink while invulnerable.
 	sprite.visible = not health.is_invulnerable or int(Time.get_ticks_msec() / 1000.0 * FLASH_RATE) % 2 == 0
+	if shield_left > 0.0:
+		shield_left = maxf(shield_left - delta, 0.0)
+		queue_redraw()
+
+
+## Jay's bass bubble around the member while it lasts.
+func _draw() -> void:
+	if shield_left <= 0.0:
+		return
+	var a := clampf(shield_left / 0.5, 0.0, 1.0)
+	draw_arc(Vector2(0, -15), 19.0, 0.0, TAU, 24, Color(0.6, 0.85, 1.0, 0.75 * a), 1.5)
+	draw_circle(Vector2(0, -15), 18.0, Color(0.6, 0.85, 1.0, 0.12 * a))
 
 
 func _physics_process(delta: float) -> void:
@@ -200,9 +239,13 @@ func _physics_process(delta: float) -> void:
 			_finish_frame()
 			return
 
+	_update_crouch(on_floor)
+
 	# Jump: on the ground (buffered, coyote time), drop-through, or an air jump.
 	if _buffer > 0.0:
-		if _coyote > 0.0:
+		if crouching and not (in_vertical > 0.0 and _standing_on_one_way()):
+			pass                            # stuck under something low: no jump until you can stand
+		elif _coyote > 0.0:
 			if in_vertical > 0.0 and on_floor and _standing_on_one_way():
 				_drop_through()
 			else:
@@ -219,8 +262,16 @@ func _physics_process(delta: float) -> void:
 			velocity.y *= profile.jump_cut
 		_jump_held = false
 
-	# Horizontal: reach top speed in accel_time, stop in decel_time.
+	# Horizontal: reach top speed in accel_time, stop in decel_time. Shift runs
+	# (stamina on the ground), crouching crawls.
+	running = in_run_held and in_dir != 0.0 and not crouching and stamina.enabled and not stamina.is_exhausted
+	if running and on_floor and stamina_config:
+		stamina.spend(stamina_config.run_per_sec * delta)
 	var top := profile.run_speed() * speed_scale * (ability.speed_mult() if ability else 1.0)
+	if running:
+		top *= RUN_MULT
+	elif crouching:
+		top *= CROUCH_MULT
 	var control := 1.0 if on_floor else profile.air_control
 	if _hurt_lock > 0.0 or (ability and ability.locks_horizontal()):
 		pass                                # keep knockback / wall-jump speed
@@ -238,6 +289,8 @@ func _physics_process(delta: float) -> void:
 	move_body(delta)
 	if not is_on_floor():
 		_apply_gravity(delta * 0.5)
+	wall_sliding = not map_mode and not is_on_floor() and velocity.y > 0.0 and in_dir != 0.0 \
+		and test_move(global_transform, Vector2(in_dir * WALL_CHECK, 0))
 	if ability:
 		ability.physics_end(delta)
 	_finish_frame()
@@ -270,6 +323,8 @@ func play_action(anim: StringName) -> void:
 ## Damage from a hazard or enemy at `from`. Returns true if it landed.
 func hurt(amount: int, from: Vector2) -> bool:
 	if _dead:
+		return false
+	if shield_left > 0.0:
 		return false
 	if ability and ability.blocks_damage(from):
 		return false
@@ -323,6 +378,21 @@ func add_item(item: ItemData) -> bool:
 	return true
 
 
+## The selected item if it's a weapon (punches swing it), else null.
+func held_weapon() -> ItemData:
+	var i := inventory.current_index()
+	if i < 0:
+		return null
+	var item := inventory.slots[i]
+	return item if item.weapon else null
+
+
+## Where something spawned by this member goes: the level, else the parent.
+func spawn_parent() -> Node:
+	var level := Level.of(self)
+	return level if level else get_parent()
+
+
 ## Beer heals 1 HP for everyone; some members get a bonus (ability.on_beer()).
 func drink_beer() -> bool:
 	var i := inventory.index_of(&"beer")
@@ -364,6 +434,11 @@ func respawn(pos: Vector2, hp: int, grace := 0.0) -> void:
 	_hurt_lock = 0.0
 	_drop_timer = 0.0
 	set_collision_mask_value(2, true)
+	_set_crouch(false)
+	running = false
+	wall_sliding = false
+	shield_left = 0.0
+	queue_redraw()
 	health.restore(hp, grace)
 	stamina.refill()
 	if ability:
@@ -395,6 +470,9 @@ func use_current_item() -> void:
 			if door:
 				inventory.remove_at(i)
 				door.unlock_with(item)
+			elif item.weapon:
+				if ability and not map_mode:
+					ability.punch()
 			else:
 				show_text(item.description)
 
@@ -458,6 +536,7 @@ func _locked_door_for(key: StringName) -> Door:
 
 func _read_input(delta: float) -> void:
 	var controlled := is_active and _hurt_lock <= 0.0
+	var skills := controlled and not map_mode
 	if _hurt_lock > 0.0:
 		_hurt_lock -= delta
 	if controlled:
@@ -465,10 +544,12 @@ func _read_input(delta: float) -> void:
 		in_vertical = Input.get_axis("move_up", "move_down")
 		in_jump_pressed = Input.is_action_just_pressed("jump")
 		in_jump_held = Input.is_action_pressed("jump")
-		in_a_pressed = Input.is_action_just_pressed("action_a")
-		in_a_held = Input.is_action_pressed("action_a")
-		in_b_pressed = Input.is_action_just_pressed("action_b")
-		in_b_held = Input.is_action_pressed("action_b")
+		in_a_pressed = skills and Input.is_action_just_pressed("action_a")
+		in_a_held = skills and Input.is_action_pressed("action_a")
+		in_b_pressed = skills and Input.is_action_just_pressed("action_b")
+		in_b_held = skills and Input.is_action_pressed("action_b")
+		in_instrument_pressed = skills and Input.is_action_just_pressed("instrument")
+		in_run_held = skills and Input.is_action_pressed("sprint")
 		in_use_pressed = Input.is_action_just_pressed("use_item")
 		in_give_pressed = Input.is_action_just_pressed("give")
 		in_drop_pressed = Input.is_action_just_pressed("drop_item")
@@ -484,6 +565,8 @@ func _read_input(delta: float) -> void:
 		in_a_held = false
 		in_b_pressed = false
 		in_b_held = false
+		in_instrument_pressed = false
+		in_run_held = false
 		in_use_pressed = false
 		in_give_pressed = false
 		in_drop_pressed = false
@@ -497,6 +580,25 @@ func _finish_frame() -> void:
 			ability.on_landed(_air_speed)
 	stamina.grounded = is_on_floor()
 	_update_animation()
+
+
+## Hold down on the ground to crouch; stay down while something low is overhead.
+func _update_crouch(on_floor: bool) -> void:
+	var want := not map_mode and on_floor and in_vertical > 0.5 and (ability == null or not ability.busy())
+	if want != crouching:
+		if want or _can_stand():
+			_set_crouch(want)
+
+
+func _set_crouch(on: bool) -> void:
+	crouching = on
+	var h := CROUCH_HEIGHT if on else STAND_HEIGHT
+	(_collision.shape as RectangleShape2D).size.y = h
+	_collision.position.y = -h / 2.0
+
+
+func _can_stand() -> bool:
+	return not test_move(global_transform, Vector2(0, -(STAND_HEIGHT - CROUCH_HEIGHT)))
 
 
 func _drop_through() -> void:
@@ -520,6 +622,8 @@ func _apply_gravity(step: float) -> void:
 	elif velocity.y > 0.0:
 		g *= profile.fall_gravity_mult
 	var cap := (profile.fast_fall_tiles if in_vertical > 0.0 else profile.max_fall_tiles) * TILE
+	if wall_sliding:
+		cap = WALL_SLIDE_SPEED
 	if ability:
 		g *= ability.gravity_scale()
 		cap = ability.fall_cap(cap)
@@ -557,20 +661,25 @@ func _update_animation() -> void:
 	if on_floor and not _was_on_floor and not moving:
 		_play_once(&"land")
 	_was_on_floor = on_floor
-	if not on_floor or moving or anim_override != &"":
+	if not on_floor or moving or anim_override != &"" or crouching:
 		_idle_time = 0.0
 		_fidget = &""
 
-	if anim_override != &"":
+	var pose := anim_override
+	if pose == &"" and wall_sliding:
+		pose = &"wall_slide"
+	elif pose == &"" and crouching:
+		pose = &"crouch"
+	if pose != &"":
 		_anim_lock = false
-		_play(anim_override)
+		_play(pose)
 	elif _anim_lock:
 		# Running or falling cancels a one-shot.
 		if on_floor and moving and (anim == &"land" or anim == &"fidget"):
 			_anim_lock = false
 		elif not on_floor and velocity.y > 0.0:
 			_anim_lock = false
-	if anim_override == &"" and not _anim_lock:
+	if pose == &"" and not _anim_lock:
 		if on_floor:
 			if moving:
 				_play(&"run" if absf(velocity.x) > _run_speed() * 0.6 else &"walk")

@@ -103,7 +103,7 @@ Each milestone ends with a **playtest in the running game** (not just "the code 
 
 Not in M5 (placeholders until later): spike, rat and door art is drawn in code; pushables come with Jay in M6, items with M7.
 
-### M6 — Abilities (one core each + drink)
+### M6 — Abilities (one core each + drink) — superseded by M6b below
 - [x] Ability system: a `MemberAbility` node per member (set on the profile) that hooks into the shared controller (air jump, gravity, horizontal lock, full movement takeover, after-move, damage blocking)
 - [x] **Joep:** wall-slide, wall-jump (15 stamina), hold A to grab and climb walls (drains stamina, hops over the top). Hacks panels with E (electric floor off / gates)
 - [x] **Jay:** pushes flight cases by walking into them, pulls them while holding A. A next to a member **throws** them ~4.5 tiles up. Otherwise A = **bass wave** (breaks glass/fragile walls 2–4 tiles away, knocks rats back)
@@ -118,6 +118,14 @@ Not in M5 (placeholders until later): spike, rat and door art is drawn in code; 
 - [x] **Done when:** a test room has one gate that *needs* each member ✅
 
 Not in M6: quiet/stealth part of Joep's beer (nothing listens yet), whiskey/joint rage modes, Nikki's cable bridge and Joep's traps (later versions).
+
+### M6b — Skill set v2 (2026-10-28)
+Reworked after the first playtests; full reference in [`skills.md`](skills.md).
+- [x] Everyone: walk, run (Shift, stamina), crouch (down: half height, fits 1-tile gaps), wall-slide, punch (J; a selected weapon like the mic stand swings instead)
+- [x] Special (K) and instrument skill (L, stamina + shared cooldown) per member: Joep hack (+ wall plugs) / electric shockwave; Jay lift & throw / slap bass (+ defence bubble); The Germ rage punch & slam / Drumbeat Master (stop, rewind, play time); Nikki grapple / guitar-solo bridge or ramp; Geoff bubble gun / the voice and the charm (+ better prices while selected)
+- [x] New props: wall plug, security camera, amp, electronic and staff-only doors, timed gate, moving platform, grapple hook, note bridge, bar (vendor), tip jar, people with roles (bouncer, security, sound guy, manager)
+- [x] Abilities test level rebuilt (one station per member + green room); venue slice signs and routes updated (Nikki's ramp + Jay's throw replace climbing and the double jump)
+- [x] `tests/test_abilities.gd` rewritten (69 checks); all 12 suites pass
 
 ### M7 — Items & inventory
 - [x] `ItemData` resource (id, name, description, icon shape/colour, consumable, `only_for`, `lures`). Items: beer, red keycard, rolling papers (`resources/items/`)
@@ -195,17 +203,21 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 
 ## Controls (set in M0)
 
+Updated for the skill set v2 (2026-10-28, [`skills.md`](skills.md)):
+
 | Action | Keyboard | Gamepad |
 |---|---|---|
-| Move | WASD / arrows | D-pad / left stick |
+| Move (hold down: crouch) | WASD / arrows | D-pad / left stick |
+| Run (world map: sprint) | Shift | Left stick click |
 | Jump | Space / C | A |
-| Ability A (punch, wave, throw, grab/climb, bubble) | J / X | X |
-| Ability B (drink beer; The Germ: shield, + up = platform) | K / Z | Y |
+| Punch (swings a selected weapon) | J / X | X |
+| Special skill | K / Z | Y |
+| Instrument skill | L | Right trigger |
 | Interact / talk / hack; **with nothing to interact with: use the selected item** | E | B |
 | Give item | F | Left trigger |
-| Use item (in the van: radio channel) | R | Right trigger |
+| Use item, drink a beer (in the van: radio channel) | R | — (B with nothing near) |
 | Next item slot | T | Right stick click |
-| Drop item | V | Left stick click |
+| Drop item | V | — |
 | Gather band (hold) | G (hold) | Back (hold) |
 | Previous / next member | Q / Tab (wraps around) | LB / RB |
 | Select member | 1–5 | — |

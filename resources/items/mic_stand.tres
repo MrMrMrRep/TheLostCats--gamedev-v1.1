@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/item_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"mic_stand"
+display_name = "Mic stand"
+description = "A weapon: select it and punch (J) to swing it. Longer reach, knocks rats out."
+shape = 4
+color = Color(0.78, 0.8, 0.84, 1)
+weapon = true
+weapon_reach = 40.0

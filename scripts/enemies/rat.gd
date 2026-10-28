@@ -2,9 +2,10 @@
 class_name Rat
 extends CharacterBody2D
 ## Rat: patrols, turns at walls and ledges, hurts band members on touch.
-## stun() and knockback() are for The Germ and Jay; defeat() removes it.
-## distract() (Geoff's bubbles) makes it stop, stare and not bite.
-## Placeholder art is drawn in code.
+## Punches knock it back (stun()/knockback()); a weapon, The Germ's rage punch
+## or Joep's shockwave up close defeat() it. distract() (an amp blaring) makes
+## it stop and stare. Geoff can't charm rats. In the "timed" group (The Germ's
+## Drumbeat Master freezes and rewinds it). Placeholder art is drawn in code.
 
 const GRAVITY := 900.0
 
@@ -46,6 +47,7 @@ func _ready() -> void:
 	if not Engine.is_editor_hint():
 		add_to_group(&"resettable")
 		add_to_group(&"rat")
+		add_to_group(&"timed")
 
 
 func _physics_process(delta: float) -> void:
@@ -69,6 +71,17 @@ func _physics_process(delta: float) -> void:
 		for body in _hurtbox.get_overlapping_bodies():
 			if body is BandMember and not body.is_dead:
 				body.hurt(1, global_position)
+
+
+## Drumbeat Master: what a rewind puts back.
+func time_state() -> Array:
+	return [dir, stunned_left]
+
+
+func set_time_state(state: Array) -> void:
+	dir = state[0]
+	stunned_left = state[1]
+	queue_redraw()
 
 
 func stun(seconds: float) -> void:
