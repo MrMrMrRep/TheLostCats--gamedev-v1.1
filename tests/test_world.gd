@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 68
+const EXPECTED_CHECKS := 70
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -55,27 +55,47 @@ func _test_canal_kit() -> void:
 	var gables: Dictionary = load("res://scripts/world/canal_kit.gd").GABLES
 	var doors := [&"door_venue", &"door_studio", &"door_cafe"]
 	var blocks: Array = map.get_node("Buildings/CanalBelt").get_children().filter(func(n): return n.has_method("kit_row"))
-	var short := []
+	var bad := []
 	var flat := true
+	var pieces := []                        # [world x0, world x1] of every row and opening
 	for b in blocks:
+		var sp: Vector2 = b.kit_span()
 		var row: Array = b.kit_row()
-		if not b.kit or row.is_empty():
-			short.append(String(b.name))
+		var a := int(round((sp.x - b.global_position.x) * 2.0))
+		var e := int(round((sp.y - b.global_position.x) * 2.0))
+		if e <= a:
 			continue
-		var last: Array = row[0]
-		for it: Array in row:
-			if not doors.has(it[0]) and it[1] > last[1]:
-				last = it
-		var right_end: int = last[1] + row_script.item_width(last)
-		var want := int(round(b.width() * 2.0))
-		if row[0][1] > 6 or absi(right_end - want) > 8:
-			short.append("%s %d..%d of %d" % [b.name, row[0][1], right_end, want])
-		for i in row.size() - 1:
-			if gables.has(row[i][0]) and gables.has(row[i + 1][0]) and not doors.has(row[i][0]) and not doors.has(row[i + 1][0]) \
-					and gables[row[i][0]] == gables[row[i + 1][0]]:
+		pieces.append(sp)
+		if not b.kit or row.is_empty():
+			bad.append("%s empty" % b.name)
+			continue
+		var items: Array = row.duplicate()
+		items.sort_custom(func(p, q): return p[1] < q[1])
+		if items[0][1] < a or items[0][1] - a > 2:
+			bad.append("%s starts at %d of %d" % [b.name, items[0][1], a])
+		for i in items.size():
+			var it: Array = items[i]
+			var end: int = it[1] + row_script.item_width(it)
+			if i + 1 < items.size() and end > items[i + 1][1]:
+				bad.append("%s: %s overlaps %s" % [b.name, it[0], items[i + 1][0]])
+			if i + 1 == items.size() and (end > e or e - end > 4):
+				bad.append("%s ends at %d of %d" % [b.name, end, e])
+			if it[0] == row_script.ALLEY and (i == 0 or i == items.size() - 1):
+				bad.append("%s: a steeg at the end of the row" % b.name)
+			if i + 1 < items.size() and gables.has(it[0]) and gables.has(items[i + 1][0]) \
+					and gables[it[0]] == gables[items[i + 1][0]]:
 				flat = false
-	_check(not blocks.is_empty() and short.is_empty(), "every canal-belt row is kit facades from end to end %s" % [short])
+	_check(not blocks.is_empty() and bad.is_empty(), "canal-belt rows: exactly filled, no overlaps, steegjes only between houses %s" % [bad])
 	_check(flat, "neighbouring facades never share a gable")
+	for o in map.get_node("Bridges").get_children():
+		pieces.append(o.span())
+	pieces.sort_custom(func(p, q): return p.x < q.x)
+	var gaps := []
+	for i in pieces.size() - 1:
+		if absf(pieces[i + 1].x - pieces[i].y) > 1.0:
+			gaps.append("%.1f..%.1f" % [pieces[i].y, pieces[i + 1].x])
+	_check(gaps.is_empty() and absf(pieces[0].x - 9884.0) < 1.0 and absf(pieces[-1].y - 16436.0) < 1.0,
+		"rows and openings meet without gaps or overlaps from 9884 to 16436 %s" % [gaps])
 	for pair in [["Studio", "StudioDoor", &"door_studio"], ["Venue", "VenueDoor", &"door_venue"]]:
 		var block = map.get_node("Buildings/CanalBelt/" + pair[0])
 		var door = map.get_node("Places/CanalBelt/" + pair[1])
@@ -91,6 +111,13 @@ func _test_canal_kit() -> void:
 			if absf(t[0] - map.get_node(n).global_position.x) < 46.0:
 				blocked.append(n)
 	_check(spots.size() > 10 and blocked.is_empty(), "%d quay elms, none in front of a door %s" % [spots.size(), blocked])
+	var floor: TileMapLayer = map.get_node("Road/StreetCollision")
+	var used := floor.get_used_rect()
+	var holes := []
+	for x in range(used.position.x, used.end.x):
+		if floor.get_cell_source_id(Vector2i(x, used.position.y)) == -1:
+			holes.append(x * floor.tile_set.tile_size.x)
+	_check(holes.is_empty(), "the street floor has no holes to fall through %s" % [holes])
 
 
 func _test_day_night() -> void:

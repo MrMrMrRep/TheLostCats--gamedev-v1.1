@@ -246,26 +246,111 @@ func _door_piece() -> StringName:
 	return &"door_cafe"
 
 
-## The row as [name, art x, joint]: the block keeps the width of its old
-## layout, so it still meets the openings; a signed block gets its door house
-## centred on the signed house (where its WorldDoor stands), drawn last.
+## World x range this kit row fills: from the block's position (or the east
+## edge of an opening that ends between the previous row and this one) to the
+## next row, the next opening or the end of the canal-kit street, whichever
+## comes first. So rows and openings always meet without overlapping.
+func kit_span() -> Vector2:
+	var root := _scene_root()
+	var x0 := global_position.x
+	if root == null:
+		return Vector2(x0, x0 + width())
+	var prev := -INF
+	var x1 := INF
+	for n in root.find_children("*", "CityBlock", true, false):
+		var b := n as CityBlock
+		if b == self or not b.kit:
+			continue
+		var bx := b.global_position.x
+		if bx > x0:
+			x1 = minf(x1, bx)
+		elif bx < x0 or (bx == x0 and b.get_index() < get_index()):
+			prev = maxf(prev, bx)
+	var start := x0
+	var after := -INF                       # the east edge of an opening between the previous row and this one
+	for o in root.find_children("*", "SideOpening", true, false):
+		var sp: Vector2 = (o as SideOpening).span()
+		if sp.y > prev and sp.x <= x0 + 0.5:
+			after = maxf(after, sp.y)
+	if after > -INF:
+		start = after                       # begin right at that edge (west of the block, or past it when the block sits inside the opening)
+	for o in root.find_children("*", "SideOpening", true, false):
+		var sp: Vector2 = (o as SideOpening).span()
+		if sp.x >= start:
+			x1 = minf(x1, sp.x)
+	var street := root.find_child("Street", true, false)
+	if street and "kit_span" in street and street.kit_span != Vector2.ZERO:
+		x1 = minf(x1, street.kit_span.y)
+	if x1 == INF:
+		x1 = x0 + width()
+	return Vector2(start, maxf(x1, start))
+
+
+func _scene_root() -> Node:
+	if not is_inside_tree():
+		return null
+	if Engine.is_editor_hint():
+		return get_tree().edited_scene_root
+	return owner if owner else get_tree().current_scene
+
+
+## The row as [name, art x, joint] (art x from the block's position). A
+## signed block gets its door house centred on its WorldDoor (the studio,
+## the venue), drawn last.
 func kit_row() -> Array:
 	if not _kit_row.is_empty():
 		return _kit_row
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value * 7919 + houses
-	var total := int(round(width() * 2.0))
+	var sp := kit_span()
+	var origin := global_position.x
+	var a := int(round((sp.x - origin) * 2.0))
+	var b := int(round((sp.y - origin) * 2.0))
 	if sign_text == "":
-		_kit_row = CanalRow.fill(0, total, rng)
+		var g := _door_gables(sp)
+		_kit_row = CanalRow.fill(a, b - a, rng, g.x, g.y)
 		return _kit_row
 	var door := _door_piece()
 	var dw := CanalRow.width(door)
-	var dx := int(round(signed_center() * 2.0)) - dw / 2
+	var dx := int(round((_door_x() - origin) * 2.0)) - dw / 2
 	var g: int = CanalKit.GABLES[door]
-	var left := CanalRow.fill(0, dx, rng, false, true, 60, -1, g)
-	var right := CanalRow.fill(dx + dw, total - dx - dw, rng, true, false, 60, g, -1)
+	var left := CanalRow.fill(a, dx - a, rng, -1, g)
+	var right := CanalRow.fill(dx + dw, b - dx - dw, rng, g, -1)
 	_kit_row = left + right + [[door, dx, 0]]
 	return _kit_row
+
+
+## Gables of a door house right before / after this row (-1: none), so the
+## facades next to the studio or the venue differ from it.
+func _door_gables(sp: Vector2) -> Vector2i:
+	var out := Vector2i(-1, -1)
+	var root := _scene_root()
+	if root == null:
+		return out
+	for n in root.find_children("*", "CityBlock", true, false):
+		var b := n as CityBlock
+		if b == self or not b.kit or b.sign_text == "":
+			continue
+		var bs := b.kit_span()
+		var g: int = CanalKit.GABLES[b._door_piece()]
+		if absf(bs.y - sp.x) < 1.0:
+			out.x = g
+		if absf(bs.x - sp.y) < 1.0:
+			out.y = g
+	return out
+
+
+## World x of this row's WorldDoor (one whose art is the door house), or the
+## middle of the signed house of the old layout.
+func _door_x() -> float:
+	var root := _scene_root()
+	if root:
+		var sp := kit_span()
+		for n in root.find_children("*", "WorldDoor", true, false):
+			var d := n as WorldDoor
+			if not d.draw_door and d.global_position.x > sp.x and d.global_position.x < sp.y:
+				return d.global_position.x
+	return global_position.x + signed_center()
 
 
 func _draw_kit() -> void:

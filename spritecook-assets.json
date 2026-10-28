@@ -352,5 +352,56 @@
     "asset_id": "02e0d201-08c8-4f0f-a7de-fc477cb262a1",
     "label": "Canal kit source tex_wall (tools/spritecook/canal_kit_src/tex_wall.png)",
     "sha12": "8b43a0a22129"
+  },
+  "canal2_open_c1b": {
+    "asset_id": "643954c7-9503-4543-abef-036a0951b368",
+    "label": "Canal kit opening open_c1b: SpriteCook edit of a kit-front + view + kit-front composite",
+    "sha12": "45b4fa1368cd"
+  },
+  "canal2_open_c1c": {
+    "asset_id": "6b9f0051-1cfb-4595-b05f-3224436b6a64",
+    "label": "Canal kit opening open_c1c: SpriteCook edit of a kit-front + view + kit-front composite",
+    "sha12": "99809e128d78"
+  },
+  "canal2_open_c2a": {
+    "asset_id": "5efdc204-b87e-4fbc-8997-75a68486f761",
+    "label": "Canal kit opening open_c2a: SpriteCook edit of a kit-front + view + kit-front composite",
+    "sha12": "9163dc6c967f"
+  },
+  "canal2_open_c2b": {
+    "asset_id": "2ab25412-aaa9-4ce8-a4fe-504be02ebca1",
+    "label": "Canal kit opening open_c2b: SpriteCook edit of a kit-front + view + kit-front composite",
+    "sha12": "252e34bb8c5c"
+  },
+  "canal2_open_s1a": {
+    "asset_id": "8f829839-1c8c-455f-a62f-77b302096832",
+    "label": "Canal kit opening open_s1a: SpriteCook edit of a kit-front + view + kit-front composite",
+    "sha12": "d3dc27e2ea23"
+  },
+  "canal2_open_s1b": {
+    "asset_id": "681c4f96-62c3-409f-a18f-a23b98aa4619",
+    "label": "Canal kit opening open_s1b: SpriteCook edit of a kit-front + view + kit-front composite",
+    "sha12": "4ee4bf0b1545"
+  },
+  "canal2_open_s2b": {
+    "asset_id": "c8c70e8c-0c14-4bb0-8caa-c8f880e84fba",
+    "label": "Canal kit opening open_s2b: SpriteCook edit of a kit-front + view + kit-front composite",
+    "sha12": "2d5b69291521"
+  },
+  "canal2_composite_c1": {
+    "asset_id": "11613a55-9936-4d96-b310-c532156f4148",
+    "label": "Uploaded composite (source of the opening edits)"
+  },
+  "canal2_composite_c2": {
+    "asset_id": "12a060b1-bd95-402e-8b72-e86773d4eb5c",
+    "label": "Uploaded composite (source of the opening edits)"
+  },
+  "canal2_composite_s1": {
+    "asset_id": "874801c5-3755-4bb5-acdf-03b9702f10f6",
+    "label": "Uploaded composite (source of the opening edits)"
+  },
+  "canal2_composite_s2": {
+    "asset_id": "5d205a3e-ff51-4816-8eb9-1246cacea23c",
+    "label": "Uploaded composite (source of the opening edits)"
   }
 }

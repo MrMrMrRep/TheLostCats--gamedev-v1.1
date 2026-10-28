@@ -11,7 +11,6 @@ extends Node2D
 const ELMS: Array[StringName] = [&"elm_0", &"elm_1", &"elm_2", &"elm_3", &"elm_4"]
 const FOOT := 44                            # art px below the street line: the cobbles' canal edge
 const CLEAR := 46.0                         # world px kept free either side of a door, bikes, parcel
-const CLEAR_OPENING := 70.0                 # world px either side of an opening's middle
 
 @export var span := Vector2(9884, 16436):   ## world x range
 	set(value):
@@ -50,8 +49,9 @@ func _keep_clear() -> Array[Vector2]:
 		elif n is ParkingSpot:
 			var half: float = n.width * 0.5 + 30.0
 			out.append(Vector2(x - half, x + half))
-		elif n is SideOpening:
-			out.append(Vector2(x - CLEAR_OPENING, x + CLEAR_OPENING))
+		elif n is SideOpening:              # keep the view into it free
+			var half: float = (n.span().y - n.span().x) * 0.3
+			out.append(Vector2(x - half, x + half))
 	return out
 
 

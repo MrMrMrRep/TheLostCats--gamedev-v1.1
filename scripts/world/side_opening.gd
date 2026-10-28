@@ -1,11 +1,12 @@
 @tool
 class_name SideOpening
 extends Node2D
-## An opening in the canal-house row, in the style v3 look: a side canal
-## (with a brick bridge in front), a wide side street, an alley or a narrow
-## steeg, seen in perspective, with v3 houses filling the rest of the slot.
-## Painted by V3Painter.side_opening (the mock: tools/style_mock_v3_alleys.gd),
-## baked by tools/bake_world_v3.tscn. Origin = the slot's middle on the street line.
+## An opening in the canal-house row: a side canal, a side street or a narrow
+## steeg seen in one-point perspective between two complete corner houses,
+## one SpriteCook canal-kit piece (CanalKit, `piece()`). The piece's width is
+## the slot: the house rows (CityBlock.kit) stop at `span()`, and the street
+## puts its arch under `mouth()`. `width` / `open_width` only matter to the
+## older v3 tools (v3_art, bridge_art). Origin = the slot's middle on the street line.
 
 enum Kind { CANAL, STREET, ALLEY, STEEG }
 const KINDS := ["canal", "street", "alley", "steeg"]
@@ -41,7 +42,6 @@ func _ready() -> void:
 
 
 func _changed() -> void:
-	_row = []
 	queue_redraw()
 	if not is_inside_tree():
 		return
@@ -57,59 +57,56 @@ func _changed() -> void:
 		_front = null
 	if _front:
 		_front.queue_redraw()
-		if not Engine.is_editor_hint() and _glow == null:
-			_glow = NightGlow.attach(_front)
-			if _glow:                       # bulbs along the new railing
-				var n := 3
-				for i in n:
-					var x := -open_width * 0.5 + open_width * (float(i) + 0.5) / float(n)
-					_glow.add_lamp(Vector2(x, -6.0), 3.0, NAN, 0.02, Color(1.0, 0.8, 0.45, 0.7))
+		# (The canal kit's street has no railing on its bridges, so no bulbs.)
 
 
 func _draw() -> void:
 	if _glow_back:
 		_glow_back.clear()
-	# The view into the opening (SpriteCook canal kit), with flat kit
-	# facades filling the rest of the slot; they tuck under its side walls.
-	var row := kit_row()
-	var gap := gap_texture()
-	var gw := gap_width()
-	var gh := gap.get_height()
+	# One SpriteCook kit piece: the view between two complete corner houses
+	# (flat kit fronts, their own side walls and roofs running into the depth).
+	var n := piece()
+	var tex := CanalRow.texture(n)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
-	CanalRow.draw(self, row)
-	draw_texture_rect_region(gap, Rect2(-gw / 2, -gh - CanalRow.LIFT, gw, gh), Rect2((gap.get_width() - gw) / 2, 0, gw, gh))
+	draw_texture(tex, Vector2(-tex.get_width() / 2, -tex.get_height() - CanalRow.LIFT))
 	draw_set_transform(Vector2.ZERO)
-	CanalRow.add_glow(_glow_back, row)
+	CanalRow.add_glow(_glow_back, [[n, -tex.get_width() / 2, 0]])
 	if _glow_back:
 		_glow_back.queue_redraw()
 
 
-const GAPS := [&"gap_canal", &"gap_street", &"gap_street_b", &"gap_street_b"]
+const PIECES := {
+	Kind.CANAL: [&"open_canal_a", &"open_canal_c", &"open_canal_b", &"open_canal_d"],
+	Kind.STREET: [&"open_street_a", &"open_street_b"],
+	Kind.ALLEY: [&"open_steeg"],
+	Kind.STEEG: [&"open_steeg"],
+}
 
-var _glow_back: NightGlow                   # the slot's windows at night
-var _row: Array = []
-
-
-func gap_texture() -> Texture2D:
-	return CanalRow.texture(GAPS[kind])
-
-
-## The opening in art px: open_width, at most the kit view's own width.
-func gap_width() -> int:
-	return mini(int(round(open_width * 2.0)), gap_texture().get_width())
+var _glow_back: NightGlow                   # the corner houses' windows at night
 
 
-## The slot's facades either side of the opening ([name, art x, joint], x from the slot's middle).
-func kit_row() -> Array:
-	if not _row.is_empty():
-		return _row
-	var rng := RandomNumberGenerator.new()
-	rng.seed = seed_value * 104729 + kind
-	var half := int(round(width))               # half the slot in art px
-	var gw := gap_width()
-	var side := half - gw / 2
-	_row = CanalRow.fill(-half, side, rng, false, true, 24) + CanalRow.fill(gw / 2, side, rng, true, false, 24)
-	return _row
+## The kit piece for this opening (by kind; seed_value picks among them).
+func piece() -> StringName:
+	var list: Array = PIECES[kind]
+	return list[posmod(seed_value, list.size())]
+
+
+## World x range the piece covers (its two corner houses included): the
+## house rows stop at these edges.
+func span() -> Vector2:
+	var half := CanalRow.width(piece()) * 0.25
+	return Vector2(global_position.x - half, global_position.x + half)
+
+
+## World x range of the side canal's water at the street (the street's
+## arch goes there). A side street has none: Vector2.ZERO.
+func mouth() -> Vector2:
+	var n := piece()
+	if not CanalKit.MOUTHS.has(n):
+		return Vector2.ZERO
+	var m: Vector2i = CanalKit.MOUTHS[n]
+	var left := global_position.x - CanalRow.width(n) * 0.25
+	return Vector2(left + m.x * 0.5, left + m.y * 0.5)
 
 
 const REFINED_DIR := "res://assets/sprites/world/openings/"
