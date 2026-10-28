@@ -39,6 +39,8 @@ func _gather() -> void:
 
 
 func _block(b: CityBlock) -> void:
+	if b.kit:
+		return                              # the canal kit has its own yards (CanalBackdrop)
 	var rows := b.layout()
 	if rows.is_empty():
 		return

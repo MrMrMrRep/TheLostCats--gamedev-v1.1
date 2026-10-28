@@ -9,7 +9,8 @@ extends Node2D
 ##          a touch smaller and hazier. Parked cars stand here too.
 ##   FRONT  the near lane outside town, drawn in front of the band (reflected).
 ## District rules come from the Zone nodes (WorldZone): in "bikes only" zones
-## (old town + canal belt) only bikes ride; in "parked cars" zones cars stand
+## (old town + canal belt) mostly bikes ride, the odd car among them
+## (TrafficConfig.quiet_cars); in "parked cars" zones cars stand
 ## along the street; elsewhere in town a few cars and bikes; outside town
 ## proper traffic on both lanes. Numbers: resources/config/traffic_config.tres.
 ## Origin at x 0, y = the street line.
@@ -97,7 +98,7 @@ func _process(delta: float) -> void:
 			return false
 		if lane == Lane.FRONT and _in_town(c[0]) and _town_depth(c[0]) > FADE:
 			return false
-		return not (c[3] != Kind.BIKE and _in(car_free, c[0])))   # cars turn off before the car-free zone
+		return true)                      # the odd car drives on through the quiet zones
 	var mid := (view.x + view.y) / 2.0
 	var cfg := TrafficConfig.current()
 	var want := int(round(span / 640.0 * (cfg.per_screen_town if _in_town(mid) else cfg.per_screen_road)))
@@ -135,7 +136,10 @@ func _spawn(view: Vector2) -> void:
 	if _in(car_free, x):
 		if lane == Lane.FRONT:
 			return
-		kind = Kind.BIKE
+		kind = Kind.BIKE                    # bikes, and now and then a car or a delivery van
+		var q := _rng.randf()
+		if q < cfg.quiet_cars:
+			kind = Kind.VAN if q < cfg.quiet_cars * 0.35 else Kind.CAR
 	elif _in_town(x):
 		if lane == Lane.FRONT:
 			return

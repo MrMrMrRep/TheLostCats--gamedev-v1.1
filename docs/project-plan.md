@@ -93,7 +93,7 @@ Not relevant (can be removed to cut noise): `fps-shooter`, `card-game`, `tower-d
 | M5 Level framework | ✅ | |
 | M6 Abilities | ✅ → reworked as M6b | skill set v2 (2026-10-28): run, crouch, wall-slide, punch for all + special/instrument per member ([`skills.md`](skills.md)) |
 | M7 Items & inventory | ✅ | |
-| M8 World map | ✅ (well beyond scope) | 18k+ px city, traffic, day/night, radio, airport, SpriteCook-refined rows |
+| M8 World map | ✅ (well beyond scope) | 18k+ px city, traffic, day/night, radio, airport. **Rebuild in progress** (2026-10-28): canal belt done from the SpriteCook canal kit ([`city-layout.md`](city-layout.md) §8); old town and ring road next |
 | M9 Slice level "Café De Kat" | ✅ | `scenes/levels/venue_puzzle.tscn`: BackEntrance, Storage, Bar, Backstage, Finale; Gwinny hidden NPC; end screen |
 | M10 Pace, audio & juice | ✅ (one item open) | crossfade 1.5 s (`audio.gd`), dust/squash/hit-stop/shake (`scripts/fx/`), 18 SFX, title + pause. Open: zoom tween on world ↔ level doors (they fade only) |
 | M11 Playtest, tune & balance | ❌ not started | no `docs/v1-playtest-notes.md` |
@@ -105,7 +105,7 @@ Extra work outside the v1 plan: day/night cycle (`day_config.tres`), base / part
 - ~23k lines of GDScript in `scripts/` + `tests/` (122 scripts in `scripts/`), 4 shaders.
 - 12 headless test scripts (`tests/`): baseline, movement feel, band, level, critical path, abilities, items, world, controls, base, venue puzzle, touch pad. Each counts its checks so a crash can't pass.
 - Static check: all 238 `res://` references in scripts, scenes and resources point at files that exist.
-- **All 12 tests pass** on Godot 4.7.2 (2026-10-28, `tools/run_tests.sh`, ~5 min): abilities 69 checks (skill set v2), band 24, base 8, baseline 14, controls 29, critical path 20, items 23, level 40, movement feel 26, touch pad, venue puzzle 14, world 63.
+- **All 12 tests pass** on Godot 4.7.2 (2026-10-28, `tools/run_tests.sh`, ~10 min): abilities 69 checks (skill set v2), band 24, base 8, baseline 14, controls 29, critical path 20, items 23, level 40, movement feel 26, touch pad, venue puzzle 14, world 68 (incl. the canal kit).
 - The Web export works headless and boots in Chromium without console errors.
 
 ### Deployment
