@@ -184,20 +184,20 @@ func _test_gather_ledge(band) -> void:
 
 
 func _test_gather_deadly_pit(room) -> void:
-	# Abilities level: a 7-tile pit (x 1128..1296) with no floor; start between
-	# the electric floor (ends x 1056) and the pit.
+	# Abilities level: Nikki's 8-tile pit (x 3216..3408) with no floor; the
+	# leader across it, the others on the near side.
 	var band = room.get_node("Band")
 	var deaths := [0]
 	room.member_died.connect(func(_m, _c): deaths[0] += 1)
 	for i in band.members.size():
-		band.members[i].global_position = Vector2(1320 if i == 0 else 1070 + i * 12, 288)
+		band.members[i].global_position = Vector2(3440 if i == 0 else 3100 + i * 12, 288)
 		band.members[i].velocity = Vector2.ZERO
 	await _frames(5)
 	Input.action_press("gather")
 	await _frames(200)
 	Input.action_release("gather")
 	var ms: Array = band.members.slice(1)
-	_check(ms.all(func(m): return m.global_position.x < 1128.0), "gather: they wait at the edge of a deadly pit")
+	_check(ms.all(func(m): return m.global_position.x < 3216.0), "gather: they wait at the edge of a deadly pit")
 	_check(deaths[0] == 0, "gather: nobody jumps to their death")
 
 

@@ -88,12 +88,6 @@ func _ready() -> void:
 		$Buildings.add_child(yard)
 	COLOR_GRADE.attach(self)                # teal sky and haze towards a clear azure
 	Audio.music(&"map_calm")
-	if not InputMap.has_action(&"sprint"):  # hold left Shift to sprint on the map
-		InputMap.add_action(&"sprint")
-		var shift := InputEventKey.new()
-		shift.physical_keycode = KEY_SHIFT
-		shift.location = KEY_LOCATION_LEFT
-		InputMap.action_add_event(&"sprint", shift)
 	_read_markers()
 	zoom = cam_cfg.zoom_walk
 	band.locked = true                      # no switching or gather on the map
@@ -133,6 +127,7 @@ func _ready() -> void:
 	for m in party:
 		GameFeel.hook_member(m, self)
 		m.speed_scale = band_cfg.walk_speed / m.profile.run_speed()
+		m.map_mode = true                   # walk and jump; skills are for the levels
 		m.show_name_tag = false
 		m.name_tag.visible = false
 		BikeRiders.ensure(m)                # bike_pedal / bike_roll for everyone

@@ -1,25 +1,24 @@
 class_name JoepAbility
 extends MemberAbility
-## Joep (keys): wall-slide when pushing into a wall in the air, wall-jump off
-## walls (costs stamina), hold A to grab and climb walls (drains stamina; at the
-## top he hops over the edge). Hacks panels (E). Beer: quick for 5 s.
+## Joep (keys).
+## Special (B): hack the nearest electrical thing within reach: hack panels,
+## electronic door locks, security cameras, amps. A wall plug wired to a device
+## reaches it through the wall. (E on a hack panel works too.)
+## Instrument (L): electric shockwave through the room. Rats close by are
+## knocked out, rats further away are shocked (stunned), and every hackable
+## device in range switches (panels, doors, cameras, amps).
+## Beer bonus: quick for 5 s.
 
-const WALL_CHECK := 2.0                     # px probe distance
-const WALL_SLIDE_SPEED := 40.0              # px/s max fall while sliding
-const WALL_JUMP_SPEED_X := 150.0
-const WALL_JUMP_FORCE_TIME := 0.16          # horizontal input ignored after a wall jump
-const CLIMB_UP_SPEED := 60.0
-const CLIMB_DOWN_SPEED := 90.0
-const CLIMB_STILL_COST := 0.3               # fraction of climb cost while hanging still
-const LEDGE_HOP := Vector2(90, -200)
+const HACK_RANGE := 40.0
+const SHOCK_NEAR := 72.0                    # 3 tiles: knocked out
+const SHOCK_MID := 168.0                    # 7 tiles: stunned, devices switched
+const SHOCK_STUN := 2.5
+const SHOCK_FX_TIME := 0.5
 const BEER_SPEED := 1.3
 const BEER_TIME := 5.0
 
-var climbing := false
-var wall_sliding := false
-
-var _force_left := 0.0
 var _quick_left := 0.0
+var _shock_fx := 0.0
 
 
 func setup(m: BandMember) -> void:
@@ -28,68 +27,53 @@ func setup(m: BandMember) -> void:
 
 
 func physics_begin(delta: float) -> void:
-	super(delta)
-	_force_left = maxf(_force_left - delta, 0.0)
 	_quick_left = maxf(_quick_left - delta, 0.0)
+	if _shock_fx > 0.0:
+		_shock_fx = maxf(_shock_fx - delta, 0.0)
+		queue_redraw()
+	super(delta)
 
 
-func custom_physics(delta: float) -> bool:
-	var wall: float = wall_dir()
-	if not climbing and member.in_a_held and wall != 0.0 and not member.stamina.is_exhausted:
-		climbing = true
-	if climbing and (not member.in_a_held or wall == 0.0 or member.stamina.is_exhausted):
-		_stop_climbing()
-		return false
-	if not climbing:
-		return false
-
-	member.facing = wall
-	if member.in_jump_pressed:              # jump off the wall
-		_stop_climbing()
-		_wall_jump(wall)
-		return false
-	var v: float = member.in_vertical
-	if v < 0.0:
-		member.velocity.y = -CLIMB_UP_SPEED
-		member.stamina.spend(config.climb_per_sec * delta)
-		if _at_top(wall):                   # pull up over the edge
-			_stop_climbing()
-			member.velocity = Vector2(wall * LEDGE_HOP.x, LEDGE_HOP.y)
-			return false
-	elif v > 0.0:
-		member.velocity.y = CLIMB_DOWN_SPEED
-	else:
-		member.velocity.y = 0.0
-		member.stamina.spend(config.climb_per_sec * CLIMB_STILL_COST * delta)
-	member.velocity.x = wall * 10.0         # stay pressed against the wall
-	member.anim_override = &"jump"
-	member.move_body(delta)
-	return true
+func special() -> void:
+	hack_nearest()
 
 
-func air_jump() -> bool:
-	var wall: float = wall_dir()
-	if wall == 0.0:
-		return false
-	return _wall_jump(wall)
+## Hack the nearest hackable within reach. Returns what was hacked (or null).
+func hack_nearest() -> Node:
+	for target in nearby_in_group(&"hackable", HACK_RANGE):
+		if target.hack(member):
+			member.play_action(&"special")
+			return target
+	member.show_text("Nothing to hack", Color(0.75, 0.8, 1.0))
+	return null
 
 
-func locks_horizontal() -> bool:
-	return _force_left > 0.0
+func instrument_cost() -> float:
+	return config.shock_cost if config else 0.0
+
+
+func instrument() -> void:
+	shockwave()
+
+
+func shockwave() -> void:
+	_shock_fx = SHOCK_FX_TIME
+	Audio.sfx(&"hack", 0.0)
+	GameFeel.shake(member.get_tree(), 3.0, 0.25)
+	var center := member.global_position + Vector2(0, -14)
+	for rat in rats_near(center, SHOCK_MID):
+		if rat.global_position.distance_to(center) <= SHOCK_NEAR:
+			rat.defeat()
+		else:
+			rat.stun(SHOCK_STUN)
+	for target in nearby_in_group(&"hackable", SHOCK_MID):
+		if not target is WallPlug:         # the devices themselves, not their sockets
+			target.hack(member)
+	queue_redraw()
 
 
 func speed_mult() -> float:
 	return BEER_SPEED if _quick_left > 0.0 else 1.0
-
-
-func fall_cap(default_cap: float) -> float:
-	return WALL_SLIDE_SPEED if wall_sliding else default_cap
-
-
-func physics_end(_delta: float) -> void:
-	var wall: float = wall_dir()
-	wall_sliding = wall != 0.0 and member.in_dir == wall and member.velocity.y > 0.0 and not member.is_on_floor()
-	member.anim_override = &"wall_slide" if wall_sliding else &""
 
 
 func on_beer() -> void:
@@ -97,40 +81,21 @@ func on_beer() -> void:
 
 
 func reset() -> void:
-	climbing = false
-	wall_sliding = false
-	_force_left = 0.0
+	super()
 	_quick_left = 0.0
-	if member:
-		member.anim_override = &""
+	_shock_fx = 0.0
+	queue_redraw()
 
 
-## -1 wall on the left, 1 on the right, 0 none (only in the air or while climbing).
-func wall_dir() -> float:
-	if member.is_on_floor() and not climbing and not member.in_a_held:
-		return 0.0
-	if member.test_move(member.global_transform, Vector2(WALL_CHECK, 0)):
-		return 1.0
-	if member.test_move(member.global_transform, Vector2(-WALL_CHECK, 0)):
-		return -1.0
-	return 0.0
-
-
-func _wall_jump(wall: float) -> bool:
-	if not member.stamina.try_spend(config.wall_jump_cost):
-		return false
-	member.jump_with(member.profile.jump_velocity() * 0.95)
-	member.velocity.x = -wall * WALL_JUMP_SPEED_X
-	member.facing = -wall
-	_force_left = WALL_JUMP_FORCE_TIME
-	return true
-
-
-## No wall at chest height above: the climb has reached the top edge.
-func _at_top(wall: float) -> bool:
-	return not member.test_move(member.global_transform.translated(Vector2(0, -20)), Vector2(wall * WALL_CHECK, 0))
-
-
-func _stop_climbing() -> void:
-	climbing = false
-	member.anim_override = &""
+func _draw() -> void:
+	if _shock_fx <= 0.0:
+		return
+	var t := 1.0 - _shock_fx / SHOCK_FX_TIME
+	var r := lerpf(8.0, SHOCK_MID, t)
+	var pts := PackedVector2Array()
+	for i in 33:                            # a jagged electric ring
+		var a := i / 32.0 * TAU
+		var rr := r + (3.0 if i % 2 else -3.0)
+		pts.append(Vector2(cos(a), sin(a)) * rr + Vector2(0, -14))
+	draw_polyline(pts, Color(0.62, 0.95, 1.0, 1.0 - t), 1.5)
+	draw_arc(Vector2(0, -14), minf(r, SHOCK_NEAR), 0.0, TAU, 24, Color(1, 1, 1, 0.5 * (1.0 - t)), 1.0)

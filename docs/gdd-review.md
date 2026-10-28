@@ -50,6 +50,8 @@ Then "a 2-tile ledge stops Geoff and The Germ" is a rule a level designer can re
 *Updated in M3 after playtesting:* jump heights carry a **0.3-tile margin** above the ledge they're meant to clear. With a jump exactly as high as the ledge (2.0 vs 2), clearing it took a frame-perfect jump.
 
 ### 3.2 One clear job per member (the gating matrix)
+> **Superseded 2026-10-28** by the skill set v2 in [`skills.md`](skills.md): everyone now walks, runs, crouches, wall-slides and punches; each member has one special skill (K) and one instrument skill (L). The table below is the original M6 proposal, kept for the record.
+
 Each member needs one thing that **only they** can do. Level design builds on this table:
 
 | Member | Movement verb | Unique interaction | Breaks | Stamina use |
@@ -95,6 +97,8 @@ Rule of thumb: **after every hard room there is a short calm moment** (a corrido
 - Show a **shared inventory bar** with the active member highlighted, Lost Vikings style.
 
 ### 3.7 Abilities B ("Drinks …")
+*Changed 2026-10-28:* B (K) is now every member's special skill; a beer is drunk with R (or E with nothing near). See [`skills.md`](skills.md).
+
 *Built in M6:* B drinks a beer for Joep, Jay, Nikki and Geoff. The Germ's B is his shield (as the GDD says), so he drinks through the item key in M7. If you'd rather everyone drinks with B, the shield could move to "hold A on the ground" instead (and punch to a tap).
 
 Drinking needs a cost or the beer button gets spammed. Drinks are **consumed from inventory**, so no extra cooldown is needed. Buffs never stack.

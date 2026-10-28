@@ -1,245 +1,415 @@
-[gd_scene format=4 uid="uid://dgqfhynpq348n"]
+[gd_scene format=4]
 
-[ext_resource type="Script" uid="uid://bjpp0gxpl4g5d" path="res://scripts/levels/level.gd" id="1_dr2sd"]
-[ext_resource type="Script" uid="uid://cxkrjii2e3jnk" path="res://scripts/levels/parallax_background.gd" id="2_ucknt"]
-[ext_resource type="Texture2D" uid="uid://bx514ox8l2c01" path="res://public/assets/amwoods/background/background_layer_1.png" id="3_cgho6"]
-[ext_resource type="Texture2D" uid="uid://cgbbdpda26svu" path="res://public/assets/amwoods/background/background_layer_2.png" id="4_4fix7"]
-[ext_resource type="Texture2D" uid="uid://c73dex62yigsd" path="res://public/assets/amwoods/background/background_layer_3.png" id="5_kpvdf"]
-[ext_resource type="TileSet" uid="uid://q6tppnguf7t6" path="res://resources/tiles/amwoods_tileset.tres" id="6_lgee7"]
-[ext_resource type="Script" uid="uid://bl1xgkusb6cea" path="res://scripts/levels/room.gd" id="7_v7c36"]
-[ext_resource type="Script" uid="uid://0xgkt2o370cg" path="res://scripts/props/breakable.gd" id="8_emkem"]
-[ext_resource type="Script" uid="uid://bils0xfyrwfo" path="res://scripts/props/flight_case.gd" id="9_sv6i5"]
-[ext_resource type="Script" uid="uid://6uhyd2huj5tp" path="res://scripts/props/hazard.gd" id="10_3gelk"]
-[ext_resource type="Script" uid="uid://ca52btr76q2a2" path="res://scripts/props/switch_panel.gd" id="11_81r12"]
-[ext_resource type="Script" uid="uid://bp67y55oy36sk" path="res://scripts/props/gate.gd" id="12_woex1"]
-[ext_resource type="Script" uid="uid://ctysci6wuriky" path="res://scripts/enemies/rat.gd" id="13_lp31x"]
-[ext_resource type="Script" uid="uid://cd53iofhiyqm6" path="res://scripts/enemies/bouncer.gd" id="14_fxn7p"]
-[ext_resource type="Script" uid="uid://stjqwq4q2c4u" path="res://scripts/props/item_pickup.gd" id="15_s7iew"]
-[ext_resource type="Script" uid="uid://ce1t2h7bs0yn8" path="res://scripts/levels/door.gd" id="16_shnc5"]
-[ext_resource type="PackedScene" uid="uid://5kg36m4l2u54" path="res://scenes/characters/band.tscn" id="17_w3lva"]
-[ext_resource type="Script" uid="uid://b8dp2br6re13s" path="res://scripts/characters/band.gd" id="18_dynl7"]
-[ext_resource type="PackedScene" uid="uid://716uph60xpmh" path="res://scenes/ui/hud.tscn" id="19_sskff"]
-[ext_resource type="Script" uid="uid://4dlfjoixdw3s" path="res://scripts/ui/hud.gd" id="20_afbtb"]
-[ext_resource type="PackedScene" uid="uid://1hjoq3evq167" path="res://scenes/ui/debug_overlay.tscn" id="21_jmbjo"]
-[ext_resource type="Script" uid="uid://dw4t1nli8on3e" path="res://scripts/ui/debug_overlay.gd" id="22_ofcga"]
+[ext_resource type="Script" path="res://scripts/levels/level.gd" id="1_sv6i5"]
+[ext_resource type="Script" path="res://scripts/base/base_room_art.gd" id="2_3gelk"]
+[ext_resource type="TileSet" path="res://resources/tiles/amwoods_tileset.tres" id="3_81r12"]
+[ext_resource type="Script" path="res://scripts/levels/room.gd" id="4_woex1"]
+[ext_resource type="Script" path="res://scripts/venue/venue_block.gd" id="5_lp31x"]
+[ext_resource type="Script" path="res://scripts/venue/venue_sign.gd" id="6_fxn7p"]
+[ext_resource type="Script" path="res://scripts/props/item_pickup.gd" id="7_s7iew"]
+[ext_resource type="Resource" path="res://resources/items/mic_stand.tres" id="8_shnc5"]
+[ext_resource type="Script" path="res://scripts/enemies/rat.gd" id="9_w3lva"]
+[ext_resource type="Script" path="res://scripts/props/hazard.gd" id="10_dynl7"]
+[ext_resource type="Script" path="res://scripts/props/switch_panel.gd" id="11_sskff"]
+[ext_resource type="Script" path="res://scripts/props/wall_plug.gd" id="12_afbtb"]
+[ext_resource type="Script" path="res://scripts/props/security_camera.gd" id="13_jmbjo"]
+[ext_resource type="Script" path="res://scripts/props/gate.gd" id="14_ofcga"]
+[ext_resource type="Script" path="res://scripts/props/amp.gd" id="15_1fuus"]
+[ext_resource type="Script" path="res://scripts/props/breakable.gd" id="16_3p2er"]
+[ext_resource type="Script" path="res://scripts/props/flight_case.gd" id="17_dwwc2"]
+[ext_resource type="Script" path="res://scripts/props/timed_gate.gd" id="18_7dcle"]
+[ext_resource type="Script" path="res://scripts/props/moving_platform.gd" id="19_y81fw"]
+[ext_resource type="Script" path="res://scripts/props/grapple_hook.gd" id="20_yppcr"]
+[ext_resource type="Script" path="res://scripts/enemies/bouncer.gd" id="21_yms81"]
+[ext_resource type="Script" path="res://scripts/props/coin_pickup.gd" id="22_u7rvq"]
+[ext_resource type="Script" path="res://scripts/props/vendor.gd" id="23_lv3i5"]
+[ext_resource type="Script" path="res://scripts/levels/door.gd" id="24_tlq83"]
+[ext_resource type="PackedScene" path="res://scenes/characters/band.tscn" id="25_6xl58"]
+[ext_resource type="Script" path="res://scripts/characters/band.gd" id="26_wjatr"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="27_mg7vn"]
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="28_6mwfc"]
+[ext_resource type="PackedScene" path="res://scenes/ui/debug_overlay.tscn" id="29_pegku"]
+[ext_resource type="Script" path="res://scripts/ui/debug_overlay.gd" id="30_1v8si"]
 
-[node name="AbilitiesTest" type="Node2D" unique_id=1104640025]
-script = ExtResource("1_dr2sd")
-start_room = NodePath("Rooms/Stage")
-start_spawn = NodePath("Rooms/Stage/Start")
+[node name="AbilitiesTest" type="Node2D" unique_id=1268145863]
+script = ExtResource("1_sv6i5")
+start_room = NodePath("Rooms/Hall")
+start_spawn = NodePath("Rooms/Hall/Start")
 
-[node name="Background" type="Node2D" parent="." unique_id=113668509]
-script = ExtResource("2_ucknt")
+[node name="Backdrops" type="Node2D" parent="." unique_id=1015618166]
 
-[node name="Far" type="Parallax2D" parent="Background" unique_id=1319347162]
-scroll_scale = Vector2(0.2, 0)
-repeat_size = Vector2(320, 0)
-repeat_times = 3
+[node name="HallWall" type="Node2D" parent="Backdrops" unique_id=3049476]
+script = ExtResource("2_3gelk")
+size = Vector2(4800, 360)
 
-[node name="Sprite" type="Sprite2D" parent="Background/Far" unique_id=747339468]
-texture = ExtResource("3_cgho6")
-centered = false
+[node name="GreenRoomWall" type="Node2D" parent="Backdrops" unique_id=97057345]
+position = Vector2(5040, 0)
+script = ExtResource("2_3gelk")
+size = Vector2(480, 360)
 
-[node name="Mid" type="Parallax2D" parent="Background" unique_id=1608125649]
-scroll_scale = Vector2(0.5, 0)
-repeat_size = Vector2(320, 0)
-repeat_times = 3
+[node name="Ground" type="TileMapLayer" parent="." unique_id=1370706540]
+visible = false
+tile_map_data = PackedByteArray("AAAAAAwAAAAMAAAAAAAAAA0AAAAMAAAAAAAAAA4AAAAMAAAAAAABAAwAAAAMAAAAAAABAA0AAAAMAAAAAAABAA4AAAAMAAAAAAACAAwAAAAMAAAAAAACAA0AAAAMAAAAAAACAA4AAAAMAAAAAAADAAwAAAAMAAAAAAADAA0AAAAMAAAAAAADAA4AAAAMAAAAAAAEAAwAAAAMAAAAAAAEAA0AAAAMAAAAAAAEAA4AAAAMAAAAAAAFAAwAAAAMAAAAAAAFAA0AAAAMAAAAAAAFAA4AAAAMAAAAAAAGAAwAAAAMAAAAAAAGAA0AAAAMAAAAAAAGAA4AAAAMAAAAAAAHAAwAAAAMAAAAAAAHAA0AAAAMAAAAAAAHAA4AAAAMAAAAAAAIAAwAAAAMAAAAAAAIAA0AAAAMAAAAAAAIAA4AAAAMAAAAAAAJAAwAAAAMAAAAAAAJAA0AAAAMAAAAAAAJAA4AAAAMAAAAAAAKAAwAAAAMAAAAAAAKAA0AAAAMAAAAAAAKAA4AAAAMAAAAAAALAAwAAAAMAAAAAAALAA0AAAAMAAAAAAALAA4AAAAMAAAAAAAMAAwAAAAMAAAAAAAMAA0AAAAMAAAAAAAMAA4AAAAMAAAAAAANAAwAAAAMAAAAAAANAA0AAAAMAAAAAAANAA4AAAAMAAAAAAAOAAwAAAAMAAAAAAAOAA0AAAAMAAAAAAAOAA4AAAAMAAAAAAAPAAwAAAAMAAAAAAAPAA0AAAAMAAAAAAAPAA4AAAAMAAAAAAAQAAwAAAAMAAAAAAAQAA0AAAAMAAAAAAAQAA4AAAAMAAAAAAARAAwAAAAMAAAAAAARAA0AAAAMAAAAAAARAA4AAAAMAAAAAAASAAwAAAAMAAAAAAASAA0AAAAMAAAAAAASAA4AAAAMAAAAAAATAAwAAAAMAAAAAAATAA0AAAAMAAAAAAATAA4AAAAMAAAAAAAUAAwAAAAMAAAAAAAUAA0AAAAMAAAAAAAUAA4AAAAMAAAAAAAVAAwAAAAMAAAAAAAVAA0AAAAMAAAAAAAVAA4AAAAMAAAAAAAWAAwAAAAMAAAAAAAWAA0AAAAMAAAAAAAWAA4AAAAMAAAAAAAXAAwAAAAMAAAAAAAXAA0AAAAMAAAAAAAXAA4AAAAMAAAAAAAYAAwAAAAMAAAAAAAYAA0AAAAMAAAAAAAYAA4AAAAMAAAAAAAZAAwAAAAMAAAAAAAZAA0AAAAMAAAAAAAZAA4AAAAMAAAAAAAaAAwAAAAMAAAAAAAaAA0AAAAMAAAAAAAaAA4AAAAMAAAAAAAbAAwAAAAMAAAAAAAbAA0AAAAMAAAAAAAbAA4AAAAMAAAAAAAcAAwAAAAMAAAAAAAcAA0AAAAMAAAAAAAcAA4AAAAMAAAAAAAdAAwAAAAMAAAAAAAdAA0AAAAMAAAAAAAdAA4AAAAMAAAAAAAeAAwAAAAMAAAAAAAeAA0AAAAMAAAAAAAeAA4AAAAMAAAAAAAfAAwAAAAMAAAAAAAfAA0AAAAMAAAAAAAfAA4AAAAMAAAAAAAgAAwAAAAMAAAAAAAgAA0AAAAMAAAAAAAgAA4AAAAMAAAAAAAhAAwAAAAMAAAAAAAhAA0AAAAMAAAAAAAhAA4AAAAMAAAAAAAiAAwAAAAMAAAAAAAiAA0AAAAMAAAAAAAiAA4AAAAMAAAAAAAjAAwAAAAMAAAAAAAjAA0AAAAMAAAAAAAjAA4AAAAMAAAAAAAkAAwAAAAMAAAAAAAkAA0AAAAMAAAAAAAkAA4AAAAMAAAAAAAlAAwAAAAMAAAAAAAlAA0AAAAMAAAAAAAlAA4AAAAMAAAAAAAmAAwAAAAMAAAAAAAmAA0AAAAMAAAAAAAmAA4AAAAMAAAAAAAnAAwAAAAMAAAAAAAnAA0AAAAMAAAAAAAnAA4AAAAMAAAAAAAoAAwAAAAMAAAAAAAoAA0AAAAMAAAAAAAoAA4AAAAMAAAAAAApAAwAAAAMAAAAAAApAA0AAAAMAAAAAAApAA4AAAAMAAAAAAAqAAwAAAAMAAAAAAAqAA0AAAAMAAAAAAAqAA4AAAAMAAAAAAArAAwAAAAMAAAAAAArAA0AAAAMAAAAAAArAA4AAAAMAAAAAAAsAAwAAAAMAAAAAAAsAA0AAAAMAAAAAAAsAA4AAAAMAAAAAAAtAAwAAAAMAAAAAAAtAA0AAAAMAAAAAAAtAA4AAAAMAAAAAAAuAAwAAAAMAAAAAAAuAA0AAAAMAAAAAAAuAA4AAAAMAAAAAAAvAAwAAAAMAAAAAAAvAA0AAAAMAAAAAAAvAA4AAAAMAAAAAAAwAAwAAAAMAAAAAAAwAA0AAAAMAAAAAAAwAA4AAAAMAAAAAAAxAAwAAAAMAAAAAAAxAA0AAAAMAAAAAAAxAA4AAAAMAAAAAAAyAAwAAAAMAAAAAAAyAA0AAAAMAAAAAAAyAA4AAAAMAAAAAAAzAAwAAAAMAAAAAAAzAA0AAAAMAAAAAAAzAA4AAAAMAAAAAAA0AAwAAAAMAAAAAAA0AA0AAAAMAAAAAAA0AA4AAAAMAAAAAAA1AAwAAAAMAAAAAAA1AA0AAAAMAAAAAAA1AA4AAAAMAAAAAAA2AAwAAAAMAAAAAAA2AA0AAAAMAAAAAAA2AA4AAAAMAAAAAAA3AAwAAAAMAAAAAAA3AA0AAAAMAAAAAAA3AA4AAAAMAAAAAAA4AAwAAAAMAAAAAAA4AA0AAAAMAAAAAAA4AA4AAAAMAAAAAAA5AAwAAAAMAAAAAAA5AA0AAAAMAAAAAAA5AA4AAAAMAAAAAAA6AAwAAAAMAAAAAAA6AA0AAAAMAAAAAAA6AA4AAAAMAAAAAAA7AAwAAAAMAAAAAAA7AA0AAAAMAAAAAAA7AA4AAAAMAAAAAAA8AAwAAAAMAAAAAAA8AA0AAAAMAAAAAAA8AA4AAAAMAAAAAAA9AAwAAAAMAAAAAAA9AA0AAAAMAAAAAAA9AA4AAAAMAAAAAAA+AAwAAAAMAAAAAAA+AA0AAAAMAAAAAAA+AA4AAAAMAAAAAAA/AAwAAAAMAAAAAAA/AA0AAAAMAAAAAAA/AA4AAAAMAAAAAABAAAwAAAAMAAAAAABAAA0AAAAMAAAAAABAAA4AAAAMAAAAAABBAAwAAAAMAAAAAABBAA0AAAAMAAAAAABBAA4AAAAMAAAAAABCAAwAAAAMAAAAAABCAA0AAAAMAAAAAABCAA4AAAAMAAAAAABDAAwAAAAMAAAAAABDAA0AAAAMAAAAAABDAA4AAAAMAAAAAABEAAwAAAAMAAAAAABEAA0AAAAMAAAAAABEAA4AAAAMAAAAAABFAAwAAAAMAAAAAABFAA0AAAAMAAAAAABFAA4AAAAMAAAAAABGAAwAAAAMAAAAAABGAA0AAAAMAAAAAABGAA4AAAAMAAAAAABHAAwAAAAMAAAAAABHAA0AAAAMAAAAAABHAA4AAAAMAAAAAABIAAwAAAAMAAAAAABIAA0AAAAMAAAAAABIAA4AAAAMAAAAAABJAAwAAAAMAAAAAABJAA0AAAAMAAAAAABJAA4AAAAMAAAAAABKAAwAAAAMAAAAAABKAA0AAAAMAAAAAABKAA4AAAAMAAAAAABLAAwAAAAMAAAAAABLAA0AAAAMAAAAAABLAA4AAAAMAAAAAABMAAwAAAAMAAAAAABMAA0AAAAMAAAAAABMAA4AAAAMAAAAAABNAAwAAAAMAAAAAABNAA0AAAAMAAAAAABNAA4AAAAMAAAAAABOAAwAAAAMAAAAAABOAA0AAAAMAAAAAABOAA4AAAAMAAAAAABPAAwAAAAMAAAAAABPAA0AAAAMAAAAAABPAA4AAAAMAAAAAABQAAwAAAAMAAAAAABQAA0AAAAMAAAAAABQAA4AAAAMAAAAAABRAAwAAAAMAAAAAABRAA0AAAAMAAAAAABRAA4AAAAMAAAAAABSAAwAAAAMAAAAAABSAA0AAAAMAAAAAABSAA4AAAAMAAAAAABTAAwAAAAMAAAAAABTAA0AAAAMAAAAAABTAA4AAAAMAAAAAABUAAwAAAAMAAAAAABUAA0AAAAMAAAAAABUAA4AAAAMAAAAAABVAAwAAAAMAAAAAABVAA0AAAAMAAAAAABVAA4AAAAMAAAAAABWAAwAAAAMAAAAAABWAA0AAAAMAAAAAABWAA4AAAAMAAAAAABXAAwAAAAMAAAAAABXAA0AAAAMAAAAAABXAA4AAAAMAAAAAABYAAwAAAAMAAAAAABYAA0AAAAMAAAAAABYAA4AAAAMAAAAAABZAAwAAAAMAAAAAABZAA0AAAAMAAAAAABZAA4AAAAMAAAAAABaAAwAAAAMAAAAAABaAA0AAAAMAAAAAABaAA4AAAAMAAAAAABbAAwAAAAMAAAAAABbAA0AAAAMAAAAAABbAA4AAAAMAAAAAABcAAwAAAAMAAAAAABcAA0AAAAMAAAAAABcAA4AAAAMAAAAAABdAAwAAAAMAAAAAABdAA0AAAAMAAAAAABdAA4AAAAMAAAAAABeAAwAAAAMAAAAAABeAA0AAAAMAAAAAABeAA4AAAAMAAAAAABfAAwAAAAMAAAAAABfAA0AAAAMAAAAAABfAA4AAAAMAAAAAABgAAwAAAAMAAAAAABgAA0AAAAMAAAAAABgAA4AAAAMAAAAAABhAAwAAAAMAAAAAABhAA0AAAAMAAAAAABhAA4AAAAMAAAAAABiAAwAAAAMAAAAAABiAA0AAAAMAAAAAABiAA4AAAAMAAAAAABjAAwAAAAMAAAAAABjAA0AAAAMAAAAAABjAA4AAAAMAAAAAABkAAwAAAAMAAAAAABkAA0AAAAMAAAAAABkAA4AAAAMAAAAAABlAAwAAAAMAAAAAABlAA0AAAAMAAAAAABlAA4AAAAMAAAAAABmAAwAAAAMAAAAAABmAA0AAAAMAAAAAABmAA4AAAAMAAAAAABnAAwAAAAMAAAAAABnAA0AAAAMAAAAAABnAA4AAAAMAAAAAABoAAwAAAAMAAAAAABoAA0AAAAMAAAAAABoAA4AAAAMAAAAAABpAAwAAAAMAAAAAABpAA0AAAAMAAAAAABpAA4AAAAMAAAAAABqAAwAAAAMAAAAAABqAA0AAAAMAAAAAABqAA4AAAAMAAAAAABrAAwAAAAMAAAAAABrAA0AAAAMAAAAAABrAA4AAAAMAAAAAABsAAwAAAAMAAAAAABsAA0AAAAMAAAAAABsAA4AAAAMAAAAAABtAAwAAAAMAAAAAABtAA0AAAAMAAAAAABtAA4AAAAMAAAAAABuAAwAAAAMAAAAAABuAA0AAAAMAAAAAABuAA4AAAAMAAAAAABvAAwAAAAMAAAAAABvAA0AAAAMAAAAAABvAA4AAAAMAAAAAABwAAwAAAAMAAAAAABwAA0AAAAMAAAAAABwAA4AAAAMAAAAAABxAAwAAAAMAAAAAABxAA0AAAAMAAAAAABxAA4AAAAMAAAAAAByAAwAAAAMAAAAAAByAA0AAAAMAAAAAAByAA4AAAAMAAAAAABzAAwAAAAMAAAAAABzAA0AAAAMAAAAAABzAA4AAAAMAAAAAAB0AAwAAAAMAAAAAAB0AA0AAAAMAAAAAAB0AA4AAAAMAAAAAAB1AAwAAAAMAAAAAAB1AA0AAAAMAAAAAAB1AA4AAAAMAAAAAAB2AAwAAAAMAAAAAAB2AA0AAAAMAAAAAAB2AA4AAAAMAAAAAAB3AAwAAAAMAAAAAAB3AA0AAAAMAAAAAAB3AA4AAAAMAAAAAAB+AAwAAAAMAAAAAAB+AA0AAAAMAAAAAAB+AA4AAAAMAAAAAAB/AAwAAAAMAAAAAAB/AA0AAAAMAAAAAAB/AA4AAAAMAAAAAACAAAwAAAAMAAAAAACAAA0AAAAMAAAAAACAAA4AAAAMAAAAAACBAAwAAAAMAAAAAACBAA0AAAAMAAAAAACBAA4AAAAMAAAAAACCAAwAAAAMAAAAAACCAA0AAAAMAAAAAACCAA4AAAAMAAAAAACDAAwAAAAMAAAAAACDAA0AAAAMAAAAAACDAA4AAAAMAAAAAACEAAwAAAAMAAAAAACEAA0AAAAMAAAAAACEAA4AAAAMAAAAAACFAAwAAAAMAAAAAACFAA0AAAAMAAAAAACFAA4AAAAMAAAAAACOAAwAAAAMAAAAAACOAA0AAAAMAAAAAACOAA4AAAAMAAAAAACPAAwAAAAMAAAAAACPAA0AAAAMAAAAAACPAA4AAAAMAAAAAACQAAwAAAAMAAAAAACQAA0AAAAMAAAAAACQAA4AAAAMAAAAAACRAAwAAAAMAAAAAACRAA0AAAAMAAAAAACRAA4AAAAMAAAAAACSAAwAAAAMAAAAAACSAA0AAAAMAAAAAACSAA4AAAAMAAAAAACTAAwAAAAMAAAAAACTAA0AAAAMAAAAAACTAA4AAAAMAAAAAACUAAwAAAAMAAAAAACUAA0AAAAMAAAAAACUAA4AAAAMAAAAAACVAAwAAAAMAAAAAACVAA0AAAAMAAAAAACVAA4AAAAMAAAAAACWAAwAAAAMAAAAAACWAA0AAAAMAAAAAACWAA4AAAAMAAAAAACXAAwAAAAMAAAAAACXAA0AAAAMAAAAAACXAA4AAAAMAAAAAACYAAwAAAAMAAAAAACYAA0AAAAMAAAAAACYAA4AAAAMAAAAAACZAAwAAAAMAAAAAACZAA0AAAAMAAAAAACZAA4AAAAMAAAAAACaAAwAAAAMAAAAAACaAA0AAAAMAAAAAACaAA4AAAAMAAAAAACbAAwAAAAMAAAAAACbAA0AAAAMAAAAAACbAA4AAAAMAAAAAACcAAwAAAAMAAAAAACcAA0AAAAMAAAAAACcAA4AAAAMAAAAAACdAAwAAAAMAAAAAACdAA0AAAAMAAAAAACdAA4AAAAMAAAAAACeAAwAAAAMAAAAAACeAA0AAAAMAAAAAACeAA4AAAAMAAAAAACfAAwAAAAMAAAAAACfAA0AAAAMAAAAAACfAA4AAAAMAAAAAACgAAwAAAAMAAAAAACgAA0AAAAMAAAAAACgAA4AAAAMAAAAAAChAAwAAAAMAAAAAAChAA0AAAAMAAAAAAChAA4AAAAMAAAAAACiAAwAAAAMAAAAAACiAA0AAAAMAAAAAACiAA4AAAAMAAAAAACjAAwAAAAMAAAAAACjAA0AAAAMAAAAAACjAA4AAAAMAAAAAACkAAwAAAAMAAAAAACkAA0AAAAMAAAAAACkAA4AAAAMAAAAAAClAAwAAAAMAAAAAAClAA0AAAAMAAAAAAClAA4AAAAMAAAAAACmAAwAAAAMAAAAAACmAA0AAAAMAAAAAACmAA4AAAAMAAAAAACnAAwAAAAMAAAAAACnAA0AAAAMAAAAAACnAA4AAAAMAAAAAACoAAwAAAAMAAAAAACoAA0AAAAMAAAAAACoAA4AAAAMAAAAAACpAAwAAAAMAAAAAACpAA0AAAAMAAAAAACpAA4AAAAMAAAAAACqAAwAAAAMAAAAAACqAA0AAAAMAAAAAACqAA4AAAAMAAAAAACrAAwAAAAMAAAAAACrAA0AAAAMAAAAAACrAA4AAAAMAAAAAACsAAwAAAAMAAAAAACsAA0AAAAMAAAAAACsAA4AAAAMAAAAAACtAAwAAAAMAAAAAACtAA0AAAAMAAAAAACtAA4AAAAMAAAAAACuAAwAAAAMAAAAAACuAA0AAAAMAAAAAACuAA4AAAAMAAAAAACvAAwAAAAMAAAAAACvAA0AAAAMAAAAAACvAA4AAAAMAAAAAACwAAwAAAAMAAAAAACwAA0AAAAMAAAAAACwAA4AAAAMAAAAAACxAAwAAAAMAAAAAACxAA0AAAAMAAAAAACxAA4AAAAMAAAAAACyAAwAAAAMAAAAAACyAA0AAAAMAAAAAACyAA4AAAAMAAAAAACzAAwAAAAMAAAAAACzAA0AAAAMAAAAAACzAA4AAAAMAAAAAAC0AAwAAAAMAAAAAAC0AA0AAAAMAAAAAAC0AA4AAAAMAAAAAAC1AAwAAAAMAAAAAAC1AA0AAAAMAAAAAAC1AA4AAAAMAAAAAAC2AAwAAAAMAAAAAAC2AA0AAAAMAAAAAAC2AA4AAAAMAAAAAAC3AAwAAAAMAAAAAAC3AA0AAAAMAAAAAAC3AA4AAAAMAAAAAAC4AAwAAAAMAAAAAAC4AA0AAAAMAAAAAAC4AA4AAAAMAAAAAAC5AAwAAAAMAAAAAAC5AA0AAAAMAAAAAAC5AA4AAAAMAAAAAAC6AAwAAAAMAAAAAAC6AA0AAAAMAAAAAAC6AA4AAAAMAAAAAAC7AAwAAAAMAAAAAAC7AA0AAAAMAAAAAAC7AA4AAAAMAAAAAAC8AAwAAAAMAAAAAAC8AA0AAAAMAAAAAAC8AA4AAAAMAAAAAAC9AAwAAAAMAAAAAAC9AA0AAAAMAAAAAAC9AA4AAAAMAAAAAAC+AAwAAAAMAAAAAAC+AA0AAAAMAAAAAAC+AA4AAAAMAAAAAAC/AAwAAAAMAAAAAAC/AA0AAAAMAAAAAAC/AA4AAAAMAAAAAADAAAwAAAAMAAAAAADAAA0AAAAMAAAAAADAAA4AAAAMAAAAAADBAAwAAAAMAAAAAADBAA0AAAAMAAAAAADBAA4AAAAMAAAAAADCAAwAAAAMAAAAAADCAA0AAAAMAAAAAADCAA4AAAAMAAAAAADDAAwAAAAMAAAAAADDAA0AAAAMAAAAAADDAA4AAAAMAAAAAADEAAwAAAAMAAAAAADEAA0AAAAMAAAAAADEAA4AAAAMAAAAAADFAAwAAAAMAAAAAADFAA0AAAAMAAAAAADFAA4AAAAMAAAAAADGAAwAAAAMAAAAAADGAA0AAAAMAAAAAADGAA4AAAAMAAAAAADHAAwAAAAMAAAAAADHAA0AAAAMAAAAAADHAA4AAAAMAAAAAAAAAAAAAAAMAAAAAAAAAAEAAAAMAAAAAAAAAAIAAAAMAAAAAAAAAAMAAAAMAAAAAAAAAAQAAAAMAAAAAAAAAAUAAAAMAAAAAAAAAAYAAAAMAAAAAAAAAAcAAAAMAAAAAAAAAAgAAAAMAAAAAAAAAAkAAAAMAAAAAAAAAAoAAAAMAAAAAAAAAAsAAAAMAAAAAADHAAAAAAAMAAAAAADHAAEAAAAMAAAAAADHAAIAAAAMAAAAAADHAAMAAAAMAAAAAADHAAQAAAAMAAAAAADHAAUAAAAMAAAAAADHAAYAAAAMAAAAAADHAAcAAAAMAAAAAADHAAgAAAAMAAAAAADHAAkAAAAMAAAAAADHAAoAAAAMAAAAAADHAAsAAAAMAAAAAAAIAAAAAAAMAAAAAAAIAAEAAAAMAAAAAAAIAAIAAAAMAAAAAAAIAAMAAAAMAAAAAAAIAAQAAAAMAAAAAAAIAAUAAAAMAAAAAAAIAAYAAAAMAAAAAAAIAAcAAAAMAAAAAAAIAAgAAAAMAAAAAAAIAAkAAAAMAAAAAAAIAAoAAAAMAAAAAAAJAAAAAAAMAAAAAAAJAAEAAAAMAAAAAAAJAAIAAAAMAAAAAAAJAAMAAAAMAAAAAAAJAAQAAAAMAAAAAAAJAAUAAAAMAAAAAAAJAAYAAAAMAAAAAAAJAAcAAAAMAAAAAAAJAAgAAAAMAAAAAAAJAAkAAAAMAAAAAAAJAAoAAAAMAAAAAAAKAAAAAAAMAAAAAAAKAAEAAAAMAAAAAAAKAAIAAAAMAAAAAAAKAAMAAAAMAAAAAAAKAAQAAAAMAAAAAAAKAAUAAAAMAAAAAAAKAAYAAAAMAAAAAAAKAAcAAAAMAAAAAAAKAAgAAAAMAAAAAAAKAAkAAAAMAAAAAAAKAAoAAAAMAAAAAAALAAAAAAAMAAAAAAALAAEAAAAMAAAAAAALAAIAAAAMAAAAAAALAAMAAAAMAAAAAAALAAQAAAAMAAAAAAALAAUAAAAMAAAAAAALAAYAAAAMAAAAAAALAAcAAAAMAAAAAAALAAgAAAAMAAAAAAALAAkAAAAMAAAAAAALAAoAAAAMAAAAAAAQAAsAAAAMAAAAAAAZAAsAAAAMAAAAAAAjAAUAAAAMAAAAAAAkAAUAAAAMAAAAAAAlAAUAAAAMAAAAAAA4AAAAAAAMAAAAAAA4AAEAAAAMAAAAAAA4AAIAAAAMAAAAAAA4AAMAAAAMAAAAAAA4AAQAAAAMAAAAAAA4AAUAAAAMAAAAAAA4AAYAAAAMAAAAAABAAAAAAAAMAAAAAABAAAEAAAAMAAAAAABAAAIAAAAMAAAAAABAAAMAAAAMAAAAAABAAAQAAAAMAAAAAABAAAUAAAAMAAAAAABAAAYAAAAMAAAAAABAAAcAAAAMAAAAAABAAAgAAAAMAAAAAABIAAgAAAAMAAAAAABJAAgAAAAMAAAAAABKAAgAAAAMAAAAAABNAAoAAAAMAAAAAABNAAsAAAAMAAAAAABOAAoAAAAMAAAAAABOAAsAAAAMAAAAAABPAAoAAAAMAAAAAABPAAsAAAAMAAAAAABQAAoAAAAMAAAAAABQAAsAAAAMAAAAAABRAAoAAAAMAAAAAABRAAsAAAAMAAAAAABSAAoAAAAMAAAAAABSAAsAAAAMAAAAAABTAAoAAAAMAAAAAABTAAsAAAAMAAAAAABUAAoAAAAMAAAAAABUAAsAAAAMAAAAAABVAAoAAAAMAAAAAABVAAsAAAAMAAAAAABWAAoAAAAMAAAAAABWAAsAAAAMAAAAAABXAAoAAAAMAAAAAABXAAsAAAAMAAAAAABYAAoAAAAMAAAAAABYAAsAAAAMAAAAAABeAAAAAAAMAAAAAABeAAEAAAAMAAAAAABeAAIAAAAMAAAAAABeAAMAAAAMAAAAAABeAAQAAAAMAAAAAABeAAUAAAAMAAAAAABeAAYAAAAMAAAAAABeAAcAAAAMAAAAAABeAAgAAAAMAAAAAAB1AAAAAAAMAAAAAAB1AAEAAAAMAAAAAAB1AAIAAAAMAAAAAAB1AAMAAAAMAAAAAAB1AAQAAAAMAAAAAAB1AAUAAAAMAAAAAAB1AAYAAAAMAAAAAACWAAcAAAAMAAAAAACWAAgAAAAMAAAAAACWAAkAAAAMAAAAAACWAAoAAAAMAAAAAACWAAsAAAAMAAAAAACXAAcAAAAMAAAAAACXAAgAAAAMAAAAAACXAAkAAAAMAAAAAACXAAoAAAAMAAAAAACXAAsAAAAMAAAAAADSAAwAAAAMAAAAAADSAA0AAAAMAAAAAADSAA4AAAAMAAAAAADTAAwAAAAMAAAAAADTAA0AAAAMAAAAAADTAA4AAAAMAAAAAADUAAwAAAAMAAAAAADUAA0AAAAMAAAAAADUAA4AAAAMAAAAAADVAAwAAAAMAAAAAADVAA0AAAAMAAAAAADVAA4AAAAMAAAAAADWAAwAAAAMAAAAAADWAA0AAAAMAAAAAADWAA4AAAAMAAAAAADXAAwAAAAMAAAAAADXAA0AAAAMAAAAAADXAA4AAAAMAAAAAADYAAwAAAAMAAAAAADYAA0AAAAMAAAAAADYAA4AAAAMAAAAAADZAAwAAAAMAAAAAADZAA0AAAAMAAAAAADZAA4AAAAMAAAAAADaAAwAAAAMAAAAAADaAA0AAAAMAAAAAADaAA4AAAAMAAAAAADbAAwAAAAMAAAAAADbAA0AAAAMAAAAAADbAA4AAAAMAAAAAADcAAwAAAAMAAAAAADcAA0AAAAMAAAAAADcAA4AAAAMAAAAAADdAAwAAAAMAAAAAADdAA0AAAAMAAAAAADdAA4AAAAMAAAAAADeAAwAAAAMAAAAAADeAA0AAAAMAAAAAADeAA4AAAAMAAAAAADfAAwAAAAMAAAAAADfAA0AAAAMAAAAAADfAA4AAAAMAAAAAADgAAwAAAAMAAAAAADgAA0AAAAMAAAAAADgAA4AAAAMAAAAAADhAAwAAAAMAAAAAADhAA0AAAAMAAAAAADhAA4AAAAMAAAAAADiAAwAAAAMAAAAAADiAA0AAAAMAAAAAADiAA4AAAAMAAAAAADjAAwAAAAMAAAAAADjAA0AAAAMAAAAAADjAA4AAAAMAAAAAADkAAwAAAAMAAAAAADkAA0AAAAMAAAAAADkAA4AAAAMAAAAAADlAAwAAAAMAAAAAADlAA0AAAAMAAAAAADlAA4AAAAMAAAAAADSAAAAAAAMAAAAAADSAAEAAAAMAAAAAADSAAIAAAAMAAAAAADSAAMAAAAMAAAAAADSAAQAAAAMAAAAAADSAAUAAAAMAAAAAADSAAYAAAAMAAAAAADSAAcAAAAMAAAAAADSAAgAAAAMAAAAAADSAAkAAAAMAAAAAADSAAoAAAAMAAAAAADSAAsAAAAMAAAAAADlAAAAAAAMAAAAAADlAAEAAAAMAAAAAADlAAIAAAAMAAAAAADlAAMAAAAMAAAAAADlAAQAAAAMAAAAAADlAAUAAAAMAAAAAADlAAYAAAAMAAAAAADlAAcAAAAMAAAAAADlAAgAAAAMAAAAAADlAAkAAAAMAAAAAADlAAoAAAAMAAAAAADlAAsAAAAMAAAAAAA=")
+tile_set = ExtResource("3_81r12")
 
-[node name="Sprite" type="Sprite2D" parent="Background/Mid" unique_id=1361812693]
-texture = ExtResource("4_4fix7")
-centered = false
+[node name="Rooms" type="Node2D" parent="." unique_id=646519455]
 
-[node name="Near" type="Parallax2D" parent="Background" unique_id=1875955578]
-scroll_scale = Vector2(0.8, 0)
-repeat_size = Vector2(320, 0)
-repeat_times = 3
+[node name="Hall" type="Node2D" parent="Rooms" unique_id=1242976271]
+script = ExtResource("4_woex1")
+bounds = Rect2i(0, 0, 4800, 312)
 
-[node name="Sprite" type="Sprite2D" parent="Background/Near" unique_id=1264036635]
-texture = ExtResource("5_kpvdf")
-centered = false
+[node name="Block0_12" type="Node2D" parent="Rooms/Hall" unique_id=597950126]
+position = Vector2(0, 288)
+script = ExtResource("5_lp31x")
+size = Vector2(2880, 72)
 
-[node name="Ground" type="TileMapLayer" parent="." unique_id=1937670928]
-tile_map_data = PackedByteArray("AAAAAAwAAAABAAAAAAAAAA0AAAAFAA0AAAAAAA4AAAAFAA4AAAABAAwAAAACAAAAAAABAA0AAAAGAA0AAAABAA4AAAAGAA4AAAACAAwAAAABAAAAAAACAA0AAAAHAA0AAAACAA4AAAAHAA4AAAADAAwAAAACAAAAAAADAA0AAAAIAA0AAAADAA4AAAAIAA4AAAAEAAwAAAABAAAAAAAEAA0AAAAJAA0AAAAEAA4AAAAJAA4AAAAFAAwAAAACAAAAAAAFAA0AAAAKAA0AAAAFAA4AAAAKAA4AAAAGAAwAAAABAAAAAAAGAA0AAAALAA0AAAAGAA4AAAALAA4AAAAHAAwAAAACAAAAAAAHAA0AAAAMAA0AAAAHAA4AAAAMAA4AAAAIAAwAAAABAAAAAAAIAA0AAAANAA0AAAAIAA4AAAAFAA4AAAAJAAwAAAACAAAAAAAJAA0AAAAOAA0AAAAJAA4AAAAGAA4AAAAKAAwAAAABAAAAAAAKAA0AAAAFAA0AAAAKAA4AAAAHAA4AAAALAAwAAAACAAAAAAALAA0AAAAGAA0AAAALAA4AAAAIAA4AAAAMAAwAAAABAAAAAAAMAA0AAAAHAA0AAAAMAA4AAAAJAA4AAAANAAwAAAACAAAAAAANAA0AAAAIAA0AAAANAA4AAAAKAA4AAAAOAAwAAAABAAAAAAAOAA0AAAAJAA0AAAAOAA4AAAALAA4AAAAPAAwAAAACAAAAAAAPAA0AAAAKAA0AAAAPAA4AAAAMAA4AAAAQAAwAAAABAAAAAAAQAA0AAAALAA0AAAAQAA4AAAAFAA4AAAARAAwAAAACAAAAAAARAA0AAAAMAA0AAAARAA4AAAAGAA4AAAASAAwAAAABAAAAAAASAA0AAAANAA0AAAASAA4AAAAHAA4AAAATAAwAAAACAAAAAAATAA0AAAAOAA0AAAATAA4AAAAIAA4AAAAUAAwAAAABAAAAAAAUAA0AAAAFAA0AAAAUAA4AAAAJAA4AAAAVAAwAAAACAAAAAAAVAA0AAAAGAA0AAAAVAA4AAAAKAA4AAAAWAAwAAAABAAAAAAAWAA0AAAAHAA0AAAAWAA4AAAALAA4AAAAXAAwAAAACAAAAAAAXAA0AAAAIAA0AAAAXAA4AAAAMAA4AAAAYAAwAAAABAAAAAAAYAA0AAAAJAA0AAAAYAA4AAAAFAA4AAAAZAAwAAAACAAAAAAAZAA0AAAAKAA0AAAAZAA4AAAAGAA4AAAAaAAwAAAABAAAAAAAaAA0AAAALAA0AAAAaAA4AAAAHAA4AAAAbAAwAAAACAAAAAAAbAA0AAAAMAA0AAAAbAA4AAAAIAA4AAAAcAAwAAAABAAAAAAAcAA0AAAANAA0AAAAcAA4AAAAJAA4AAAAdAAwAAAACAAAAAAAdAA0AAAAOAA0AAAAdAA4AAAAKAA4AAAAeAAwAAAABAAAAAAAeAA0AAAAFAA0AAAAeAA4AAAALAA4AAAAfAAwAAAACAAAAAAAfAA0AAAAGAA0AAAAfAA4AAAAMAA4AAAAgAAwAAAABAAAAAAAgAA0AAAAHAA0AAAAgAA4AAAAFAA4AAAAhAAwAAAACAAAAAAAhAA0AAAAIAA0AAAAhAA4AAAAGAA4AAAAiAAwAAAABAAAAAAAiAA0AAAAJAA0AAAAiAA4AAAAHAA4AAAAjAAwAAAACAAAAAAAjAA0AAAAKAA0AAAAjAA4AAAAIAA4AAAAkAAwAAAABAAAAAAAkAA0AAAALAA0AAAAkAA4AAAAJAA4AAAAlAAwAAAACAAAAAAAlAA0AAAAMAA0AAAAlAA4AAAAKAA4AAAAmAAwAAAABAAAAAAAmAA0AAAANAA0AAAAmAA4AAAALAA4AAAAnAAwAAAACAAAAAAAnAA0AAAAOAA0AAAAnAA4AAAAMAA4AAAAoAAwAAAABAAAAAAAoAA0AAAAFAA0AAAAoAA4AAAAFAA4AAAApAAwAAAACAAAAAAApAA0AAAAGAA0AAAApAA4AAAAGAA4AAAAqAAwAAAABAAAAAAAqAA0AAAAHAA0AAAAqAA4AAAAHAA4AAAArAAwAAAACAAAAAAArAA0AAAAIAA0AAAArAA4AAAAIAA4AAAAsAAwAAAABAAAAAAAsAA0AAAAJAA0AAAAsAA4AAAAJAA4AAAAtAAwAAAACAAAAAAAtAA0AAAAKAA0AAAAtAA4AAAAKAA4AAAAuAAwAAAABAAAAAAAuAA0AAAALAA0AAAAuAA4AAAALAA4AAAA2AAwAAAABAAAAAAA2AA0AAAAJAA0AAAA2AA4AAAALAA4AAAA3AAwAAAACAAAAAAA3AA0AAAAKAA0AAAA3AA4AAAAMAA4AAAA4AAwAAAABAAAAAAA4AA0AAAALAA0AAAA4AA4AAAAFAA4AAAA5AAwAAAACAAAAAAA5AA0AAAAMAA0AAAA5AA4AAAAGAA4AAAA6AAwAAAABAAAAAAA6AA0AAAANAA0AAAA6AA4AAAAHAA4AAAA7AAwAAAACAAAAAAA7AA0AAAAOAA0AAAA7AA4AAAAIAA4AAAA8AAwAAAABAAAAAAA8AA0AAAAFAA0AAAA8AA4AAAAJAA4AAAA9AAwAAAACAAAAAAA9AA0AAAAGAA0AAAA9AA4AAAAKAA4AAAA+AAwAAAABAAAAAAA+AA0AAAAHAA0AAAA+AA4AAAALAA4AAAA/AAwAAAACAAAAAAA/AA0AAAAIAA0AAAA/AA4AAAAMAA4AAABAAAwAAAABAAAAAABAAA0AAAAJAA0AAABAAA4AAAAFAA4AAABBAAwAAAACAAAAAABBAA0AAAAKAA0AAABBAA4AAAAGAA4AAABCAAwAAAABAAAAAABCAA0AAAALAA0AAABCAA4AAAAHAA4AAABDAAwAAAACAAAAAABDAA0AAAAMAA0AAABDAA4AAAAIAA4AAABEAAwAAAABAAAAAABEAA0AAAANAA0AAABEAA4AAAAJAA4AAABFAAwAAAACAAAAAABFAA0AAAAOAA0AAABFAA4AAAAKAA4AAAAAAAAAAAAMAAAAAABFAAAAAAAMAAAAAAAAAAEAAAAMAAAAAABFAAEAAAAMAAAAAAAAAAIAAAAMAAAAAABFAAIAAAAMAAAAAAAAAAMAAAAMAAAAAABFAAMAAAAMAAAAAAAAAAQAAAAMAAAAAABFAAQAAAAMAAAAAAAAAAUAAAAMAAAAAABFAAUAAAAMAAAAAAAAAAYAAAAMAAAAAABFAAYAAAAMAAAAAAAAAAcAAAAMAAAAAABFAAcAAAAMAAAAAAAAAAgAAAAMAAAAAABFAAgAAAAMAAAAAAAAAAkAAAAMAAAAAABFAAkAAAAMAAAAAAAAAAoAAAAMAAAAAABFAAoAAAAMAAAAAAAAAAsAAAAMAAAAAABFAAsAAAAMAAAAAAACAAkAAAAKAAAAAAACAAoAAAAMAAAAAAACAAsAAAAMAAAAAAADAAkAAAAKAAAAAAADAAoAAAAMAAAAAAADAAsAAAAMAAAAAAAKAAAAAAAMAAAAAAAKAAEAAAAMAAAAAAAKAAIAAAAMAAAAAAAKAAMAAAAMAAAAAAAKAAQAAAAMAAAAAAAKAAUAAAAMAAAAAAAKAAYAAAAMAAAAAAAKAAcAAAAMAAAAAAAKAAgAAAAMAAAAAAAKAAkAAAAMAAAAAAAQAAAAAAAMAAAAAAAQAAEAAAAMAAAAAAAQAAIAAAAMAAAAAAAQAAMAAAAMAAAAAAAQAAQAAAAMAAAAAAAQAAUAAAAMAAAAAAAQAAYAAAAMAAAAAAAQAAcAAAAMAAAAAAAQAAgAAAAMAAAAAAAQAAkAAAAMAAAAAAA9AAAAAAAMAAAAAAA9AAEAAAAMAAAAAAA9AAIAAAAMAAAAAAA9AAMAAAAMAAAAAAA9AAQAAAAMAAAAAAA9AAUAAAAMAAAAAAA9AAYAAAAMAAAAAAA9AAcAAAAMAAAAAAA9AAgAAAAMAAAAAAA9AAkAAAAMAAAAAAAXAAoAAAAKAAAAAAAXAAsAAAAMAAAAAAAYAAoAAAAKAAAAAAAYAAsAAAAMAAAAAAAZAAoAAAAKAAAAAAAZAAsAAAAMAAAAAAAaAAoAAAAKAAAAAAAaAAsAAAAMAAAAAAAbAAoAAAAKAAAAAAAbAAsAAAAMAAAAAAAcAAoAAAAKAAAAAAAcAAsAAAAMAAAAAAAhAAYAAAAKAAAAAAAhAAcAAAAMAAAAAAAhAAgAAAAMAAAAAAAiAAYAAAAKAAAAAAAjAAYAAAAKAAAAAAAkAAYAAAAKAAAAAAA5AAsAAAAKAAAAAAA=")
-tile_set = ExtResource("6_lgee7")
+[node name="Block126_12" type="Node2D" parent="Rooms/Hall" unique_id=121273204]
+position = Vector2(3024, 288)
+script = ExtResource("5_lp31x")
+size = Vector2(192, 72)
 
-[node name="Rooms" type="Node2D" parent="." unique_id=1428345548]
+[node name="Block142_12" type="Node2D" parent="Rooms/Hall" unique_id=253620459]
+position = Vector2(3408, 288)
+script = ExtResource("5_lp31x")
+size = Vector2(1392, 72)
 
-[node name="Stage" type="Node2D" parent="Rooms" unique_id=1402345470]
-script = ExtResource("7_v7c36")
-bounds = Rect2i(0, 0, 1680, 360)
+[node name="Block0_0" type="Node2D" parent="Rooms/Hall" unique_id=670702984]
+script = ExtResource("5_lp31x")
+size = Vector2(24, 288)
 
-[node name="Start" type="Marker2D" parent="Rooms/Stage" unique_id=446018251]
-position = Vector2(180, 288)
+[node name="Block199_0" type="Node2D" parent="Rooms/Hall" unique_id=1985865902]
+position = Vector2(4776, 0)
+script = ExtResource("5_lp31x")
+size = Vector2(24, 288)
 
-[node name="WoodenCrates" type="StaticBody2D" parent="Rooms/Stage" unique_id=1937604036]
-position = Vector2(252, 288)
-script = ExtResource("8_emkem")
+[node name="Start" type="Marker2D" parent="Rooms/Hall" unique_id=386848644]
+position = Vector2(72, 288)
 
-[node name="GlassPane" type="StaticBody2D" parent="Rooms/Stage" unique_id=110772190]
-position = Vector2(396, 288)
-script = ExtResource("8_emkem")
-substance = 0
+[node name="SignBASICS" type="Node2D" parent="Rooms/Hall" unique_id=2053249222]
+position = Vector2(40, 150)
+script = ExtResource("6_fxn7p")
+title = "BASICS"
+hint = "Walk: arrows. Run: hold Shift. Jump: Space.
+Crouch (hold down) to get under the beam.
+Fall against a wall to slide down it.
+Punch: J. Pick up the mic stand: punch swings it."
 
-[node name="FlightCase" type="CharacterBody2D" parent="Rooms/Stage" unique_id=1629410587]
-position = Vector2(492, 288)
-script = ExtResource("9_sv6i5")
+[node name="Block8_0" type="Node2D" parent="Rooms/Hall" unique_id=273562841]
+position = Vector2(192, 0)
+script = ExtResource("5_lp31x")
+size = Vector2(96, 264)
 
-[node name="ElectricFloor" type="Area2D" parent="Rooms/Stage" unique_id=246498760]
-position = Vector2(996, 288)
-script = ExtResource("10_3gelk")
+[node name="MicStand" type="Area2D" parent="Rooms/Hall" unique_id=1564978023]
+position = Vector2(348, 288)
+script = ExtResource("7_s7iew")
+item = ExtResource("8_shnc5")
+
+[node name="Block16_11" type="Node2D" parent="Rooms/Hall" unique_id=1985880552]
+position = Vector2(384, 264)
+script = ExtResource("5_lp31x")
+size = Vector2(24, 24)
+style = 1
+
+[node name="Block25_11" type="Node2D" parent="Rooms/Hall" unique_id=1461282505]
+position = Vector2(600, 264)
+script = ExtResource("5_lp31x")
+size = Vector2(24, 24)
+style = 1
+
+[node name="PenRat" type="CharacterBody2D" parent="Rooms/Hall" unique_id=781652729]
+position = Vector2(480, 288)
+script = ExtResource("9_w3lva")
+
+[node name="SignJOEP" type="Node2D" parent="Rooms/Hall" unique_id=170483989]
+position = Vector2(720, 150)
+script = ExtResource("6_fxn7p")
+title = "JOEP"
+hint = "Special (K): hack what's in reach, even
+through a wall plug. Instrument (L): a
+shockwave that knocks out rats and hacks
+every device around (the camera!)."
+
+[node name="ElectricFloor" type="Area2D" parent="Rooms/Hall" unique_id=1508057933]
+position = Vector2(1044, 288)
+script = ExtResource("10_dynl7")
 kind = 1
-width = 120.0
+width = 216.0
 
-[node name="HackPanel" type="Area2D" parent="Rooms/Stage" unique_id=620819205]
-position = Vector2(852, 144)
-script = ExtResource("11_81r12")
+[node name="Block35_5" type="Node2D" parent="Rooms/Hall" unique_id=1856188794]
+position = Vector2(840, 120)
+script = ExtResource("5_lp31x")
+size = Vector2(72, 24)
+style = 2
+
+[node name="HackPanel" type="Area2D" parent="Rooms/Hall" unique_id=1763392783]
+position = Vector2(876, 120)
+script = ExtResource("11_sskff")
 kind = 1
 targets = Array[NodePath]([NodePath("../ElectricFloor")])
 
-[node name="Bridge" type="StaticBody2D" parent="Rooms/Stage" unique_id=1175592262]
-position = Vector2(1128, 296)
-script = ExtResource("12_woex1")
-style = 1
-size = Vector2(168, 8)
+[node name="WallPlug" type="Node2D" parent="Rooms/Hall" unique_id=1385873673]
+position = Vector2(804, 276)
+script = ExtResource("12_afbtb")
+target = NodePath("../HackPanel")
+
+[node name="Camera" type="Node2D" parent="Rooms/Hall" unique_id=1388711297]
+position = Vector2(1296, 192)
+script = ExtResource("13_jmbjo")
+view = Vector2(120, 96)
+targets = Array[NodePath]([NodePath("../CameraGate")])
+
+[node name="Block56_0" type="Node2D" parent="Rooms/Hall" unique_id=1196618223]
+position = Vector2(1344, 0)
+script = ExtResource("5_lp31x")
+size = Vector2(24, 168)
+
+[node name="CameraGate" type="StaticBody2D" parent="Rooms/Hall" unique_id=1162492741]
+position = Vector2(1356, 288)
+script = ExtResource("14_ofcga")
+size = Vector2(24, 120)
 solid = false
 
-[node name="Lever" type="Area2D" parent="Rooms/Stage" unique_id=1965201760]
-position = Vector2(1332, 288)
-script = ExtResource("11_81r12")
-targets = Array[NodePath]([NodePath("../Bridge")])
+[node name="Amp" type="Node2D" parent="Rooms/Hall" unique_id=486486882]
+position = Vector2(1404, 288)
+script = ExtResource("15_1fuus")
 
-[node name="Rat" type="CharacterBody2D" parent="Rooms/Stage" unique_id=1516155399]
-position = Vector2(1428, 288)
-script = ExtResource("13_lp31x")
+[node name="SignJAY" type="Node2D" parent="Rooms/Hall" unique_id=2129020635]
+position = Vector2(1440, 150)
+script = ExtResource("6_fxn7p")
+title = "JAY"
+hint = "Special (K): lift the flight case and
+throw it (K again), or throw a mate up.
+Instrument (L): slap bass: glass breaks,
+cases fly, everyone near gets a bubble."
 
-[node name="Bouncer" type="Area2D" parent="Rooms/Stage" unique_id=1719770403]
-position = Vector2(1476, 288)
-script = ExtResource("14_fxn7p")
+[node name="GlassWall" type="StaticBody2D" parent="Rooms/Hall" unique_id=1366616552]
+position = Vector2(1548, 288)
+script = ExtResource("16_3p2er")
+substance = 0
+size = Vector2(24, 72)
 
-[node name="Beer" type="Area2D" parent="Rooms/Stage" unique_id=1033874508]
-position = Vector2(228, 288)
-script = ExtResource("15_s7iew")
+[node name="Block64_0" type="Node2D" parent="Rooms/Hall" unique_id=1009900313]
+position = Vector2(1536, 0)
+script = ExtResource("5_lp31x")
+size = Vector2(24, 216)
 
-[node name="BonusBeer" type="Area2D" parent="Rooms/Stage" unique_id=1054544381]
-position = Vector2(72, 216)
-script = ExtResource("15_s7iew")
+[node name="FlightCase" type="CharacterBody2D" parent="Rooms/Hall" unique_id=441512707]
+position = Vector2(1656, 288)
+script = ExtResource("17_dwwc2")
 
-[node name="Exit" type="Area2D" parent="Rooms/Stage" unique_id=281279367]
-position = Vector2(1620, 288)
-script = ExtResource("16_shnc5")
+[node name="Block72_8" type="Node2D" parent="Rooms/Hall" unique_id=1547315074]
+position = Vector2(1728, 192)
+script = ExtResource("5_lp31x")
+size = Vector2(72, 24)
+style = 1
+
+[node name="ShelfBeer" type="Area2D" parent="Rooms/Hall" unique_id=362257585]
+position = Vector2(1764, 192)
+script = ExtResource("7_s7iew")
+
+[node name="Block77_10" type="Node2D" parent="Rooms/Hall" unique_id=693681153]
+position = Vector2(1848, 240)
+script = ExtResource("5_lp31x")
+size = Vector2(288, 48)
+style = 1
+
+[node name="Spikes" type="Area2D" parent="Rooms/Hall" unique_id=766514122]
+position = Vector2(1968, 240)
+script = ExtResource("10_dynl7")
+
+[node name="SignTHEGERM" type="Node2D" parent="Rooms/Hall" unique_id=1767556477]
+position = Vector2(2160, 150)
+script = ExtResource("6_fxn7p")
+title = "THE GERM"
+hint = "Special (K): rage punch, through rats and
+crates (in the air: a slam). Instrument (L):
+Drumbeat Master. L stops time, L again
+rewinds, L once more plays. Beat the gate!"
+
+[node name="Crates" type="StaticBody2D" parent="Rooms/Hall" unique_id=1309851954]
+position = Vector2(2268, 288)
+script = ExtResource("16_3p2er")
+size = Vector2(24, 72)
+
+[node name="Block94_0" type="Node2D" parent="Rooms/Hall" unique_id=70213852]
+position = Vector2(2256, 0)
+script = ExtResource("5_lp31x")
+size = Vector2(24, 216)
+
+[node name="Rat1" type="CharacterBody2D" parent="Rooms/Hall" unique_id=2042431844]
+position = Vector2(2352, 288)
+script = ExtResource("9_w3lva")
+
+[node name="Rat2" type="CharacterBody2D" parent="Rooms/Hall" unique_id=754391054]
+position = Vector2(2448, 288)
+script = ExtResource("9_w3lva")
+start_dir = -1.0
+
+[node name="CrackedSlab" type="StaticBody2D" parent="Rooms/Hall" unique_id=1251767952]
+position = Vector2(2520, 288)
+script = ExtResource("16_3p2er")
+substance = 3
+size = Vector2(48, 12)
+
+[node name="GateLever" type="Area2D" parent="Rooms/Hall" unique_id=1375649329]
+position = Vector2(2604, 288)
+script = ExtResource("11_sskff")
+targets = Array[NodePath]([NodePath("../TimedGate")])
+
+[node name="Block117_0" type="Node2D" parent="Rooms/Hall" unique_id=1453962267]
+position = Vector2(2808, 0)
+script = ExtResource("5_lp31x")
+size = Vector2(24, 168)
+
+[node name="TimedGate" type="StaticBody2D" parent="Rooms/Hall" unique_id=1270004925]
+position = Vector2(2820, 288)
+script = ExtResource("18_7dcle")
+open_time = 0.6
+size = Vector2(24, 120)
+
+[node name="MovingPlatform" type="AnimatableBody2D" parent="Rooms/Hall" unique_id=6812332]
+position = Vector2(2880, 264)
+script = ExtResource("19_y81fw")
+
+[node name="SignNIKKI" type="Node2D" parent="Rooms/Hall" unique_id=1142517597]
+position = Vector2(3072, 150)
+script = ExtResource("6_fxn7p")
+title = "NIKKI"
+hint = "Special (K): grapple the hook and swing
+(jump lets go). Instrument (L): a guitar
+solo bridge for everyone; hold up for
+stairs over the wall."
+
+[node name="PitHook" type="Node2D" parent="Rooms/Hall" unique_id=696852088]
+position = Vector2(3288, 120)
+script = ExtResource("20_yppcr")
+
+[node name="Block150_7" type="Node2D" parent="Rooms/Hall" unique_id=469697068]
+position = Vector2(3600, 168)
+script = ExtResource("5_lp31x")
+size = Vector2(48, 120)
+
+[node name="WallHook" type="Node2D" parent="Rooms/Hall" unique_id=155439926]
+position = Vector2(3576, 48)
+script = ExtResource("20_yppcr")
+
+[node name="SignGEOFF" type="Node2D" parent="Rooms/Hall" unique_id=371247867]
+position = Vector2(3744, 150)
+script = ExtResource("6_fxn7p")
+title = "GEOFF"
+hint = "Special (K): bubbles. Security can't look
+away. Instrument (L): the voice and the
+charm: bouncers, sound guys, staff doors.
+Not rats. And Geoff buys cheaper."
+
+[node name="Rat" type="CharacterBody2D" parent="Rooms/Hall" unique_id=1500435331]
+position = Vector2(3840, 288)
+script = ExtResource("9_w3lva")
+
+[node name="Bouncer" type="Area2D" parent="Rooms/Hall" unique_id=1754249757]
+position = Vector2(4032, 288)
+script = ExtResource("21_yms81")
+
+[node name="Security" type="Area2D" parent="Rooms/Hall" unique_id=827414486]
+position = Vector2(4176, 288)
+script = ExtResource("21_yms81")
+role = "Security"
+refusal = "Move along."
+agreement = "...fine. Quick, though."
+distractible = true
+tint = Color(0.28, 0.32, 0.42, 1)
+
+[node name="SoundGuy" type="Area2D" parent="Rooms/Hall" unique_id=1051544277]
+position = Vector2(4296, 288)
+script = ExtResource("21_yms81")
+role = "Sound guy"
+refusal = "Don't touch my desk!"
+agreement = "Geoff! Love your work. Go on."
+
+[node name="TipJar" type="Area2D" parent="Rooms/Hall" unique_id=388529883]
+position = Vector2(4368, 288)
+script = ExtResource("22_u7rvq")
+
+[node name="Bar" type="Area2D" parent="Rooms/Hall" unique_id=1874405866]
+position = Vector2(4464, 288)
+script = ExtResource("23_lv3i5")
+
+[node name="StaffDoor" type="Area2D" parent="Rooms/Hall" unique_id=1793621534]
+position = Vector2(4560, 288)
+script = ExtResource("24_tlq83")
+target_door = NodePath("../../GreenRoom/FromHall")
+locked = true
+charm_lock = true
+
+[node name="Exit" type="Area2D" parent="Rooms/Hall" unique_id=2035149095]
+position = Vector2(4728, 288)
+script = ExtResource("24_tlq83")
 target_scene = "res://scenes/world/world_map.tscn"
 target_spawn = &"StudioDoor"
 
-[node name="Labels" type="Node2D" parent="." unique_id=1844548273]
+[node name="GreenRoom" type="Node2D" parent="Rooms" unique_id=1381692274]
+script = ExtResource("4_woex1")
+bounds = Rect2i(5040, 0, 480, 312)
 
-[node name="@Label@44122" type="Label" parent="Labels" unique_id=1708860419]
-offset_left = 104.0
-offset_top = 222.0
-offset_right = 105.0
-offset_bottom = 245.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
-text = "< bonus beer: Jay on The Germ's raised shield (B + up)"
+[node name="Block210_12" type="Node2D" parent="Rooms/GreenRoom" unique_id=683593736]
+position = Vector2(5040, 288)
+script = ExtResource("5_lp31x")
+size = Vector2(480, 72)
 
-[node name="@Label@44123" type="Label" parent="Labels" unique_id=778395021]
-offset_left = 156.0
-offset_top = 228.0
-offset_right = 156.0
-offset_bottom = 228.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
-text = "1 The Germ: punch (A)"
+[node name="Block210_0" type="Node2D" parent="Rooms/GreenRoom" unique_id=1196182092]
+position = Vector2(5040, 0)
+script = ExtResource("5_lp31x")
+size = Vector2(24, 288)
 
-[node name="@Label@44124" type="Label" parent="Labels" unique_id=103859774]
-offset_left = 304.0
-offset_top = 228.0
-offset_right = 304.0
-offset_bottom = 228.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
-text = "2 Jay: bass wave (A)"
+[node name="Block229_0" type="Node2D" parent="Rooms/GreenRoom" unique_id=1947592952]
+position = Vector2(5496, 0)
+script = ExtResource("5_lp31x")
+size = Vector2(24, 288)
 
-[node name="@Label@44125" type="Label" parent="Labels" unique_id=624290857]
-offset_left = 444.0
-offset_top = 212.0
-offset_right = 444.0
-offset_bottom = 212.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
-text = "push the case / throw (A)"
+[node name="SignGREENROOM" type="Node2D" parent="Rooms/GreenRoom" unique_id=1274707695]
+position = Vector2(5140, 150)
+script = ExtResource("6_fxn7p")
+title = "GREEN ROOM"
+hint = "Staff only. Free beer for the charming."
 
-[node name="@Label@44126" type="Label" parent="Labels" unique_id=2144612744]
-offset_left = 624.0
-offset_top = 112.0
-offset_right = 625.0
-offset_bottom = 135.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
-text = "3 Joep: run-jump at the wall, hold A + up to climb, E to hack"
+[node name="FromHall" type="Area2D" parent="Rooms/GreenRoom" unique_id=1404929665]
+position = Vector2(5100, 288)
+script = ExtResource("24_tlq83")
+target_door = NodePath("../../Hall/StaffDoor")
 
-[node name="@Label@44127" type="Label" parent="Labels" unique_id=1541669062]
-offset_left = 948.0
-offset_top = 252.0
-offset_right = 948.0
-offset_bottom = 252.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
-text = "electric"
+[node name="Beer1" type="Area2D" parent="Rooms/GreenRoom" unique_id=294281033]
+position = Vector2(5300, 288)
+script = ExtResource("7_s7iew")
 
-[node name="@Label@44128" type="Label" parent="Labels" unique_id=140082967]
-offset_left = 1092.0
-offset_top = 212.0
-offset_right = 1092.0
-offset_bottom = 212.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
-text = "4 Nikki: double jump + hover, pull the lever"
+[node name="Beer2" type="Area2D" parent="Rooms/GreenRoom" unique_id=507958458]
+position = Vector2(5340, 288)
+script = ExtResource("7_s7iew")
 
-[node name="@Label@44129" type="Label" parent="Labels" unique_id=768113788]
-offset_left = 1356.0
-offset_top = 212.0
-offset_right = 1356.0
-offset_bottom = 212.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
-text = "5 Geoff: talk (E), bubbles (A)"
+[node name="Manager" type="Area2D" parent="Rooms/GreenRoom" unique_id=88194655]
+position = Vector2(5424, 288)
+script = ExtResource("21_yms81")
+role = "Manager"
+refusal = "Who let you in here?"
+agreement = "Geoff, darling! Help yourself."
 
-[node name="@Label@44130" type="Label" parent="Labels" unique_id=1038309574]
-offset_left = 1596.0
-offset_top = 236.0
-offset_right = 1596.0
-offset_bottom = 236.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
-text = "back to the studio >"
+[node name="Band" type="Node2D" parent="." unique_id=1097071013 instance=ExtResource("25_6xl58")]
+script = ExtResource("26_wjatr")
 
-[node name="Band" type="Node2D" parent="." unique_id=1097071013 instance=ExtResource("17_w3lva")]
-script = ExtResource("18_dynl7")
+[node name="HUD" type="CanvasLayer" parent="." unique_id=1866626290 instance=ExtResource("27_mg7vn")]
+script = ExtResource("28_6mwfc")
 
-[node name="HUD" type="CanvasLayer" parent="." unique_id=1866626290 instance=ExtResource("19_sskff")]
-script = ExtResource("20_afbtb")
+[node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=34814218 instance=ExtResource("29_pegku")]
+script = ExtResource("30_1v8si")
 
-[node name="DebugOverlay" type="CanvasLayer" parent="." unique_id=34814218 instance=ExtResource("21_jmbjo")]
-script = ExtResource("22_ofcga")
+[node name="DevHint" type="CanvasLayer" parent="." unique_id=899174863]
 
-[node name="DevHint" type="CanvasLayer" parent="." unique_id=450327155]
-
-[node name="Hint" type="Label" parent="DevHint" unique_id=598544671]
+[node name="Hint" type="Label" parent="DevHint" unique_id=1243424953]
 offset_left = 8.0
 offset_top = 344.0
 offset_right = 8.0
 offset_bottom = 344.0
+theme_override_font_sizes/font_size = 8
 theme_override_colors/font_color = Color(1, 1, 1, 0.75)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.8)
 theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
-text = "Move: arrows/WASD  Jump: Space  J: ability  K: 2nd/drink  E: door/talk/use item  T/F/V: next/give/drop item  1-5/Tab: switch  G: gather  Esc: pause"
+text = "Move: arrows/WASD  Shift: run  Down: crouch  Space: jump  J: punch  K: special  L: instrument  E: door/talk  R/T/F/V: item  1-5/Tab: switch  G: gather  Esc: pause"

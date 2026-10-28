@@ -3,15 +3,16 @@ extends CanvasLayer
 ## autoload. Leaves pauses it didn't make alone (death, respawn).
 
 const CONTROLS := [
-	["Move", "Arrows / WASD"],
+	["Move / crouch", "Arrows / WASD   (hold down to crouch)"],
+	["Run (sprint on the map)", "hold Shift"],
 	["Jump", "Space / C   (down + jump: drop through a platform)"],
-	["Ability", "J / X"],
-	["Second ability / drink beer", "K / Z"],
+	["Punch (swings a weapon)", "J / X"],
+	["Special skill", "K / Z"],
+	["Instrument skill", "L"],
 	["Interact (doors, talk) or use item", "E"],
-	["Use item", "R   (in the van: radio)"],
+	["Use item (beer: drink)", "R   (in the van: radio)"],
 	["Next item / give / drop", "T / F / V"],
 	["Switch member", "1-5, Tab, Q"],
-	["Sprint (world map)", "hold left Shift"],
 	["Gather the band (hold)", "G"],
 	["Pause", "Esc / P"],
 ]

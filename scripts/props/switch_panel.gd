@@ -2,8 +2,9 @@
 class_name SwitchPanel
 extends Interactable
 ## Lever or hack panel that triggers its targets (Gate.trigger(),
-## Hazard.trigger()...). A hack panel only works for members who can hack
-## (Joep); a lever works for anyone. One use until the room resets.
+## Hazard.trigger()...). A hack panel only works for members who can hack:
+## Joep's special (K) or E, a wall plug wired to it, or his shockwave. A lever
+## works for anyone. One use until the room resets.
 
 enum Kind { LEVER, HACK_PANEL }
 
@@ -24,6 +25,17 @@ func _ready() -> void:
 	super()
 	if not Engine.is_editor_hint():
 		add_to_group(&"resettable")
+		if kind == Kind.HACK_PANEL:
+			add_to_group(&"hackable")
+
+
+## Joep's hack (special, wall plug or shockwave). Levers aren't electric.
+func hack(_by: BandMember = null) -> bool:
+	if kind != Kind.HACK_PANEL or used:
+		return false
+	activate()
+	say("Hacked!", 1.0)
+	return true
 
 
 func can_interact(_member: BandMember) -> bool:

@@ -14,15 +14,15 @@ _Snapshot 2026-10-28, `main` at `03a59f8` (122 commits); Phase A (§6) done the 
 | Controls | Celeste | Tight shared controller (coyote, buffer, jump cut, corner correction); members differ only in speed, jump height and one verb |
 | Look and pace | Kingdom Eighties | A calm, reflective world map (walk, bike, van) between tense levels (gigs) |
 
-**Cast and gating matrix**
+**Cast and skills** (v2, 2026-10-28; full reference and gating matrix in [`skills.md`](skills.md)). Everyone walks, runs, crouches, wall-slides and punches (with a weapon if one is selected).
 
-| Member | Instrument | Movement | Unique | Breaks |
-|---|---|---|---|---|
-| Joep | keys | wall-slide, wall-jump, climb | hacks panels / gates | — |
-| Jay | bass | — | push/pull cases, **throws a member up** | glass, fragile walls (bass wave) |
-| Nikki | guitar | double jump, guitar hover | (cable bridge, later) | — |
-| The Germ | drums | ground pound | drumstick shield, raised as a platform | wood, crates, cracked floors |
-| Geoff | vocals | — | persuades humans, distraction bubble; 1 HP | — |
+| Member | Instrument | Special (K) | Instrument skill (L) |
+|---|---|---|---|
+| Joep | keys | hack panels, doors, cameras, amps; through wall plugs | electric shockwave: rats out/stunned, devices switched |
+| Jay | bass | lift and throw flight cases (and band members) | slap bass: rats back, glass breaks, cases fly, defence bubble |
+| The Germ | drums | rage punch on fire through rats and crates (slam in the air) | Drumbeat Master: stop, rewind, play time |
+| Nikki | guitar | grapple hooks and swing | guitar solo: a note bridge or ramp for the whole band |
+| Geoff | vocals | bubble gun: distracts some people | the voice and the charm: persuades people, opens staff doors; better prices; 1 HP |
 
 **Loop**: world map (Amsterdam, 18–20k px wide: polder → old town → canal belt → flats → industry → band storage → airport) → talk to Geordie (tour manager) → reach the venue → play the level → "Where is Geoff?" finale (he's asleep in the drum case; lure him out with rolling papers) → Finished / Completed (hidden NPCs) → back to Geordie.
 
@@ -91,7 +91,7 @@ Not relevant (can be removed to cut noise): `fps-shooter`, `card-game`, `tower-d
 | M3 Celeste controller + stamina | ✅ | hands-on feel check still open |
 | M4 Band / party system | ✅ | hands-on check still open |
 | M5 Level framework | ✅ | |
-| M6 Abilities | ✅ | |
+| M6 Abilities | ✅ → reworked as M6b | skill set v2 (2026-10-28): run, crouch, wall-slide, punch for all + special/instrument per member ([`skills.md`](skills.md)) |
 | M7 Items & inventory | ✅ | |
 | M8 World map | ✅ (well beyond scope) | 18k+ px city, traffic, day/night, radio, airport, SpriteCook-refined rows |
 | M9 Slice level "Café De Kat" | ✅ | `scenes/levels/venue_puzzle.tscn`: BackEntrance, Storage, Bar, Backstage, Finale; Gwinny hidden NPC; end screen |
@@ -105,7 +105,7 @@ Extra work outside the v1 plan: day/night cycle (`day_config.tres`), base / part
 - ~23k lines of GDScript in `scripts/` + `tests/` (122 scripts in `scripts/`), 4 shaders.
 - 12 headless test scripts (`tests/`): baseline, movement feel, band, level, critical path, abilities, items, world, controls, base, venue puzzle, touch pad. Each counts its checks so a crash can't pass.
 - Static check: all 238 `res://` references in scripts, scenes and resources point at files that exist.
-- **All 12 tests pass** on Godot 4.7.2 (2026-10-28, `tools/run_tests.sh`, ~5 min): abilities 41 checks, band 24, base 8, baseline 14, controls 27, critical path 20, items 23, level 40, movement feel 26, touch pad, venue puzzle 14, world 63.
+- **All 12 tests pass** on Godot 4.7.2 (2026-10-28, `tools/run_tests.sh`, ~5 min): abilities 69 checks (skill set v2), band 24, base 8, baseline 14, controls 29, critical path 20, items 23, level 40, movement feel 26, touch pad, venue puzzle 14, world 63.
 - The Web export works headless and boots in Chromium without console errors.
 
 ### Deployment

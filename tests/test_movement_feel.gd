@@ -187,7 +187,7 @@ func _test_stamina() -> void:
 	_check(not s.is_exhausted and events == ["exhausted", "recovered"], "recovers above the threshold and emits recovered")
 
 	s.settings = cfg.for_member(&"geoff")
-	_check(not s.enabled and not s.try_spend(1.0), "Geoff has no stamina pool")
+	_check(s.enabled and s.max_stamina < 100.0, "Geoff has a smaller pool (%.0f): running and his charm" % s.max_stamina)
 	s.queue_free()
 
 

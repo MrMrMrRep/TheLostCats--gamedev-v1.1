@@ -244,7 +244,9 @@ buttons; `sleep_fade` sets how slowly the screen fades.
 House windows, street lamps, cars and the van light up by themselves.
 
 ### Stamina: `resources/config/stamina_config.tres`
-Per member and per ability.
+Per member (pool, regen) and per skill: run, Jay's lift, The Germ's rage
+punch, and each instrument skill, plus their shared cooldown. What the skills
+do: [`skills.md`](skills.md).
 
 ---
 

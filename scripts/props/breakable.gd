@@ -2,8 +2,9 @@
 class_name Breakable
 extends StaticBody2D
 ## Solid thing that one member can break. Which attack breaks which substance:
-##   GLASS, FRAGILE_WALL -> "resonance" (Jay's bass wave)
-##   WOOD, CRACKED_FLOOR -> "impact" (The Germ's punch / ground pound)
+##   GLASS, FRAGILE_WALL -> "resonance" (Jay's slap bass)
+##   WOOD, CRACKED_FLOOR -> "impact" (The Germ's rage punch / slam)
+## Ordinary punches break nothing.
 ## Origin = bottom centre. Resets on death. Placeholder art drawn in code.
 
 signal broken

@@ -6,7 +6,8 @@ extends CanvasLayer
 ## The buttons send the same input actions as the keyboard (jump, action_a,
 ## interact, ...), so the game, menus, dialogue and pause need no changes.
 ## Left side: a joystick that appears where the thumb lands (push it all the
-## way to sprint on the world map). Right side: action buttons.
+## way to run / sprint; down crouches). Right side: action buttons (punch,
+## special, instrument, jump, E, items).
 ##
 ## Dev switch: F7 (debug builds) or the user arg `-- --touchpad` forces the
 ## pad on and lets the left mouse button act as a finger.
@@ -25,8 +26,8 @@ const TITLE_SCENE := "res://scenes/ui/title.tscn"   # no pad here: the menu is t
 # right half stay the same distance from the right edge on wider screens.
 const BUTTONS := [
 	[&"jump", "JUMP", Vector2(598, 306), 24.0],
-	[&"action_a", "ABIL", Vector2(546, 322), 18.0],
-	[&"action_b", "AB 2", Vector2(562, 264), 16.0],
+	[&"action_a", "PNCH", Vector2(546, 322), 18.0],
+	[&"action_b", "SPCL", Vector2(562, 264), 16.0],
 	[&"interact", "E", Vector2(612, 248), 15.0],
 	[&"use_item", "ITEM", Vector2(512, 212), 11.0],
 	[&"item_next", "NEXT", Vector2(540, 212), 11.0],
@@ -35,6 +36,7 @@ const BUTTONS := [
 	[&"gather", "GATH", Vector2(614, 142), 12.0],
 	[&"switch_next", "SWAP", Vector2(614, 112), 12.0],
 	[&"pause", "II", Vector2(614, 82), 12.0],
+	[&"instrument", "INST", Vector2(510, 280), 15.0],
 ]
 
 const COL_FILL := Color(0.05, 0.06, 0.1, 0.35)

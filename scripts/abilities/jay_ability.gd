@@ -1,42 +1,124 @@
 class_name JayAbility
 extends MemberAbility
-## Jay (bass): walks into flight cases to push them; A next to a case grabs it to
-## pull while held. A next to another band member throws them up (~4 tiles).
-## Otherwise A fires a bass wave: breaks glass and fragile walls, knocks rats
-## back. Pushing/pulling slows him down.
+## Jay (bass). Walks into flight cases to push them.
+## Special (B): lift and throw heavy things. Next to a flight case: lift it
+## over his head (slower walk, drains stamina; drops it when he runs out), B
+## again throws it. Next to a band member: throws them up (~4 tiles).
+## Instrument (L): slap bass. Sub-bass waves fill the space in front of him:
+## rats are knocked back, glass and fragile walls shatter, flight cases are
+## shoved away, and the members around him get a short defence bubble.
 
 const PUSH_SPEED := 70.0
-const PULL_SPEED := 60.0
+const CARRY_MULT := 0.7
+const CARRY_OFFSET := Vector2(0, -30)       # the case's bottom, over his head
+const LIFT_RANGE := 8.0                     # px gap to a case he can grab
 const THROW_RANGE := 22.0
 const THROW_HEIGHT_TILES := 4.3
-const WAVE_SIZE := Vector2(96, 28)
-const WAVE_COOLDOWN := 0.6
-const WAVE_FX_TIME := 0.3
-const WAVE_KNOCKBACK := Vector2(180, -120)
-const MASK_WORLD_AND_ENEMY := (1 << 0) | (1 << 3)
+const CASE_THROW := Vector2(220, -160)
+const SLAP_SIZE := Vector2(144, 56)         # mid range, in front
+const SLAP_KNOCKBACK := Vector2(220, -140)
+const SLAP_CASE_PUSH := Vector2(260, -60)
+const BUBBLE_RADIUS := 84.0
+const BUBBLE_TIME := 2.5
+const SLAP_FX_TIME := 0.35
 
-var pulling: FlightCase
+var carrying: FlightCase
 var pushing := false
 
-var _wave_cooldown := 0.0
-var _wave_fx := 0.0
+var _slap_fx := 0.0
 
 
 func physics_begin(delta: float) -> void:
-	super(delta)
-	_wave_cooldown = maxf(_wave_cooldown - delta, 0.0)
-	if _wave_fx > 0.0:
-		_wave_fx = maxf(_wave_fx - delta, 0.0)
+	if _slap_fx > 0.0:
+		_slap_fx = maxf(_slap_fx - delta, 0.0)
 		queue_redraw()
-	if pulling and (not member.in_a_held or not member.is_on_floor()):
-		pulling = null
-	if member.in_a_pressed:
-		_action()
+	if carrying:
+		member.stamina.spend(config.lift_per_sec * delta if config else 0.0)
+		if member.stamina.is_exhausted:
+			drop()
+	super(delta)
+
+
+func special() -> void:
+	if carrying:
+		throw_case()
+		return
+	var others := nearby_members(THROW_RANGE)
+	if not others.is_empty() and member.is_on_floor() and others[0].is_on_floor():
+		throw_member(others[0])
+		return
+	var case := _case_in_front()
+	if case and member.is_on_floor():
+		lift(case)
+		return
+	member.show_text("Nothing heavy here", Color(0.75, 0.8, 1.0))
+
+
+func lift(case: FlightCase) -> void:
+	if member.stamina.is_exhausted:
+		member.show_text("Too tired", Color(0.75, 0.8, 1.0))
+		return
+	carrying = case
+	case.lift()
+	member.play_action(&"special")
+	_place_case()
+
+
+func throw_case() -> void:
+	var case := carrying
+	carrying = null
+	member.play_action(&"throw")
+	case.throw(Vector2(member.facing * CASE_THROW.x, CASE_THROW.y))
+
+
+## Put it down in front of him (out of stamina, or hurt).
+func drop() -> void:
+	if carrying == null:
+		return
+	var case := carrying
+	carrying = null
+	case.global_position = member.global_position + Vector2(member.facing * 20.0, -6)
+	case.throw(Vector2.ZERO)
+
+
+func throw_member(other: BandMember) -> void:
+	var height: float = THROW_HEIGHT_TILES * TILE_PX
+	other.velocity = Vector2(member.facing * 50.0, -sqrt(2.0 * other.gravity_value() * height))
+	member.play_action(&"throw")
+
+
+func instrument_cost() -> float:
+	return config.slap_cost if config else 0.0
+
+
+func instrument() -> void:
+	slap_bass()
+
+
+func slap_bass() -> void:
+	_slap_fx = SLAP_FX_TIME
+	Audio.sfx(&"bass", 0.0)
+	GameFeel.shake(member.get_tree(), 2.0, 0.2)
+	var f := member.facing
+	var center: Vector2 = member.global_position + Vector2(f * (SLAP_SIZE.x / 2.0 + 4.0), -18)
+	for body in query_box(center, SLAP_SIZE, MASK_WORLD | MASK_ENEMY | (1 << 6)):
+		if body is Breakable:
+			body.break_by(&"resonance")
+		elif body is Rat:
+			body.knockback(Vector2(f * SLAP_KNOCKBACK.x, SLAP_KNOCKBACK.y))
+		elif body is FlightCase and body != carrying:
+			body.blast(Vector2(f * SLAP_CASE_PUSH.x, SLAP_CASE_PUSH.y))
+	member.shield_left = BUBBLE_TIME
+	member.queue_redraw()
+	for m in nearby_members(BUBBLE_RADIUS):
+		m.shield_left = BUBBLE_TIME
+		m.queue_redraw()
+	queue_redraw()
 
 
 func speed_mult() -> float:
-	if pulling:
-		return PULL_SPEED / member.profile.run_speed()
+	if carrying:
+		return CARRY_MULT
 	if pushing:
 		return PUSH_SPEED / member.profile.run_speed()
 	return 1.0
@@ -44,10 +126,9 @@ func speed_mult() -> float:
 
 func physics_end(_delta: float) -> void:
 	pushing = false
-	if pulling:
-		member.facing = signf(pulling.global_position.x - member.global_position.x)
-		if member.in_dir != 0.0 and member.in_dir == -member.facing:
-			pulling.push(member.in_dir * PULL_SPEED)
+	if carrying:
+		_place_case()
+		member.anim_override = &""
 		return
 	if not member.is_on_floor() or member.in_dir == 0.0:
 		return
@@ -59,61 +140,42 @@ func physics_end(_delta: float) -> void:
 			pushing = true
 
 
+func on_hurt() -> void:
+	drop()
+
+
 func reset() -> void:
-	pulling = null
+	super()
+	if carrying and is_instance_valid(carrying):
+		carrying.reset_state()
+	carrying = null
 	pushing = false
-	_wave_cooldown = 0.0
-	_wave_fx = 0.0
+	_slap_fx = 0.0
 	queue_redraw()
 
 
-func _action() -> void:
-	var others := nearby_members(THROW_RANGE)
-	if not others.is_empty() and member.is_on_floor() and others[0].is_on_floor():
-		throw_member(others[0])
-		return
-	var case: FlightCase = _case_in_front()
-	if case and member.is_on_floor():
-		pulling = case
-		return
-	bass_wave()
+func on_deactivated() -> void:
+	drop()                                  # don't leave a case floating over an idle Jay
+	super()
 
 
-func throw_member(other: BandMember) -> void:
-	var height: float = THROW_HEIGHT_TILES * TILE_PX
-	other.velocity = Vector2(member.facing * 50.0, -sqrt(2.0 * other.gravity_value() * height))
-	member.play_action(&"attack")
-
-
-func bass_wave() -> void:
-	if _wave_cooldown > 0.0:
-		return
-	_wave_cooldown = WAVE_COOLDOWN
-	_wave_fx = WAVE_FX_TIME
-	Audio.sfx(&"bass", 0.0)
-	member.play_action(&"attack")
-	var center: Vector2 = member.global_position + Vector2(member.facing * (WAVE_SIZE.x / 2.0 + 4.0), -14)
-	for body in query_box(center, WAVE_SIZE, MASK_WORLD_AND_ENEMY):
-		if body is Breakable:
-			body.break_by(&"resonance")
-		elif body is Rat:
-			body.knockback(Vector2(member.facing * WAVE_KNOCKBACK.x, WAVE_KNOCKBACK.y))
-	queue_redraw()
+func _place_case() -> void:
+	carrying.global_position = member.global_position + CARRY_OFFSET
 
 
 func _case_in_front() -> FlightCase:
-	var hit := member.move_and_collide(Vector2(member.facing * 3.0, 0), true)
+	var hit := member.move_and_collide(Vector2(member.facing * LIFT_RANGE, 0), true)
 	return hit.get_collider() as FlightCase if hit else null
 
 
 func _draw() -> void:
-	if _wave_fx <= 0.0:
+	if _slap_fx <= 0.0:
 		return
-	var t: float = 1.0 - _wave_fx / WAVE_FX_TIME
+	var t: float = 1.0 - _slap_fx / SLAP_FX_TIME
 	var f: float = member.facing
-	for i in 3:
-		var r := 10.0 + (t * WAVE_SIZE.x) - i * 14.0
+	for i in 4:
+		var r := 10.0 + (t * SLAP_SIZE.x) - i * 16.0
 		if r <= 4.0:
 			continue
 		var start := -PI / 4 if f > 0 else PI * 0.75
-		draw_arc(Vector2(0, -14), r, start, start + PI / 2, 10, Color(0.6, 0.85, 1.0, 1.0 - t), 1.5)
+		draw_arc(Vector2(0, -16), r, start, start + PI / 2, 12, Color(0.6, 0.85, 1.0, 1.0 - t), 2.0)
