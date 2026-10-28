@@ -122,4 +122,21 @@ Rules the code keeps:
 
 Making or changing the kit: the raw SpriteCook sheets are in `tools/spritecook/canal_kit_src/` (the `open_*` ones are SpriteCook edits of composites: kit front + view + kit front, so the corner houses match the row); `python3 -I tools/spritecook/canal_kit.py` cuts them into `assets/sprites/world/canal2/` and writes `scripts/world/canal_kit.gd`. The scene change itself: `tools/scene_edits/2026_10_28_canal_kit.py`.
 
-**Next**: the old town (its churches and market are still in the older style), then the ring road east of the canal belt (back lane westbound, front lane eastbound, parking strip with trees in front, after concept 2).
+## 9. Old town, red light district and flats (2026-10-28)
+
+The same kit system now runs from the old town (x 7822) to the end of the flats (x 17276). Each kit `CityBlock` has a `district` (its house pool, `CanalRow.POOLS`); each `SideOpening` too (its views, `SideOpening.DISTRICT_PIECES`). Landmarks are `KitLandmark` nodes: the rows stop at them like at an opening.
+
+| x (world) | District | Houses | Openings and landmarks |
+|---|---|---|---|
+| 7822–8990 | **Old town** (Nieuwmarkt side) | shops with shutters: cheese, brown café, bike shop, antiques, curiosa; old houses with geraniums | church (`lm_church`), an old-town side street with a tower at the end, the **Waag** with market stalls (`lm_waag`) |
+| 8990–9884 | **Red light district** (De Wallen), zone `RedLight` (`red_light`) | the oldest leaning houses: brown bars (BRUINE KROEG), coffeeshops, red-neon windows with red curtains | a Wallen steeg with red windows, the **Oude Kerk** (`lm_oude_kerk`), the Oudezijds Achterburgwal canal |
+| 9884–16436 | Canal belt | §8 | §8 |
+| 16436–17276 | **Flats** (the ring) | 19th-century blocks with balconies: supermarket, café with awning, launderette | a ring side street with trees; asphalt road with a centre line in front (`Street.kit_road`), parked cars |
+
+**The red light district at night** (`RedLightNight`, `scripts/world/red_light.gd`):
+- Every red-curtain window glows red with a halo (`CanalKit.NEON`, found by the slicer), and a red haze hangs over the street.
+- Neon signs on about half the Wallen houses (heart, cocktail, BAR, leaf, guitar, star) buzz on at dusk and flicker now and then.
+- Night people come out (from `night_now` 0.35): a hoodie, a woman in a leather jacket, a man in a long coat, a man in a cap, a tourist with a beer. They stand around and the smokers' cigarettes glow and smoke; the daytime walkers thin out to a quarter there.
+- Some of them are sellers: when the band's leader walks past (30 px) one leans in, "Psst... want something?", with a little sound and a speech bubble. It never stops the game and there is nothing to buy yet; the same one waits 14 s before asking again. Tuning: the constants at the top of `red_light.gd`.
+
+**Next**: the park/theatre and hotels west of the old town, and the industry and airport in the east, are still in the older style; then the ring road lanes and parking after concept 2.

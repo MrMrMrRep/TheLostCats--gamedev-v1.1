@@ -403,5 +403,114 @@
   "canal2_composite_s2": {
     "asset_id": "5d205a3e-ff51-4816-8eb9-1246cacea23c",
     "label": "Uploaded composite (source of the opening edits)"
+  },
+  "canal2_ot_shop_a": {
+    "asset_id": "c527f4c2-6783-4fc1-a318-bbdc76d9c1a3",
+    "label": "District kit source ot_shop_a (tools/spritecook/canal_kit_src/ot_shop_a.png)",
+    "sha12": "b0cc2b9a2f55"
+  },
+  "canal2_ot_shop_b": {
+    "asset_id": "358088c4-a57c-4028-b85d-0aab15b9a2b2",
+    "label": "District kit source ot_shop_b (tools/spritecook/canal_kit_src/ot_shop_b.png)",
+    "sha12": "aee413e0f7b0"
+  },
+  "canal2_ot_res_b": {
+    "asset_id": "cad3fb06-fc23-4471-801a-c2657556fcae",
+    "label": "District kit source ot_res_b (tools/spritecook/canal_kit_src/ot_res_b.png)",
+    "sha12": "e9b455419b09"
+  },
+  "canal2_wal_a": {
+    "asset_id": "d9f29b1a-5ab6-41a7-8519-6bc3adba51ca",
+    "label": "District kit source wal_a (tools/spritecook/canal_kit_src/wal_a.png)",
+    "sha12": "dd3f76688bdc"
+  },
+  "canal2_wal_b": {
+    "asset_id": "0229c73e-cb6f-4561-976e-eca6e050d80a",
+    "label": "District kit source wal_b (tools/spritecook/canal_kit_src/wal_b.png)",
+    "sha12": "4d1f4a023887"
+  },
+  "canal2_waag_a": {
+    "asset_id": "1894d523-e12d-4e76-bdac-4251ebbc83fd",
+    "label": "District kit source waag_a (tools/spritecook/canal_kit_src/waag_a.png)",
+    "sha12": "ef3d9e703773"
+  },
+  "canal2_church_n1": {
+    "asset_id": "8abd89d5-3d5c-4e96-a904-6856a6b76c0d",
+    "label": "District kit source church_n1 (tools/spritecook/canal_kit_src/church_n1.png)",
+    "sha12": "55a38ffe310e"
+  },
+  "canal2_church_oude": {
+    "asset_id": "80bc84e9-5b33-486a-afe0-a5554c52c4ae",
+    "label": "District kit source church_oude (tools/spritecook/canal_kit_src/church_oude.png)",
+    "sha12": "5df87e63c355"
+  },
+  "canal2_neon_a": {
+    "asset_id": "c2cc155d-05ec-485c-9864-56014aaf2d99",
+    "label": "District kit source neon_a (tools/spritecook/canal_kit_src/neon_a.png)",
+    "sha12": "94e28fe41d21"
+  },
+  "canal2_night_b": {
+    "asset_id": "9b5adc33-4c88-4327-98d6-b2b3c25a0124",
+    "label": "District kit source night_b (tools/spritecook/canal_kit_src/night_b.png)",
+    "sha12": "97f948cea760"
+  },
+  "canal2_flats_a": {
+    "asset_id": "98ef761f-816c-48a4-96c1-a1afc8e7b286",
+    "label": "District kit source flats_a (tools/spritecook/canal_kit_src/flats_a.png)",
+    "sha12": "9d69d5c19776"
+  },
+  "canal2_flats_b": {
+    "asset_id": "ebdb02dd-0540-41f7-aeea-33c394c9d34d",
+    "label": "District kit source flats_b (tools/spritecook/canal_kit_src/flats_b.png)",
+    "sha12": "f03b89b39804"
+  },
+  "canal2_open_ots": {
+    "asset_id": "bf2dd7b3-ae49-4b37-9e57-658af7c3f841",
+    "label": "District kit source open_ots (tools/spritecook/canal_kit_src/open_ots.png)",
+    "sha12": "5049c61f8721"
+  },
+  "canal2_open_otg": {
+    "asset_id": "8b4ae348-cee6-463d-b6b7-10daee73341c",
+    "label": "District kit source open_otg (tools/spritecook/canal_kit_src/open_otg.png)",
+    "sha12": "201985bc390d"
+  },
+  "canal2_open_wc": {
+    "asset_id": "a803fe33-51da-4915-9579-e3edb843ef8a",
+    "label": "District kit source open_wc (tools/spritecook/canal_kit_src/open_wc.png)",
+    "sha12": "0108760d597d"
+  },
+  "canal2_open_ws": {
+    "asset_id": "a1fa3486-54dd-425e-9db2-e02be07d7a12",
+    "label": "District kit source open_ws (tools/spritecook/canal_kit_src/open_ws.png)",
+    "sha12": "5ea35eeb3298"
+  },
+  "canal2_open_fs": {
+    "asset_id": "2b05d2fd-b3e9-46d6-907c-47cfa4ed9a30",
+    "label": "District kit source open_fs (tools/spritecook/canal_kit_src/open_fs.png)",
+    "sha12": "89e7a74e7db1"
+  },
+  "canal2_composite_flats": {
+    "asset_id": "6ef21a0e-928f-4505-8086-fa324da3d16d",
+    "label": "Uploaded composite (source of an edit)"
+  },
+  "canal2_composite_ot_street": {
+    "asset_id": "e283b6c8-5382-45d1-b90e-8f0720a7aa47",
+    "label": "Uploaded composite (source of an edit)"
+  },
+  "canal2_composite_ot_steeg": {
+    "asset_id": "60ab3931-04f2-4ded-8717-b3d282ae7e59",
+    "label": "Uploaded composite (source of an edit)"
+  },
+  "canal2_composite_wal_canal": {
+    "asset_id": "822a620d-e551-403b-94de-6a047dab95fe",
+    "label": "Uploaded composite (source of an edit)"
+  },
+  "canal2_composite_wal_steeg": {
+    "asset_id": "06e12cec-6fda-4c3b-b154-338b98fd7ada",
+    "label": "Uploaded composite (source of an edit)"
+  },
+  "canal2_composite_fl_street": {
+    "asset_id": "829e7b42-2739-4f1c-858d-7fee004d38f4",
+    "label": "Uploaded composite (source of an edit)"
   }
 }

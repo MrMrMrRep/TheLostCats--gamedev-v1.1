@@ -33,6 +33,16 @@ FACADE_SHEETS = {
     "fac_b1": ["shop_orange", "shop_cream", "shop_brown", "shop_red"],
     "fac_c2": ["merchant", "spout_green", "bakery"],
     "fac_e1": ["door_venue", "door_studio", "door_cafe"],
+    # Old town (Nieuwmarkt / Zeedijk side): shops and older houses with shutters.
+    "ot_shop_a": ["ot_cheese", "ot_cafe", "ot_bike", "ot_antique"],
+    "ot_shop_b": ["ot_cheese2", "ot_cafe2", "ot_bike2", "ot_curio"],
+    "ot_res_b": ["ot_res_a", "ot_res_b", "ot_res_c", "ot_res_d"],
+    # De Wallen: the oldest narrow houses, red neon windows, brown bar, coffeeshop.
+    "wal_a": ["wal_kroeg", "wal_neon_a", "wal_coffee", "wal_neon_b"],
+    "wal_b": ["wal_kroeg2", "wal_coffee2", "wal_neon_c", "wal_neon_d"],
+    # The flats east of the canal belt: 19th-century ring blocks with shops.
+    "flats_a": ["flat_shop", "flat_cafe", "flat_laund"],
+    "flats_b": ["flat_shop2", "flat_cafe2", "flat_laund2"],
 }
 # Door houses: the empty sign band above the double door (piece px, measured).
 SIGNS = {
@@ -48,7 +58,20 @@ GABLES = {
     "res_red": 3, "res_wine": 3, "shop_red": 3,
     "merchant": 4, "spout_green": 5,
     "door_venue": 4, "door_studio": 5, "door_cafe": 2,
+    "ot_cheese": 2, "ot_cafe": 0, "ot_bike": 1, "ot_antique": 6,
+    "ot_cheese2": 2, "ot_cafe2": 0, "ot_bike2": 1, "ot_curio": 6,
+    "ot_res_a": 6, "ot_res_b": 2, "ot_res_c": 0, "ot_res_d": 1,
+    "wal_kroeg": 2, "wal_neon_a": 0, "wal_coffee": 7, "wal_neon_b": 6,
+    "wal_kroeg2": 6, "wal_coffee2": 2, "wal_neon_c": 0, "wal_neon_d": 3,
+    "flat_shop": 8, "flat_cafe": 10, "flat_laund": 9, "flat_shop2": 10, "flat_cafe2": 8, "flat_laund2": 9,
 }
+# Landmarks: one building each, a row anchor like an opening (KitLandmark).
+LANDMARKS = {"waag_a": "lm_waag", "church_n1": "lm_church", "church_oude": "lm_oude_kerk"}
+# Night-life people for the red light district (RedLightNight): drawn at twice
+# the band's size, so halved (nearest) to stand at band scale.
+NIGHT_SHEET = ("night_b", ["nl_hoodie", "nl_leather", "nl_coat", "nl_cap", "nl_tourist"])
+# Neon signs: one sheet, read row by row, left to right.
+NEON_SHEET = ("neon_a", ["neon_heart", "neon_cocktail", "neon_bar", "neon_leaf", "neon_guitar", "neon_star"])
 # Strips (backgrounds, trees, openings) and tiling textures: source -> name.
 STRIPS = {
     "back4": "back_row", "back3": "skyline_low",
@@ -62,6 +85,8 @@ STRIPS = {
 OPENINGS = {
     "open_c1b": "open_canal_a", "open_c1c": "open_canal_b", "open_c2a": "open_canal_c", "open_c2b": "open_canal_d",
     "open_s1a": "open_street_a", "open_s1b": "open_street_b", "open_s2b": "open_steeg",
+    "open_ots": "open_ot_street", "open_otg": "open_ot_steeg",
+    "open_wc": "open_wal_canal", "open_ws": "open_wal_steeg", "open_fs": "open_fl_street",
 }
 TREES = {"tree_a": ["elm_0", "elm_1"], "trees": ["elm_2", "elm_3", "elm_4"]}
 TEXTURES = {"tex_setts": "setts", "tex_paver": "paver", "tex_wall": "quay_wall"}
@@ -224,7 +249,67 @@ def main():
             strips[name] = piece.size
     for src, name in TEXTURES.items():
         clean(Image.open(SRC / (src + ".png")), 32, hard_alpha=False).save(OUT / (name + ".png"))
-    write_gd(facades, strips, mouths)
+    for src, name in LANDMARKS.items():
+        img = clean(Image.open(SRC / (src + ".png")), 64)
+        img = img.crop(bbox(img))
+        img = ground_trim(img)
+        img = img.crop(bbox(img))
+        img.save(OUT / (name + ".png"))
+        facades[name] = (img.size, windows(img))
+    src, names = NEON_SHEET
+    sheet = clean(Image.open(SRC / (src + ".png")), 32)
+    al = np.array(sheet)[:, :, 3] > 0
+    boxes = []
+    seen = np.zeros_like(al)
+    for y in range(al.shape[0]):
+        for x in range(al.shape[1]):
+            if al[y, x] and not seen[y, x]:
+                q = deque([(y, x)])
+                seen[y, x] = True
+                xs, ys = [], []
+                while q:
+                    cy, cx = q.popleft()
+                    xs.append(cx)
+                    ys.append(cy)
+                    for ny in range(cy - 2, cy + 3):          # tubes may break: join near pixels
+                        for nx in range(cx - 2, cx + 3):
+                            if 0 <= ny < al.shape[0] and 0 <= nx < al.shape[1] and al[ny, nx] and not seen[ny, nx]:
+                                seen[ny, nx] = True
+                                q.append((ny, nx))
+                if len(xs) > 30:
+                    boxes.append((min(xs), min(ys), max(xs) + 1, max(ys) + 1))
+    boxes = [bx for bx in boxes if not any(o != bx and o[0] <= bx[0] and o[1] <= bx[1] and o[2] >= bx[2] and o[3] >= bx[3] for o in boxes)]
+    boxes.sort(key=lambda bx: (round(bx[1] / 40), bx[0]))
+    assert len(boxes) == len(names), boxes
+    for bx, name in zip(boxes, names):
+        piece = sheet.crop(bx)
+        piece.save(OUT / (name + ".png"))
+        strips[name] = piece.size
+    src, names = NIGHT_SHEET
+    raw = Image.open(SRC / (src + ".png")).convert("RGBA")
+    small = clean(raw.resize((raw.width // 2, raw.height // 2), Image.NEAREST), 40)
+    al = np.array(small)[:, :, 3] > 0
+    cols = al.any(0)
+    spans, x = [], 0
+    while x < len(cols):
+        if cols[x]:
+            st = x
+            while x < len(cols) and (cols[x] or (x + 1 < len(cols) and cols[x + 1])):
+                x += 1
+            if x - st > 6:
+                spans.append((st, x))
+        x += 1
+    assert len(spans) == len(names), spans
+    for (a0, a1), name in zip(spans, names):
+        piece = small.crop((a0, 0, a1, small.height))
+        piece = piece.crop(bbox(piece))
+        piece.save(OUT / (name + ".png"))
+        strips[name] = piece.size
+    neons = {}
+    for name in facades:
+        if name.startswith("wal_") or name.startswith("open_wal"):
+            neons[name] = neon_windows(Image.open(OUT / (name + ".png")))
+    write_gd(facades, strips, mouths, neons)
     for k, (size, win) in facades.items():
         print(f"{k:12s} {size[0]:3d}x{size[1]:3d}  windows {len(win)}")
     for k, size in strips.items():
@@ -248,7 +333,51 @@ def water_mouth(img):
     return (x0, x1 + 1)
 
 
-def write_gd(facades, strips, mouths):
+def neon_windows(img):
+    """Red-light windows: red curtains framed by red neon tubes (piece px)."""
+    a = np.array(img.convert("RGBA")).astype(int)
+    r, g, b, al = a[:, :, 0], a[:, :, 1], a[:, :, 2], a[:, :, 3]
+    red = (al > 0) & (r > 110) & (g < 55) & (r > g * 2.5) & (r > b * 1.8)
+    grown = red.copy()                      # join the tube pieces and curtain of one window
+    for dy in range(-3, 4):
+        for dx in range(-3, 4):
+            grown |= np.roll(np.roll(red, dy, 0), dx, 1)
+    red = grown & (al > 0)
+    h, w = red.shape
+    seen = np.zeros_like(red)
+    out = []
+    for y in range(h):
+        for x in range(w):
+            if not red[y, x] or seen[y, x]:
+                continue
+            q = deque([(y, x)])
+            seen[y, x] = True
+            xs, ys = [], []
+            while q:
+                cy, cx = q.popleft()
+                xs.append(cx)
+                ys.append(cy)
+                for ny, nx in ((cy + 1, cx), (cy - 1, cx), (cy, cx + 1), (cy, cx - 1)):
+                    if 0 <= ny < h and 0 <= nx < w and red[ny, nx] and not seen[ny, nx]:
+                        seen[ny, nx] = True
+                        q.append((ny, nx))
+            x0, x1, y0, y1 = min(xs), max(xs) + 1, min(ys), max(ys) + 1
+            if 6 <= x1 - x0 <= 70 and 8 <= y1 - y0 <= 70 and len(xs) >= 20:
+                out.append((x0, y0, x1 - x0, y1 - y0))
+    return out
+
+
+def ground_trim(img):
+    """Drop a drawn ground line under a landmark (a thin dark full-width row)."""
+    a = np.array(img.convert("RGBA"))
+    last = a[-1]
+    op = last[:, 3] > 0
+    if op.mean() > 0.6 and np.median(last[op][:, :3].sum(1)) < 200:
+        return img.crop((0, 0, img.width, img.height - 1))
+    return img
+
+
+def write_gd(facades, strips, mouths, neons=None):
     lines = [
         "class_name CanalKit",
         "## The SpriteCook canal-belt kit (2026-10-28): flat facades, the back",
@@ -270,6 +399,9 @@ def write_gd(facades, strips, mouths):
     lines += ["}", "", "## Openings over a side canal: the water's columns at the bottom edge (texture px).", "const MOUTHS := {"]
     for name, (x0, x1) in mouths.items():
         lines.append(f'\t&"{name}": Vector2i({x0}, {x1}),')
+    lines += ["}", "", "## Red-light windows (red curtains, neon frames): lit red at night (texture px).", "const NEON := {"]
+    for name, rects in (neons or {}).items():
+        lines.append(f'\t&"{name}": [' + ", ".join(f"Rect2i({x}, {y}, {w}, {h})" for x, y, w, h in rects) + "],")
     lines += ["}", "", "## Gable silhouette per facade (neighbours differ).", "const GABLES := {"]
     for name, g in GABLES.items():
         lines.append(f'\t&"{name}": {g},')

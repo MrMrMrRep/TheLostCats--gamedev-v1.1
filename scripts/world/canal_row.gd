@@ -13,6 +13,15 @@ const POOL: Array[StringName] = [
 	&"shop_orange", &"shop_cream", &"shop_brown", &"shop_red",
 	&"merchant", &"spout_green", &"bakery",
 ]
+## Facades per district (CityBlock.district): which houses a row is made of.
+const POOLS := {
+	&"canal": POOL,
+	&"oldtown": [&"ot_cheese", &"ot_cafe", &"ot_bike", &"ot_antique", &"ot_cheese2", &"ot_cafe2", &"ot_bike2", &"ot_curio",
+		&"ot_res_a", &"ot_res_b", &"ot_res_c", &"ot_res_d"],
+	&"wallen": [&"wal_kroeg", &"wal_neon_a", &"wal_coffee", &"wal_neon_b", &"wal_kroeg2", &"wal_coffee2", &"wal_neon_c", &"wal_neon_d",
+		&"ot_res_a", &"ot_res_d"],
+	&"flats": [&"flat_shop", &"flat_cafe", &"flat_laund", &"flat_shop2", &"flat_cafe2", &"flat_laund2"],
+}
 const JOINT := 3                            # art px of dark party wall allowed between two facades
 const END_JOINT := 2                        # and at either end of a stretch
 const TRIES := 400
@@ -20,6 +29,8 @@ const ALLEY := &"alley"
 const ALLEY_MIN := 22                       # art px: the narrowest steeg
 const ALLEY_MAX := 84
 const ALLEY_VIEW := &"gap_street_b"         # cut from the middle of this view
+const NEON_RED := Color(1.0, 0.12, 0.22, 0.85)
+const NEON_HALO := Color(1.0, 0.1, 0.25, 0.4)
 const LIFT := 16                            # art px: the facades stand at the back of the pavement, the band walks on it
 
 static var _tex := {}
@@ -45,7 +56,8 @@ static func height(name: StringName) -> int:
 ## steeg, a narrow alley cut from the side-street view, and a steeg only ever
 ## stands between two houses. `avoid_left` / `avoid_right`: the gables of the
 ## neighbours outside the stretch. Returns [] when the stretch can't be filled.
-static func fill(x0: int, length: int, rng: RandomNumberGenerator, avoid_left := -1, avoid_right := -1) -> Array:
+static func fill(x0: int, length: int, rng: RandomNumberGenerator, avoid_left := -1, avoid_right := -1, district := &"canal") -> Array:
+	var pool: Array = POOLS.get(district, POOL)
 	if length <= 0:
 		return []
 	var best: Array = []
@@ -55,12 +67,12 @@ static func fill(x0: int, length: int, rng: RandomNumberGenerator, avoid_left :=
 		var total := 0
 		var last := avoid_left
 		while total < length - 110:
-			var n := _pick(rng, last, -1)
+			var n := _pick(rng, last, -1, pool)
 			seq.append(n)
 			total += width(n)
 			last = CanalKit.GABLES[n]
 		var longer := seq.duplicate()
-		longer.append(_pick(rng, last, avoid_right))
+		longer.append(_pick(rng, last, avoid_right, pool))
 		for opt: Array in [seq, longer]:
 			if opt.is_empty():
 				continue
@@ -90,15 +102,15 @@ static func fill(x0: int, length: int, rng: RandomNumberGenerator, avoid_left :=
 	return best
 
 
-static func _pick(rng: RandomNumberGenerator, not_gable: int, not_gable2: int) -> StringName:
+static func _pick(rng: RandomNumberGenerator, not_gable: int, not_gable2: int, pool: Array = POOL) -> StringName:
 	for i in 20:
-		var n: StringName = POOL[rng.randi_range(0, POOL.size() - 1)]
+		var n: StringName = pool[rng.randi_range(0, pool.size() - 1)]
 		if n == &"merchant" and rng.randf() < 0.8:
 			continue                        # a double-wide house now and then, not every few doors
 		var g: int = CanalKit.GABLES[n]
 		if g != not_gable and g != not_gable2:
 			return n
-	return POOL[0]
+	return pool[0]
 
 
 ## Lay out `seq` with a steeg of `alley` px just before facade `alley_at`
@@ -168,3 +180,7 @@ static func add_glow(glow: NightGlow, row: Array, at := Vector2.ZERO) -> void:
 		for r: Rect2i in CanalKit.WINDOWS.get(n, []):
 			var rr := Rect2(at + Vector2(x + r.position.x, top + r.position.y) * 0.5, Vector2(r.size) * 0.5)
 			glow.add_window(rr.grow(-0.5), NightGlow.window_threshold(rr.position.x, rr.position.y, false))
+		for r: Rect2i in CanalKit.NEON.get(n, []):   # red light district: the red windows come on first, with a halo
+			var rr := Rect2(at + Vector2(x + r.position.x, top + r.position.y) * 0.5, Vector2(r.size) * 0.5)
+			glow.add_window(rr, 0.02, NEON_RED)
+			glow.add_halo(rr.get_center(), maxf(rr.size.x, rr.size.y) * 1.6, 0.02, NEON_HALO)
