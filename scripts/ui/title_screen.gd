@@ -16,7 +16,8 @@ const NAME_COLOR := Color("ffd36b")
 const NAME_DIM := Color(1, 1, 1, 0.55)
 const INK := Color("1d2838")
 ## Commit time of this build (day/month and 24h), so a browser load can be checked.
-const BUILT := "28/10  00:17"
+## The deploy workflow (.github/workflows/web.yml) writes it before exporting.
+const BUILT := "dev"
 
 var _menu: MenuList
 var _sprites: Array[AnimatedSprite2D] = []

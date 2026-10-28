@@ -1,0 +1,32 @@
+name: Tests
+
+on:
+  push:
+    branches-ignore: [gh-pages]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  headless:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot
+          key: godot-4.7.2-${{ hashFiles('tools/install_godot.sh') }}
+
+      - name: Install Godot 4.7.2
+        run: |
+          tools/install_godot.sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Run headless tests
+        run: tools/run_tests.sh

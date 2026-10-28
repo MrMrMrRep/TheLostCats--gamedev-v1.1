@@ -168,13 +168,13 @@ Speeds are in **pixels per second** (the band walks 85; a canal house is about
 ### map_camera_config.tres: the world map camera
 | Value | Now | Meaning |
 |---|---|---|
-| zoom_walk / zoom_walk_moving | 3.0 / 2.4 | Standing / walking at full pace |
-| zoom_bike_slow / zoom_bike | 2.6 / 2.0 | On the bikes, slow / fast |
-| zoom_van_slow / zoom_van | 1.7 / 1.3 | Van parked / at speed |
+| zoom_walk / zoom_walk_moving | 1.5 / 1.333 | Standing / walking at full pace |
+| zoom_bike_slow / zoom_bike | 1.4 / 1.2 | On the bikes, slow / fast |
+| zoom_van_slow / zoom_van | 1.333 / 1.1 | Van parked / at speed |
 | zoom_road | 0.5 | The road trip (west of ScenicFrom) |
 | zoom_out_rate / zoom_in_rate | 1.1 / 0.28 | How fast the zoom changes |
 | tempo_settle | 2.5 | Seconds before the zoom calms down after slowing |
-| idle_after, zoom_idle, drift_* | 15 s, 1.5 | Standing still a while: the camera slowly wanders out and sways |
+| idle_after, zoom_idle, drift_* | 15 s, 1.1 | Standing still a while: the camera slowly wanders out and sways |
 | focus_cap, fit_margin, focus_lead | 170, 80, 34 | How the shot frames the group |
 | walk_look_ahead / drive_look_ahead | 80 / 160 | How far the view leads ahead |
 | water_share, water_min, water_max | 0.13, 22, 160 | How much canal shows under the street |

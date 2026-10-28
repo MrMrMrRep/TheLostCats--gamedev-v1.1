@@ -69,11 +69,11 @@ Zones blend over ~400 px (layers 4–6 crossfade by camera x), so driving out of
 
 ## 8. Sprite handoff spec (for the sprite-animation session)
 So new band sprites drop straight into the engine:
-- **One PNG sprite sheet per member**, transparent background, character facing **right**. Path: `public/assets/band/<id>/<id>.png` with `<id>` = `joep`, `jay`, `nikki`, `germ`, `geoff`
+- **One PNG sprite sheet per member**, transparent background, character facing **right**. Path: `assets/sprites/characters/<instrument>_<name>/<instrument>_<name>_sheet.png` (`keys_joep`, `bass_jay`, `guitar_nikki`, `drums_germ`, `singer_geoff`)
 - **Cell 56×56 px**, rows = animations, frames left to right; **feet touch the bottom edge of the cell**, body centred horizontally; body about **22×32 px** (the collision box is 12×28)
 - **Minimum animations** (row names): `idle`, `run`, `jump_start`, `jump`, `fall`, `land`, `hurt`, `death`
 - **Ability animations** (any order, any frame count): Joep `climb`, `wall_slide`; Jay `push`, `throw`, `bass_wave`; Nikki `hover` (standing on the guitar); The Germ `punch`, `air_attack` (ground pound), `shield`, `shield_up`; Geoff `talk`, `bubble`; everyone `drink`, `ride_bike` (sitting)
-- Per sheet, describe it in `public/assets/band/assets.json` like `public/assets/amwoods/assets.json` (`frame_size`, `columns`, `animations: [{name, frames: [[col,row]...], fps, loop}]`). The engine builds the SpriteFrames from that
+- Per sheet, describe it in a `<instrument>_<name>.json` next to the sheet (same shape as `public/assets/amwoods/assets.json`; `tools/sync_sprites.sh` copies finished sheets in from the separate `the-lost-cats--assets` repo) (`frame_size`, `columns`, `animations: [{name, frames: [[col,row]...], fps, loop}]`). The engine builds the SpriteFrames from that
 - Silhouettes should tell members apart at 32 px: Geoff (mic, singer pose), Jay (bass), Joep (keys/keytar), Nikki (guitar), The Germ (drumsticks, sturdy build)
 
 ## 9. Decisions so far (2026-10-19)

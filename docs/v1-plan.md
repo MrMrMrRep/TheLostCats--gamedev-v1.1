@@ -168,11 +168,11 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 - [x] End screen: Finished / Completed (NPCs x/y), back to the world map → Geordie completes the quest
 
 ### M10 — Pace, audio & juice
-- [ ] Two music loops (calm world map / tense level), 1.5 s crossfade on door transitions
-- [ ] Zoom tween 1× ↔ 2× on world ↔ level transitions
-- [ ] Landing dust, jump puff, squash/stretch on jump/land, hit-stop 60–80 ms on hits, small screen shake on ground-pound/break, particles on breakables
-- [ ] Placeholder SFX: jump, land, hit, death, pickup, door, switch member, bass wave, hack, talk blips
-- [ ] Title screen + pause menu (resume / restart room / quit)
+- [x] Two music loops (calm world map / tense level), 1.5 s crossfade on door transitions (`scripts/autoload/audio.gd`)
+- [ ] Zoom tween 1× ↔ 2× on world ↔ level transitions (doors fade; no zoom tween yet)
+- [x] Landing dust, jump puff, squash/stretch on jump/land, hit-stop on hits, screen shake on ground-pound/break/hurt (`scripts/fx/`)
+- [x] Placeholder SFX (`audio/sfx/`, made by `tools/make_audio.py`): jump, land, hit, death, pickup, coin, door, switch, bass, hack, lever, break, pound, punch, squeak, talk, sleep, gwinny
+- [x] Title screen + pause menu (resume / restart room / back to the map)
 
 ### M11 — Playtest, tune & balance
 - [ ] Run the full slice start → finish without errors in the console
@@ -215,34 +215,7 @@ Blockout with grey tiles first, then dress with the amwoods tileset. One new ide
 ## Running the tests
 
 ```bash
-/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_baseline_movement.gd
+tools/run_tests.sh
 ```
 
-```bash
-/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_movement_feel.gd
-```
-
-```bash
-/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_band.gd
-```
-
-```bash
-/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_level.gd
-```
-
-```bash
-/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_critical_path.gd
-```
-
-```bash
-/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_abilities.gd
-```
-
-```bash
-/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_items.gd
-```
-
-```bash
-/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_world.gd
-/Applications/Summer.app/Contents/MacOS/Summer --headless --path . --script res://tests/test_controls.gd
-```
+Runs every `tests/test_*.gd` headless (`tools/run_tests.sh test_world` for one). It uses `godot` or `Summer` from PATH; on a Mac set `GODOT=/Applications/Summer.app/Contents/MacOS/Summer`. CI runs the same script on every push and PR (`.github/workflows/tests.yml`).
