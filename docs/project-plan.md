@@ -105,7 +105,7 @@ Extra work outside the v1 plan: day/night cycle (`day_config.tres`), base / part
 - ~23k lines of GDScript in `scripts/` + `tests/` (122 scripts in `scripts/`), 4 shaders.
 - 12 headless test scripts (`tests/`): baseline, movement feel, band, level, critical path, abilities, items, world, controls, base, venue puzzle, touch pad. Each counts its checks so a crash can't pass.
 - Static check: all 238 `res://` references in scripts, scenes and resources point at files that exist.
-- **All 12 tests pass** on Godot 4.7.2 (2026-10-28, `tools/run_tests.sh`, ~10 min): abilities 69 checks (skill set v2), band 24, base 8, baseline 14, controls 29, critical path 20, items 23, level 40, movement feel 26, touch pad, venue puzzle 14, world 68 (incl. the canal kit).
+- **All 12 tests pass** on Godot 4.7.2 (2026-10-28, `tools/run_tests.sh`, ~10 min): abilities 69 checks (skill set v2), band 24, base 8, baseline 14, controls 29, critical path 20, items 23, level 40, movement feel 26, touch pad, venue puzzle 14, world 70 (incl. the canal kit and the street floor).
 - The Web export works headless and boots in Chromium without console errors.
 
 ### Deployment

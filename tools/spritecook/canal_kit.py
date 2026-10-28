@@ -56,6 +56,13 @@ STRIPS = {
     "yard1": "yard_a", "yard3": "yard_b",
     "gapc2": "gap_canal", "gaps2": "gap_street", "gaps1": "gap_street_b",
 }
+# Openings: a side canal / side street / steeg seen between two complete
+# corner houses (flat kit fronts, their side walls and roofs running into the
+# depth). Made by SpriteCook edits of kit-front + view + kit-front composites.
+OPENINGS = {
+    "open_c1b": "open_canal_a", "open_c1c": "open_canal_b", "open_c2a": "open_canal_c", "open_c2b": "open_canal_d",
+    "open_s1a": "open_street_a", "open_s1b": "open_street_b", "open_s2b": "open_steeg",
+}
 TREES = {"tree_a": ["elm_0", "elm_1"], "trees": ["elm_2", "elm_3", "elm_4"]}
 TEXTURES = {"tex_setts": "setts", "tex_paver": "paver", "tex_wall": "quay_wall"}
 
@@ -180,6 +187,14 @@ def main():
         img = img.crop(bbox(img))
         img.save(OUT / (name + ".png"))
         strips[name] = img.size
+    mouths = {}
+    for src, name in OPENINGS.items():
+        img = clean(Image.open(SRC / (src + ".png")), 64)
+        img = img.crop(bbox(img))
+        img.save(OUT / (name + ".png"))
+        facades[name] = (img.size, windows(img))
+        if "canal" in name:
+            mouths[name] = water_mouth(img)
     for src, names in TREES.items():
         img = clean(Image.open(SRC / (src + ".png")), 40)
         a = np.array(img)[:, :, 3] > 0
@@ -209,14 +224,31 @@ def main():
             strips[name] = piece.size
     for src, name in TEXTURES.items():
         clean(Image.open(SRC / (src + ".png")), 32, hard_alpha=False).save(OUT / (name + ".png"))
-    write_gd(facades, strips)
+    write_gd(facades, strips, mouths)
     for k, (size, win) in facades.items():
         print(f"{k:12s} {size[0]:3d}x{size[1]:3d}  windows {len(win)}")
     for k, size in strips.items():
         print(f"{k:12s} {size[0]:3d}x{size[1]:3d}")
 
 
-def write_gd(facades, strips):
+def water_mouth(img):
+    """Columns where the side canal's water meets the bottom edge (piece px):
+    the run of water around the middle."""
+    a = np.array(img.convert("RGBA")).astype(int)
+    row = a[-3]
+    wet = [row[x, 3] > 0 and row[x, 2] > row[x, 0] + 25 and row[x, 1] > row[x, 0] for x in range(a.shape[1])]
+    mid = a.shape[1] // 2
+    near = [x for x in range(a.shape[1]) if wet[x]]
+    assert near, "no water at the bottom"
+    x0 = x1 = min(near, key=lambda x: abs(x - mid))
+    while x0 > 0 and (wet[x0 - 1] or (x0 > 1 and wet[x0 - 2])):
+        x0 -= 1
+    while x1 < a.shape[1] - 1 and (wet[x1 + 1] or (x1 < a.shape[1] - 2 and wet[x1 + 2])):
+        x1 += 1
+    return (x0, x1 + 1)
+
+
+def write_gd(facades, strips, mouths):
     lines = [
         "class_name CanalKit",
         "## The SpriteCook canal-belt kit (2026-10-28): flat facades, the back",
@@ -235,6 +267,9 @@ def write_gd(facades, strips):
     lines += ["}", "", "## Door houses: the empty sign band above the door (texture px).", "const SIGNS := {"]
     for name, (x, y, w, h) in SIGNS.items():
         lines.append(f'\t&"{name}": Rect2i({x}, {y}, {w}, {h}),')
+    lines += ["}", "", "## Openings over a side canal: the water's columns at the bottom edge (texture px).", "const MOUTHS := {"]
+    for name, (x0, x1) in mouths.items():
+        lines.append(f'\t&"{name}": Vector2i({x0}, {x1}),')
     lines += ["}", "", "## Gable silhouette per facade (neighbours differ).", "const GABLES := {"]
     for name, g in GABLES.items():
         lines.append(f'\t&"{name}": {g},')

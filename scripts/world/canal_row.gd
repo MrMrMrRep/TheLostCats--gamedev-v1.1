@@ -13,8 +13,8 @@ const POOL: Array[StringName] = [
 	&"shop_orange", &"shop_cream", &"shop_brown", &"shop_red",
 	&"merchant", &"spout_green", &"bakery",
 ]
-const OVERLAP := 6                          # art px a facade may slide over its left neighbour
 const JOINT := 3                            # art px of dark party wall allowed between two facades
+const END_JOINT := 2                        # and at either end of a stretch
 const TRIES := 400
 const ALLEY := &"alley"
 const ALLEY_MIN := 22                       # art px: the narrowest steeg
@@ -39,13 +39,13 @@ static func height(name: StringName) -> int:
 	return CanalKit.SIZES[name].y
 
 
-## Facades filling `length` art px from art x `x0`. `soft_left` / `soft_right`:
-## that end may tuck up to `tuck` px under whatever is drawn over it there (a
-## door house, an opening's side wall). `avoid` = gables of the neighbours.
-## The kit has no narrow houses, so where whole facades can't fill the stretch
-## a narrow alley (a steeg, cut from the side-street view) takes up the rest.
-static func fill(x0: int, length: int, rng: RandomNumberGenerator, soft_left := false, soft_right := false,
-		tuck := 40, avoid_left := -1, avoid_right := -1) -> Array:
+## Facades filling exactly `length` art px from art x `x0`: no facade ever
+## overlaps another. What whole facades leave over goes into thin party-wall
+## joints (JOINT px at most, between two houses or at the ends) or into one
+## steeg, a narrow alley cut from the side-street view, and a steeg only ever
+## stands between two houses. `avoid_left` / `avoid_right`: the gables of the
+## neighbours outside the stretch. Returns [] when the stretch can't be filled.
+static func fill(x0: int, length: int, rng: RandomNumberGenerator, avoid_left := -1, avoid_right := -1) -> Array:
 	if length <= 0:
 		return []
 	var best: Array = []
@@ -59,34 +59,33 @@ static func fill(x0: int, length: int, rng: RandomNumberGenerator, soft_left := 
 			seq.append(n)
 			total += width(n)
 			last = CanalKit.GABLES[n]
-		var options := [seq.duplicate()]
-		var tail := _pick(rng, last, avoid_right)
 		var longer := seq.duplicate()
-		longer.append(tail)
-		options.append(longer)
-		for opt: Array in options:
+		longer.append(_pick(rng, last, avoid_right))
+		for opt: Array in [seq, longer]:
 			if opt.is_empty():
 				continue
 			var sum := 0
 			for n: StringName in opt:
 				sum += width(n)
 			var seams: int = opt.size() - 1
+			var slack := JOINT * seams + END_JOINT * 2
 			var diff := length - sum
-			var lo := -OVERLAP * seams - (tuck if soft_left else 0) - (tuck if soft_right else 0)
-			var hi := JOINT * seams
+			if diff < 0:
+				continue
 			var alley := 0
-			var score := absi(diff)
-			if diff < lo or diff > hi:
-				alley = clampi(diff, ALLEY_MIN, ALLEY_MAX)
-				var rest := diff - alley
-				if rest < lo or rest > hi:
+			var score := diff
+			if diff > slack:
+				if seams < 1:
 					continue
-				score = 20 + absi(rest)
+				alley = clampi(diff, ALLEY_MIN, ALLEY_MAX)
+				if diff - alley < 0 or diff - alley > slack:
+					continue
+				score = 30 + diff - alley
 			if score < best_score:
 				best_score = score
-				var at := rng.randi_range(0, opt.size()) if alley > 0 else -1
-				best = _place(x0, length, opt, alley, at, soft_left, soft_right)
-		if best_score <= 4:
+				var at := rng.randi_range(1, seams) if alley > 0 else -1
+				best = _place(x0, length, opt, alley, at)
+		if best_score <= 2:
 			break
 	return best
 
@@ -94,7 +93,7 @@ static func fill(x0: int, length: int, rng: RandomNumberGenerator, soft_left := 
 static func _pick(rng: RandomNumberGenerator, not_gable: int, not_gable2: int) -> StringName:
 	for i in 20:
 		var n: StringName = POOL[rng.randi_range(0, POOL.size() - 1)]
-		if n == &"merchant" and rng.randf() < 0.6:
+		if n == &"merchant" and rng.randf() < 0.8:
 			continue                        # a double-wide house now and then, not every few doors
 		var g: int = CanalKit.GABLES[n]
 		if g != not_gable and g != not_gable2:
@@ -102,39 +101,31 @@ static func _pick(rng: RandomNumberGenerator, not_gable: int, not_gable2: int) -
 	return POOL[0]
 
 
-## Lay out `seq` (with an alley of `alley` px before facade `alley_at`; at
-## seq.size(): after the last) and spread what's left over the seams
-## (overlaps or joints), the rest into the soft ends.
-static func _place(x0: int, length: int, seq: Array, alley: int, alley_at: int, soft_left: bool, soft_right: bool) -> Array:
+## Lay out `seq` with a steeg of `alley` px just before facade `alley_at`
+## (1 .. size-1: always between two houses) and spread what's left over the
+## joints: first between the houses, then at the two ends.
+static func _place(x0: int, length: int, seq: Array, alley: int, alley_at: int) -> Array:
 	var total := alley
 	for n: StringName in seq:
 		total += width(n)
-	var rest := length - total              # > 0: joints, < 0: overlaps / tucks
+	var rest := length - total
 	var seams := seq.size() - 1
 	var per := []
 	for i in seams:
-		per.append(0)
-	if seams > 0:
-		var cap := JOINT if rest > 0 else OVERLAP
-		for i in seams:
-			var share := clampi(int(round(float(rest) / float(seams - i))), -cap, cap)
-			per[i] = share
-			rest -= share
-	var x := x0
-	if rest < 0 and soft_left and not soft_right:
-		x += rest                           # tuck the first facade under the left end
-	elif rest < 0 and soft_left and soft_right:
-		x += rest / 2
+		var share := mini(int(ceil(float(rest) / float(seams - i))), JOINT) if rest > 0 else 0
+		share = mini(share, maxi(rest - 0, 0))
+		per.append(share)
+		rest -= share
+	var lead := rest / 2                    # what's left: the two end joints
 	var out := []
+	var x := x0 + lead
 	for i in seq.size():
 		if i == alley_at:
 			out.append([ALLEY, x, 0, alley])
 			x += alley
 		var joint: int = per[i] if i < seams else 0
-		out.append([seq[i], x, maxi(joint, 0)])
+		out.append([seq[i], x, joint])
 		x += width(seq[i]) + joint
-	if alley_at == seq.size():
-		out.append([ALLEY, x, 0, alley])
 	return out
 
 

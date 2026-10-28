@@ -254,9 +254,10 @@ func _bridge_spans() -> Array[Vector2]:
 		var op := o as SideOpening
 		if op.kind != SideOpening.Kind.CANAL:
 			continue
-		var c := op.global_position.x - global_position.x
-		var half := op.open_width * 0.5
-		_bridges.append(Vector2(c - half, c + half))
+		var m := op.mouth()
+		if m == Vector2.ZERO:
+			continue
+		_bridges.append(m - Vector2(global_position.x, global_position.x))
 	_bridges.sort_custom(func(p: Vector2, q: Vector2) -> bool: return p.x < q.x)
 	return _bridges
 

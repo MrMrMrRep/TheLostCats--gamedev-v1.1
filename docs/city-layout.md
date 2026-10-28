@@ -105,19 +105,21 @@ Layer stack, back to front:
 | Skyline with church towers (pale haze; dark silhouettes at night) | `Background/CanalSkyline` | 0.2 | `skyline_a`, `skyline_b` |
 | Back row of houses (hazy) | `Background/CanalBackRow` | 0.5 | `back_row` |
 | Backyard trees (in clumps) | `Background/CanalYards` | 0.8 | `yard_a`, `yard_b` |
-| Openings: side canals and side streets in one-point perspective, kit houses filling the rest of the slot | `Bridges/*` (`SideOpening`) | 1 | `gap_canal`, `gap_street`, `gap_street_b` |
+| Openings: a side canal, side street or steeg in one-point perspective **between two complete corner houses** (flat kit fronts; their own side walls and roofs run into the depth) | `Bridges/*` (`SideOpening`) | 1 | `open_canal_a`…`d`, `open_street_a`/`b`, `open_steeg` |
 | The front row: **flat** facades, no side walls | `Buildings/CanalBelt/*` (`CityBlock.kit`) | 1 | 15 houses + 3 door houses |
 | Pavement (the band walks on it; the houses stand 8 px further back), kerb, cobbles (bikes, the odd car), coping, quay wall, brick arches over the side canals | `Road/Street` (`kit_span`) | 1 | `paver`, `setts`, `quay_wall` |
 | Elms on the quay edge, **in front of** the band and the traffic | `QuayTrees` | 1 | `elm_0`…`elm_4` |
 
 Rules the code keeps:
-- **Depth only in the gaps.** Facades are flat; the side walls you see are the openings' own perspective views.
-- Neighbours never share a gable shape (`CanalKit.GABLES`); a double-wide merchant house now and then.
-- **Doors stay put.** Each `CityBlock` keeps the width of its old layout, so it still meets the openings. The studio and the venue get a door house centred on their `WorldDoor` (same x and interaction area), with the sign in the empty band above the door (`CanalKit.SIGNS`). Those doors have `draw_door = false`: the art is the door.
+- **Depth only in the gaps.** Facades are flat; the side walls you see belong to the openings' corner houses.
+- **No overlaps.** A kit `CityBlock` fills from its position (or the east edge of an opening just west of it) to the next block, the next opening or the end of the canal-kit street (`CityBlock.kit_span()`), exactly: whole facades, thin party-wall joints of at most 3 px, and where whole houses don't fit, one **steeg** (a narrow alley), which only ever stands between two houses. Move a block in the editor to move a row's start.
+- Neighbours never share a gable shape (`CanalKit.GABLES`, also across a door house); a double-wide merchant house now and then.
+- **Doors stay put.** The studio and the venue rows start with their door house, centred on their `WorldDoor` (same x and interaction area), with the sign in the empty band above the door (`CanalKit.SIGNS`). Those doors have `draw_door = false`: the art is the door.
+- The street's brick arch sits under each side canal's water (`SideOpening.mouth()`, measured from the art: `CanalKit.MOUTHS`).
 - Quay trees keep clear of doors, bikes, parcels, P spots and openings (`QuayTrees._keep_clear`).
 - Night: every kit window is lit by `NightGlow` (rects found by the slicer, `CanalKit.WINDOWS`).
 - Traffic: the canal belt and the old town stay "bikes only" zones, but `TrafficConfig.quiet_cars` (0.12) lets the odd car or delivery van through.
 
-Making or changing the kit: the raw SpriteCook sheets are in `tools/spritecook/canal_kit_src/`; `python3 -I tools/spritecook/canal_kit.py` cuts them into `assets/sprites/world/canal2/` and writes `scripts/world/canal_kit.gd`. The scene change itself: `tools/scene_edits/2026_10_28_canal_kit.py`.
+Making or changing the kit: the raw SpriteCook sheets are in `tools/spritecook/canal_kit_src/` (the `open_*` ones are SpriteCook edits of composites: kit front + view + kit front, so the corner houses match the row); `python3 -I tools/spritecook/canal_kit.py` cuts them into `assets/sprites/world/canal2/` and writes `scripts/world/canal_kit.gd`. The scene change itself: `tools/scene_edits/2026_10_28_canal_kit.py`.
 
 **Next**: the old town (its churches and market are still in the older style), then the ring road east of the canal belt (back lane westbound, front lane eastbound, parking strip with trees in front, after concept 2).
