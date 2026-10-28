@@ -10,6 +10,7 @@ extends Node2D
 @export var map_width := 3840.0
 @export var map_min := 0.0
 @export var town := Vector2(1100, 3640)
+@export var kit_span := Vector2.ZERO        ## world x range with the canal-kit street (pavement, cobbles, quay)
 
 const STREET_H := 14.0
 const EDGE_H := 36.0                        # town: sidewalk + curb + quay wall, down to the water
@@ -32,6 +33,16 @@ const ROAD_CURB_H := 3.0
 const ASPHALT_H := 7.0                      # 10 + 3 + 7 + 16 = the 36 down to the water
 const BRIDGE_DECK := 25.0                   # source row that sits on the street line
 const BRIDGE_ARCH := 51.0                   # source row where the arch opens
+## The canal-kit street, art px from the street line down (CanalRow.LIFT of
+## pavement lies behind the band's feet): pavement, kerb, cobbles, the quay's
+## coping stones and its wall down to the water at EDGE_H.
+const KIT_PAVER := preload("res://assets/sprites/world/canal2/paver.png")
+const KIT_SETTS := preload("res://assets/sprites/world/canal2/setts.png")
+const KIT_WALL := preload("res://assets/sprites/world/canal2/quay_wall.png")
+const KIT_KERB := 14                        # pavement -LIFT..14, kerb 14..17
+const KIT_SETTS_Y := 17                     # cobbles 17..46
+const KIT_COPING := 46                      # coping 46..50, wall 50..72
+const KIT_WALL_Y := 50
 
 
 func _ready() -> void:
@@ -52,6 +63,8 @@ func _draw() -> void:
 				draw_texture(t, Vector2(seg.origin))
 		draw_set_transform(Vector2.ZERO)
 		_draw_town_surfaces(a, b)
+		if kit_span != Vector2.ZERO:
+			_draw_kit_street(maxf(kit_span.x, a), minf(kit_span.y, b))
 	else:
 		_draw_town_legacy(a, b)
 	# Outside town: motorway proportions. Behind us the opposite carriageway
@@ -113,8 +126,12 @@ func _draw_town_surfaces(a: float, b: float) -> void:
 	for hole: Vector2 in holes:
 		var x0 := maxf(hole.x, a)
 		var x1 := minf(hole.y, b)
-		if x1 - x0 > 1.0:
+		if x1 - x0 > 1.0 and not _in_kit(x0):
 			_draw_bridge(x0, x1)
+
+
+func _in_kit(x: float) -> bool:
+	return kit_span != Vector2.ZERO and x >= kit_span.x and x < kit_span.y
 
 
 func _covered(x: float, holes: Array) -> bool:
@@ -143,6 +160,64 @@ func _draw_piece(a: float, b: float, centre: Vector2, canal: Vector2) -> void:
 		_tile(PAVER, a, 0.0, b - a, 12.0)
 		_tile(CURB_ROAD, a, 12.0, b - a, 4.0)
 		_tile(ASPHALT, a, 16.0, b - a, EDGE_H - 16.0)
+
+
+## The canal-kit street over [a, b] (world x), at 1 texel = 1 art px. Where a
+## side canal passes under it: the same deck on a brick arch.
+func _draw_kit_street(a: float, b: float) -> void:
+	if b <= a:
+		return
+	var holes := _bridge_spans()
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
+	var x0 := a * 2.0
+	var w := (b - a) * 2.0
+	var lift := float(CanalRow.LIFT)
+	draw_texture_rect(KIT_PAVER, Rect2(x0, -lift, w, KIT_KERB + lift), true)
+	draw_rect(Rect2(x0, -lift, w, 1), WorldPalette.R1)                  # shadow line at the foot of the houses
+	draw_rect(Rect2(x0, KIT_KERB, w, 1), WorldPalette.W4)               # kerb stone, lit from above
+	draw_rect(Rect2(x0, KIT_KERB + 1, w, 2), WorldPalette.R3)
+	draw_texture_rect(KIT_SETTS, Rect2(x0, KIT_SETTS_Y, w, KIT_COPING - KIT_SETTS_Y), true)
+	draw_rect(Rect2(x0, KIT_SETTS_Y, w, 1), WorldPalette.R1)            # gutter
+	draw_rect(Rect2(x0, KIT_COPING, w, 1), WorldPalette.W3)             # coping
+	draw_rect(Rect2(x0, KIT_COPING + 1, w, 2), WorldPalette.R2)
+	draw_rect(Rect2(x0, KIT_COPING + 3, w, 1), WorldPalette.R0)
+	var wall_h := EDGE_H * 2.0 - KIT_WALL_Y
+	draw_texture_rect(KIT_WALL, Rect2(x0, KIT_WALL_Y, w, wall_h), true)
+	for hole: Vector2 in holes:
+		var h0 := maxf(hole.x, a) * 2.0
+		var h1 := minf(hole.y, b) * 2.0
+		if h1 - h0 > 8.0:
+			_kit_arch(h0, h1)
+	draw_set_transform(Vector2.ZERO)
+
+
+## A brick arch under the street where a side canal runs out (art px).
+func _kit_arch(x0: float, x1: float) -> void:
+	var p := WorldPalette
+	var cx := (x0 + x1) * 0.5
+	var half := (x1 - x0) * 0.5 - 10.0
+	var top := float(KIT_COPING + 4)        # the crown, just under the coping
+	var bottom := EDGE_H * 2.0
+	var rise := bottom - top
+	var ring := PackedVector2Array()
+	var hole := PackedVector2Array()
+	var steps := 24
+	for i in steps + 1:
+		var t := PI * float(i) / float(steps)
+		ring.append(Vector2(cx - cos(t) * (half + 5.0), bottom - sin(t) * (rise + 3.0)))
+	for i in range(steps, -1, -1):
+		var t := PI * float(i) / float(steps)
+		ring.append(Vector2(cx - cos(t) * half, bottom - sin(t) * rise))
+	for i in steps + 1:
+		var t := PI * float(i) / float(steps)
+		hole.append(Vector2(roundf(cx - cos(t) * half), roundf(bottom - sin(t) * rise)))
+	draw_colored_polygon(hole, p.T0)
+	draw_colored_polygon(ring, p.B1)
+	for i in range(0, steps + 1, 2):        # voussoir joints
+		var t := PI * float(i) / float(steps)
+		var d := Vector2(-cos(t), -sin(t))
+		draw_line(Vector2(cx, bottom) + Vector2(d.x * half, d.y * rise), Vector2(cx, bottom) + Vector2(d.x * (half + 5.0), d.y * (rise + 3.0)), p.B0, 1.0)
+	draw_rect(Rect2(cx - half, bottom - 3.0, half * 2.0, 3.0), p.T1)  # the water in the arch
 
 
 func _tile(tex: Texture2D, x: float, y: float, w: float, h: float) -> void:

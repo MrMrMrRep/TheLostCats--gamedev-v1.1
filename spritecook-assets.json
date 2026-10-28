@@ -247,5 +247,110 @@
     "geoff_loop": "e614086a-babf-4517-9331-4349b778fe34",
     "geoff_in": "5c7e4c59-1548-417e-8a49-6d3f1dfcae3c",
     "geoff_out": "7c59887c-eca8-4103-96c8-62366ec3d3bf"
+  },
+  "concept_canal_belt_rebuild": {
+    "asset_id": "c5a455c7-389a-4e35-90dc-33b437ee9c65",
+    "label": "Map rebuild concept: canal belt layers (mock-up, not used in game)",
+    "sha12": "6efa4ebc7575"
+  },
+  "concept_ring_road_rebuild": {
+    "asset_id": "92d800c4-d213-42ab-83da-f25fbea3581e",
+    "label": "Map rebuild concept: ring road lanes + parking (mock-up, not used in game)",
+    "sha12": "94abb58036f4"
+  },
+  "canal2_fac_b1": {
+    "asset_id": "971218c2-d6c7-43cb-8f27-12eb8d5aee25",
+    "label": "Canal kit source fac_b1 (tools/spritecook/canal_kit_src/fac_b1.png)",
+    "sha12": "9018861d2bc5"
+  },
+  "canal2_fac_c2": {
+    "asset_id": "2f851b6f-018f-4ad6-a216-1964cc790f4b",
+    "label": "Canal kit source fac_c2 (tools/spritecook/canal_kit_src/fac_c2.png)",
+    "sha12": "e9f39ad9b5f6"
+  },
+  "canal2_fac_d1": {
+    "asset_id": "ff3e7d3c-0201-4d95-a7fe-62c5244c0990",
+    "label": "Canal kit source fac_d1 (tools/spritecook/canal_kit_src/fac_d1.png)",
+    "sha12": "727caee352ab"
+  },
+  "canal2_fac_d2": {
+    "asset_id": "edffc07a-b24d-4812-bde0-1d9d2d79e175",
+    "label": "Canal kit source fac_d2 (tools/spritecook/canal_kit_src/fac_d2.png)",
+    "sha12": "4fee4a3db35f"
+  },
+  "canal2_fac_e1": {
+    "asset_id": "d1ffcfd0-304e-4772-9444-318b3c9dd68c",
+    "label": "Canal kit source fac_e1 (tools/spritecook/canal_kit_src/fac_e1.png)",
+    "sha12": "daa807050715"
+  },
+  "canal2_back4": {
+    "asset_id": "5db36e04-996e-4abb-ad1a-ebc0f0dc4008",
+    "label": "Canal kit source back4 (tools/spritecook/canal_kit_src/back4.png)",
+    "sha12": "c909c08eead8"
+  },
+  "canal2_back3": {
+    "asset_id": "59723f9b-ce88-4acb-b8be-f943360fa0fc",
+    "label": "Canal kit source back3 (tools/spritecook/canal_kit_src/back3.png)",
+    "sha12": "cae83c5cb84e"
+  },
+  "canal2_sky1": {
+    "asset_id": "53c7af61-bf5e-46c5-9b5c-d3fd807b9831",
+    "label": "Canal kit source sky1 (tools/spritecook/canal_kit_src/sky1.png)",
+    "sha12": "38cd99c7719a"
+  },
+  "canal2_sky2": {
+    "asset_id": "16c02f39-9860-4b93-af18-f86a28ac3250",
+    "label": "Canal kit source sky2 (tools/spritecook/canal_kit_src/sky2.png)",
+    "sha12": "9d868c45fa69"
+  },
+  "canal2_yard1": {
+    "asset_id": "8e4f41c1-fa74-49dc-a50c-abc4c5234ca1",
+    "label": "Canal kit source yard1 (tools/spritecook/canal_kit_src/yard1.png)",
+    "sha12": "e7449f6600d2"
+  },
+  "canal2_yard3": {
+    "asset_id": "cd1884ed-37f7-490d-b67d-4e2be794925e",
+    "label": "Canal kit source yard3 (tools/spritecook/canal_kit_src/yard3.png)",
+    "sha12": "afc3bb573ee4"
+  },
+  "canal2_tree_a": {
+    "asset_id": "e192d734-88d1-4b3a-baf7-9fd00fa1f856",
+    "label": "Canal kit source tree_a (tools/spritecook/canal_kit_src/tree_a.png)",
+    "sha12": "c295e9cc135d"
+  },
+  "canal2_trees": {
+    "asset_id": "b9516209-2326-4ada-85e2-243fd7cfdee0",
+    "label": "Canal kit source trees (tools/spritecook/canal_kit_src/trees.png)",
+    "sha12": "69c80ff9f775"
+  },
+  "canal2_gapc2": {
+    "asset_id": "fd4d8b1a-4980-48ac-8d40-81a0e545bef9",
+    "label": "Canal kit source gapc2 (tools/spritecook/canal_kit_src/gapc2.png)",
+    "sha12": "a833c4fa4d48"
+  },
+  "canal2_gaps1": {
+    "asset_id": "d8a448bd-253e-4608-a8ad-ed846ec7cc7b",
+    "label": "Canal kit source gaps1 (tools/spritecook/canal_kit_src/gaps1.png)",
+    "sha12": "2888bb28c70c"
+  },
+  "canal2_gaps2": {
+    "asset_id": "a7ceb689-b292-4fc9-9561-ef1a54c4ec9d",
+    "label": "Canal kit source gaps2 (tools/spritecook/canal_kit_src/gaps2.png)",
+    "sha12": "684db2157581"
+  },
+  "canal2_tex_setts": {
+    "asset_id": "2d407a98-d667-40fd-915e-5d8d8b49cc50",
+    "label": "Canal kit source tex_setts (tools/spritecook/canal_kit_src/tex_setts.png)",
+    "sha12": "c92987bc57e9"
+  },
+  "canal2_tex_paver": {
+    "asset_id": "83cdfe9c-88cc-45c0-ade1-55479119e162",
+    "label": "Canal kit source tex_paver (tools/spritecook/canal_kit_src/tex_paver.png)",
+    "sha12": "88dbdcc4243f"
+  },
+  "canal2_tex_wall": {
+    "asset_id": "02e0d201-08c8-4f0f-a7de-fc477cb262a1",
+    "label": "Canal kit source tex_wall (tools/spritecook/canal_kit_src/tex_wall.png)",
+    "sha12": "8b43a0a22129"
   }
 }

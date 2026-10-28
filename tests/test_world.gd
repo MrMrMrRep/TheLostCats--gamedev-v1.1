@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 63
+const EXPECTED_CHECKS := 68
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -27,6 +27,7 @@ func _run() -> void:
 	router = root.get_node("SceneRouter")
 	map = await _load_map()
 
+	_test_canal_kit()
 	await _test_zoom_walking()
 	await _test_day_night()
 	await _test_band_line()
@@ -46,6 +47,50 @@ func _run() -> void:
 		failures += 1
 	print("FAILURES: %d" % failures)
 	quit(1 if failures > 0 else 0)
+
+
+## The canal belt from the SpriteCook kit (docs/city-layout.md §8).
+func _test_canal_kit() -> void:
+	var row_script = load("res://scripts/world/canal_row.gd")
+	var gables: Dictionary = load("res://scripts/world/canal_kit.gd").GABLES
+	var doors := [&"door_venue", &"door_studio", &"door_cafe"]
+	var blocks: Array = map.get_node("Buildings/CanalBelt").get_children().filter(func(n): return n.has_method("kit_row"))
+	var short := []
+	var flat := true
+	for b in blocks:
+		var row: Array = b.kit_row()
+		if not b.kit or row.is_empty():
+			short.append(String(b.name))
+			continue
+		var last: Array = row[0]
+		for it: Array in row:
+			if not doors.has(it[0]) and it[1] > last[1]:
+				last = it
+		var right_end: int = last[1] + row_script.item_width(last)
+		var want := int(round(b.width() * 2.0))
+		if row[0][1] > 6 or absi(right_end - want) > 8:
+			short.append("%s %d..%d of %d" % [b.name, row[0][1], right_end, want])
+		for i in row.size() - 1:
+			if gables.has(row[i][0]) and gables.has(row[i + 1][0]) and not doors.has(row[i][0]) and not doors.has(row[i + 1][0]) \
+					and gables[row[i][0]] == gables[row[i + 1][0]]:
+				flat = false
+	_check(not blocks.is_empty() and short.is_empty(), "every canal-belt row is kit facades from end to end %s" % [short])
+	_check(flat, "neighbouring facades never share a gable")
+	for pair in [["Studio", "StudioDoor", &"door_studio"], ["Venue", "VenueDoor", &"door_venue"]]:
+		var block = map.get_node("Buildings/CanalBelt/" + pair[0])
+		var door = map.get_node("Places/CanalBelt/" + pair[1])
+		var house: Array = block.kit_row()[-1]
+		var mid: float = block.global_position.x + (house[1] + row_script.width(house[0]) / 2.0) * 0.5
+		_check(house[0] == pair[2] and absf(mid - door.global_position.x) <= 1.5 and not door.draw_door,
+			"%s: the door house stands on its door (x %.1f vs %.1f)" % [pair[1], mid, door.global_position.x])
+	var trees = map.get_node("QuayTrees")
+	var spots: Array = trees.spots()
+	var blocked := []
+	for t: Array in spots:
+		for n in ["Places/CanalBelt/StudioDoor", "Places/CanalBelt/VenueDoor", "Places/CanalBelt/Start"]:
+			if absf(t[0] - map.get_node(n).global_position.x) < 46.0:
+				blocked.append(n)
+	_check(spots.size() > 10 and blocked.is_empty(), "%d quay elms, none in front of a door %s" % [spots.size(), blocked])
 
 
 func _test_day_night() -> void:

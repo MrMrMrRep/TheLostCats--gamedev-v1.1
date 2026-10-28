@@ -36,10 +36,12 @@ var _glow: NightGlow                        # its bulbs at night
 
 
 func _ready() -> void:
+	_glow_back = NightGlow.attach(self)
 	_changed()
 
 
 func _changed() -> void:
+	_row = []
 	queue_redraw()
 	if not is_inside_tree():
 		return
@@ -65,9 +67,49 @@ func _changed() -> void:
 
 
 func _draw() -> void:
-	if WorldPalette.V3:
-		var refined := refined_art()
-		(refined if refined else v3_art()).draw(self)
+	if _glow_back:
+		_glow_back.clear()
+	# The view into the opening (SpriteCook canal kit), with flat kit
+	# facades filling the rest of the slot; they tuck under its side walls.
+	var row := kit_row()
+	var gap := gap_texture()
+	var gw := gap_width()
+	var gh := gap.get_height()
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
+	CanalRow.draw(self, row)
+	draw_texture_rect_region(gap, Rect2(-gw / 2, -gh - CanalRow.LIFT, gw, gh), Rect2((gap.get_width() - gw) / 2, 0, gw, gh))
+	draw_set_transform(Vector2.ZERO)
+	CanalRow.add_glow(_glow_back, row)
+	if _glow_back:
+		_glow_back.queue_redraw()
+
+
+const GAPS := [&"gap_canal", &"gap_street", &"gap_street_b", &"gap_street_b"]
+
+var _glow_back: NightGlow                   # the slot's windows at night
+var _row: Array = []
+
+
+func gap_texture() -> Texture2D:
+	return CanalRow.texture(GAPS[kind])
+
+
+## The opening in art px: open_width, at most the kit view's own width.
+func gap_width() -> int:
+	return mini(int(round(open_width * 2.0)), gap_texture().get_width())
+
+
+## The slot's facades either side of the opening ([name, art x, joint], x from the slot's middle).
+func kit_row() -> Array:
+	if not _row.is_empty():
+		return _row
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value * 104729 + kind
+	var half := int(round(width))               # half the slot in art px
+	var gw := gap_width()
+	var side := half - gw / 2
+	_row = CanalRow.fill(-half, side, rng, false, true, 24) + CanalRow.fill(gw / 2, side, rng, true, false, 24)
+	return _row
 
 
 const REFINED_DIR := "res://assets/sprites/world/openings/"

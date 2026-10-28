@@ -131,6 +131,12 @@ there.** So: scroll to the spot, then drag the background piece to where it
 should be. (Turn off `editor_preview` on the layer if you want it to stand
 still.)
 
+Along the canal belt the old skyline and back street step aside (`skip` on
+their `Scenery`) for three canal-kit layers: `CanalSkyline`, `CanalBackRow`
+and `CanalYards`. Each has one `Backdrop` child: `span` (world x range),
+`base` (world y of the strip's foot: lower = less of it above the roofs) and
+`seed_value`. See `docs/city-layout.md` §8.
+
 ## 7. Code-only things
 
 Made by code every frame, so you can't place them one by one:

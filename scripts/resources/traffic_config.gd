@@ -22,6 +22,7 @@ const PATH := "res://resources/config/traffic_config.tres"
 @export_range(0.0, 1.0) var town_bikes := 0.45   ## share of bikes
 @export_range(0.0, 1.0) var town_buses := 0.07
 @export_range(0.0, 1.0) var town_vans := 0.10
+@export_range(0.0, 1.0) var quiet_cars := 0.12  ## in bikes-only zones (old town, canal belt): the odd car or van among the bikes
 
 @export_group("Mix on the motorway")
 @export_range(0.0, 1.0) var road_trucks := 0.18

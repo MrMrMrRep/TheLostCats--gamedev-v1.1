@@ -9,6 +9,7 @@ extends Interactable
 @export var closed_text := "Closed for now."
 @export var sign_text := ""
 @export var width := 22.0
+@export var draw_door := true               ## off where the house art has its own door (the canal kit's door houses)
 
 
 func _ready() -> void:
@@ -25,6 +26,8 @@ func interact(_member: BandMember, map: Node) -> void:
 
 
 func _draw() -> void:
+	if not draw_door:
+		return
 	var h := 38.0
 	draw_rect(Rect2(-width / 2, -h, width, h), WorldPalette.T0)
 	draw_rect(Rect2(-width / 2, -h, width, h), WorldPalette.W1, false, 2.0)

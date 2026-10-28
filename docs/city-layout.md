@@ -92,3 +92,32 @@ All traffic uses these sizes, so on the highway at 0.5× zoom the cars are as bi
 
 The bridges and side-street gaps are **one-point perspective views** from eye height (`bridge.gd`): facades along both sides recede to a vanishing point with skewed windows, doors, awnings and roof edges; the left row is lit, the right in shade; trees, lamps and people on the quays; a brick bridge further down the side canal; haze with depth. Six canal views (150 px wide) and two side streets (110 px, cobbles, pavements, cyclists).
 **Landmark**: the view at the bridge east of the studio ends at the **Pontsteiger** (Houthaven) — low wing, two towers, the top block on its white truss, sky through the gap.
+
+## 8. Canal belt rebuild: the SpriteCook canal kit (2026-10-28)
+
+The canal belt (x 9884–16436) is rebuilt from one SpriteCook kit, after the approved concept (`spritecook-assets.json`: `concept_canal_belt_rebuild`). Everything is drawn at **1 texel = 1 art px** (scale 0.5), never stretched, so the whole stretch has one pixel size.
+
+Layer stack, back to front:
+
+| Layer | Node | Parallax | Art |
+|---|---|---|---|
+| Sky, clouds, sun/moon | `Sky` | 0 | unchanged (day/night) |
+| Skyline with church towers (pale haze; dark silhouettes at night) | `Background/CanalSkyline` | 0.2 | `skyline_a`, `skyline_b` |
+| Back row of houses (hazy) | `Background/CanalBackRow` | 0.5 | `back_row` |
+| Backyard trees (in clumps) | `Background/CanalYards` | 0.8 | `yard_a`, `yard_b` |
+| Openings: side canals and side streets in one-point perspective, kit houses filling the rest of the slot | `Bridges/*` (`SideOpening`) | 1 | `gap_canal`, `gap_street`, `gap_street_b` |
+| The front row: **flat** facades, no side walls | `Buildings/CanalBelt/*` (`CityBlock.kit`) | 1 | 15 houses + 3 door houses |
+| Pavement (the band walks on it; the houses stand 8 px further back), kerb, cobbles (bikes, the odd car), coping, quay wall, brick arches over the side canals | `Road/Street` (`kit_span`) | 1 | `paver`, `setts`, `quay_wall` |
+| Elms on the quay edge, **in front of** the band and the traffic | `QuayTrees` | 1 | `elm_0`…`elm_4` |
+
+Rules the code keeps:
+- **Depth only in the gaps.** Facades are flat; the side walls you see are the openings' own perspective views.
+- Neighbours never share a gable shape (`CanalKit.GABLES`); a double-wide merchant house now and then.
+- **Doors stay put.** Each `CityBlock` keeps the width of its old layout, so it still meets the openings. The studio and the venue get a door house centred on their `WorldDoor` (same x and interaction area), with the sign in the empty band above the door (`CanalKit.SIGNS`). Those doors have `draw_door = false`: the art is the door.
+- Quay trees keep clear of doors, bikes, parcels, P spots and openings (`QuayTrees._keep_clear`).
+- Night: every kit window is lit by `NightGlow` (rects found by the slicer, `CanalKit.WINDOWS`).
+- Traffic: the canal belt and the old town stay "bikes only" zones, but `TrafficConfig.quiet_cars` (0.12) lets the odd car or delivery van through.
+
+Making or changing the kit: the raw SpriteCook sheets are in `tools/spritecook/canal_kit_src/`; `python3 -I tools/spritecook/canal_kit.py` cuts them into `assets/sprites/world/canal2/` and writes `scripts/world/canal_kit.gd`. The scene change itself: `tools/scene_edits/2026_10_28_canal_kit.py`.
+
+**Next**: the old town (its churches and market are still in the older style), then the ring road east of the canal belt (back lane westbound, front lane eastbound, parking strip with trees in front, after concept 2).

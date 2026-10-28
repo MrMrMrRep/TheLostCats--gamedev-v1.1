@@ -25,6 +25,7 @@ enum Kind { CANAL, OLD_TOWN, RING, INDUSTRY, AIRPORT }
 		queue_redraw()
 @export var seed_value := 1
 @export var keep_clear: Array[Vector2] = []
+@export var quay_trees := false             ## CANAL: no elms on the pavement, a QuayTrees node has them on the quay
 
 
 var _glow: NightGlow                        # lamp light at night (game only)
@@ -64,7 +65,7 @@ func _draw() -> void:
 
 ## The stretch in the style v3 look (baked once, see V3Cache / V3Painter).
 func v3_art(items: Array = plan()) -> V3Art:
-	var key := "life%d_%d|%s|%s|t2" % [kind, seed_value, length, keep_clear]
+	var key := "life%d_%d|%s|%s|t2%s" % [kind, seed_value, length, keep_clear, "q" if quay_trees else ""]
 	var paint := func() -> V3Art: return V3Painter.street_life(items, length, seed_value)
 	return V3Cache.art(key, paint)
 
@@ -82,7 +83,9 @@ func plan() -> Array:
 		match kind:
 			Kind.CANAL:
 				if r < 0.45 and _clear(x, 30):
-					out.append(["tree", ax, rng.randf_range(0.85, 1.05)])
+					var extra := rng.randf_range(0.85, 1.05)
+					if not quay_trees:              # the elms stand on the quay edge (QuayTrees)
+						out.append(["tree", ax, extra])
 					if rng.randf() < 0.5:
 						out.append(["rack", ax + 60, rng.randi_range(1, 2)])
 				elif r < 0.7 and _clear(x, 6):

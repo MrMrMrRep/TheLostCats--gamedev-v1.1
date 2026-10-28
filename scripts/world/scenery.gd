@@ -32,6 +32,7 @@ const STREET_Y := 288.0
 @export var farm_clear := Vector2.ZERO      ## world x range where farms step aside (moved west)
 @export var seed_value := 5
 @export var quiet := Vector2.ZERO           ## world x range without farms, mills or poplars (the airport)
+@export var skip := Vector2.ZERO            ## world x range left to a CanalBackdrop (skyline, back street)
 @export_range(0.1, 1.5) var tower_scale := 0.45:  ## skyline: height of the church towers (1 = the old, very tall ones)
 	set(value):
 		tower_scale = value
@@ -70,6 +71,11 @@ func _x0() -> float:
 
 func _in_town(local_x: float) -> bool:
 	return local_x >= _local(town.x) and local_x <= _local(town.y)
+
+
+## Local x inside `skip` (that stretch is drawn by a CanalBackdrop).
+func _skipped(local_x: float, w := 0.0) -> bool:
+	return skip != Vector2.ZERO and local_x + w > _local(skip.x) and local_x < _local(skip.y)
 
 
 static func _in_spans(spans: Array[Vector2], local_x: float) -> bool:
@@ -150,12 +156,16 @@ func _draw_skyline(rng: RandomNumberGenerator) -> void:
 	var far_rng := RandomNumberGenerator.new()
 	far_rng.seed = seed_value + 77
 	_far_city(far_rng, _local(town.x + FAR_CITY_WEST.x), _local(town.x + FAR_CITY_WEST.y), base)
-	_far_city(far_rng, _local(outskirts - 500.0), _local(town.y + FAR_CITY_EAST), base)
+	var east := outskirts - 500.0 if skip == Vector2.ZERO else maxf(outskirts - 500.0, skip.y)
+	_far_city(far_rng, _local(east), _local(town.y + FAR_CITY_EAST), base)
 	var x := _local(centre.x) - 120
 	var end := _local(centre.y) + 60
 	while x < end:
 		var w := rng.randf_range(14, 30)
 		var h := rng.randf_range(18, 44)
+		if _skipped(x, w):
+			x += w
+			continue
 		draw_rect(Rect2(x, base - h, w, h + 60), p.HAZE)
 		draw_rect(Rect2(x + w / 4, base - h - 5, w / 2, 5), p.HAZE)
 		if _glow:                               # at night a few far windows light up
@@ -169,6 +179,8 @@ func _draw_skyline(rng: RandomNumberGenerator) -> void:
 	for i in spires:
 		var sx := _local(centre.x) + 60 + i * 260 + rng.randf_range(-30, 30)
 		var th := rng.randf_range(70, 96) * tower_scale   # old Amsterdam: towers only just above the roofs
+		if _skipped(sx - 6, 28):
+			continue
 		match i % 3:
 			0:                                  # church tower with a needle spire
 				draw_rect(Rect2(sx, base - th, 12, th + 2), p.HAZE_DARK)
@@ -188,6 +200,8 @@ func _draw_skyline(rng: RandomNumberGenerator) -> void:
 			if 10 + k * 14 + 6 < th:
 				draw_rect(Rect2(sx + 4, base - th + 10 + k * 14, 4, 6), p.HAZE.lerp(p.HAZE_DARK, 0.3))
 	var crane := _local((centre.x + centre.y) / 2.0) + 90
+	if _skipped(crane - 30, 60):
+		return
 	draw_rect(Rect2(crane, base - 80, 2, 80), p.HAZE_DARK)
 	draw_rect(Rect2(crane - 30, base - 80, 60, 2), p.HAZE_DARK)
 
@@ -289,6 +303,8 @@ func _draw_back_street(rng: RandomNumberGenerator) -> void:
 	while x < end:
 		if _in_town(x) and x >= _local(outskirts):
 			x += _outskirt_building(rng, x, base)
+		elif _in_town(x) and _skipped(x):
+			x += 26.0
 		elif _in_town(x):
 			var w := float(rng.randi_range(22, 30))
 			var h := float(rng.randi_range(46, 72))

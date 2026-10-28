@@ -4,3 +4,4 @@
 
 [resource]
 script = ExtResource("1_x8alw")
+quiet_cars = 0.12

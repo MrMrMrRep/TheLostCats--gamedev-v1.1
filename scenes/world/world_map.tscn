@@ -39,6 +39,8 @@
 [ext_resource type="Script" uid="uid://b627am7gjrq0l" path="res://scripts/world/world_zone.gd" id="38_ao3qg"]
 [ext_resource type="Script" uid="uid://buh4jk6e7dhc7" path="res://scripts/world/world_marker.gd" id="39_x5aeg"]
 [ext_resource type="Script" uid="uid://bmhu5sltisqoo" path="res://scripts/world/side_opening.gd" id="90_sideop"]
+[ext_resource type="Script" path="res://scripts/world/canal_backdrop.gd" id="91_cbkdp"]
+[ext_resource type="Script" path="res://scripts/world/quay_trees.gd" id="92_qtree"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ao3qg"]
 shader = ExtResource("27_078hn")
@@ -103,6 +105,7 @@ shader_parameter/ripple = 0.08
 shader_parameter/world_left = 0.0
 shader_parameter/skip_rows = 36.0
 
+
 [node name="WorldMap" type="Node2D" unique_id=1907990674]
 script = ExtResource("1_3ywfa")
 map_width = 22616
@@ -127,6 +130,18 @@ map_width = 22616.0
 map_min = -4000.0
 cows_until = 0.0
 farm_clear = Vector2(5250, 6100)
+skip = Vector2(9884, 16436)
+
+[node name="CanalSkyline" type="Node2D" parent="Background"]
+script = ExtResource("3_x5aeg")
+factor = 0.2
+
+[node name="Backdrop" type="Node2D" parent="Background/CanalSkyline"]
+script = ExtResource("91_cbkdp")
+kind = 0
+span = Vector2(9884, 16436)
+base = 190.0
+seed_value = 3
 
 [node name="PolderFar" type="Node2D" parent="Background" unique_id=1502789159]
 script = ExtResource("3_x5aeg")
@@ -158,6 +173,18 @@ map_min = -4000.0
 cows_until = 0.0
 farm_clear = Vector2(5250, 6100)
 seed_value = 13
+skip = Vector2(9884, 16436)
+
+[node name="CanalBackRow" type="Node2D" parent="Background"]
+script = ExtResource("3_x5aeg")
+factor = 0.5
+
+[node name="Backdrop" type="Node2D" parent="Background/CanalBackRow"]
+script = ExtResource("91_cbkdp")
+kind = 1
+span = Vector2(9884, 16436)
+base = 274.0
+seed_value = 5
 
 [node name="PolderNear" type="Node2D" parent="Background" unique_id=906880517]
 script = ExtResource("3_x5aeg")
@@ -175,6 +202,17 @@ cows_until = 0.0
 farm_clear = Vector2(5250, 6100)
 seed_value = 17
 quiet = Vector2(18300, 21800)
+
+[node name="CanalYards" type="Node2D" parent="Background"]
+script = ExtResource("3_x5aeg")
+factor = 0.8
+
+[node name="Backdrop" type="Node2D" parent="Background/CanalYards"]
+script = ExtResource("91_cbkdp")
+kind = 2
+span = Vector2(9884, 16436)
+base = 232.0
+seed_value = 7
 
 [node name="Bridges" type="Node2D" parent="." unique_id=652504016]
 
@@ -383,6 +421,7 @@ houses = 3
 seed_value = 7
 sign_text = "STUDIO"
 shop_signs = PackedStringArray()
+kit = true
 
 [node name="Venue" type="Node2D" parent="Buildings/CanalBelt" unique_id=1924259415]
 texture_repeat = 2
@@ -392,6 +431,7 @@ houses = 3
 seed_value = 19
 sign_text = "CAFE DE KAT"
 shop_signs = PackedStringArray()
+kit = true
 
 [node name="Block40_1" type="Node2D" parent="Buildings/CanalBelt" unique_id=1891885394]
 texture_repeat = 2
@@ -400,6 +440,7 @@ script = ExtResource("6_1co5k")
 houses = 2
 seed_value = 41
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block50_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1497503040]
 texture_repeat = 2
@@ -407,6 +448,7 @@ position = Vector2(10310, 288)
 script = ExtResource("6_1co5k")
 seed_value = 50
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block50_1" type="Node2D" parent="Buildings/CanalBelt" unique_id=584747898]
 texture_repeat = 2
@@ -415,6 +457,7 @@ script = ExtResource("6_1co5k")
 houses = 2
 seed_value = 51
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block60_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=639565992]
 texture_repeat = 2
@@ -423,6 +466,7 @@ script = ExtResource("6_1co5k")
 houses = 3
 seed_value = 60
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block70_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1538109820]
 texture_repeat = 2
@@ -430,6 +474,7 @@ position = Vector2(11564, 288)
 script = ExtResource("6_1co5k")
 seed_value = 70
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block80_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1684192470]
 texture_repeat = 2
@@ -437,6 +482,7 @@ position = Vector2(12120, 288)
 script = ExtResource("6_1co5k")
 seed_value = 80
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block80_1" type="Node2D" parent="Buildings/CanalBelt" unique_id=1463429386]
 texture_repeat = 2
@@ -445,6 +491,7 @@ script = ExtResource("6_1co5k")
 houses = 1
 seed_value = 81
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block90_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=889753990]
 texture_repeat = 2
@@ -452,6 +499,7 @@ position = Vector2(12878, 288)
 script = ExtResource("6_1co5k")
 seed_value = 90
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block90_1" type="Node2D" parent="Buildings/CanalBelt" unique_id=1451035710]
 texture_repeat = 2
@@ -460,6 +508,7 @@ script = ExtResource("6_1co5k")
 houses = 3
 seed_value = 91
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block100_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1557265652]
 texture_repeat = 2
@@ -469,6 +518,7 @@ houses = 3
 seed_value = 100
 style = 2
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block110_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1739841857]
 texture_repeat = 2
@@ -478,6 +528,7 @@ houses = 3
 seed_value = 110
 style = 2
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block120_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1179198626]
 texture_repeat = 2
@@ -486,6 +537,7 @@ script = ExtResource("6_1co5k")
 houses = 5
 seed_value = 120
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block130_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1147085002]
 texture_repeat = 2
@@ -495,6 +547,7 @@ houses = 5
 seed_value = 130
 style = 2
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Block140_0" type="Node2D" parent="Buildings/CanalBelt" unique_id=1434786599]
 texture_repeat = 2
@@ -503,6 +556,7 @@ script = ExtResource("6_1co5k")
 seed_value = 140
 style = 2
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
 
 [node name="Flats" type="Node2D" parent="Buildings" unique_id=1308969535]
 
@@ -628,6 +682,7 @@ script = ExtResource("12_sloqf")
 map_width = 22616.0
 map_min = -4000.0
 town = Vector2(6000, 18706)
+kit_span = Vector2(9884, 16436)
 
 [node name="StreetLife" type="Node2D" parent="." unique_id=1776310546]
 
@@ -673,6 +728,7 @@ length = 1265.0
 script = ExtResource("13_t1rse")
 seed_value = 104
 keep_clear = Array[Vector2]([Vector2(1070, 1160), Vector2(515, 675)])
+quay_trees = true
 
 [node name="Stretch5" type="Node2D" parent="StreetLife/CanalBelt" unique_id=1165389405]
 position = Vector2(10941, 288)
@@ -680,6 +736,7 @@ length = 1281.0
 script = ExtResource("13_t1rse")
 seed_value = 105
 keep_clear = Array[Vector2]([Vector2(1036, 1126), Vector2(990, 1056), Vector2(-50, 110), Vector2(418, 578)])
+quay_trees = true
 
 [node name="Stretch6" type="Node2D" parent="StreetLife/CanalBelt" unique_id=2008655340]
 position = Vector2(12222, 288)
@@ -687,6 +744,7 @@ length = 1281.0
 script = ExtResource("13_t1rse")
 seed_value = 106
 keep_clear = Array[Vector2]([Vector2(155, 245), Vector2(431, 591), Vector2(1271, 1431)])
+quay_trees = true
 
 [node name="Stretch7" type="Node2D" parent="StreetLife/CanalBelt" unique_id=1557569831]
 position = Vector2(13643, 288)
@@ -694,6 +752,7 @@ length = 1529.0
 script = ExtResource("13_t1rse")
 seed_value = 107
 keep_clear = Array[Vector2]([Vector2(1484, 1574), Vector2(1329, 1419), Vector2(405, 495), Vector2(-150, 10), Vector2(884, 1044), Vector2(370, 530)])
+quay_trees = true
 
 [node name="Stretch8" type="Node2D" parent="StreetLife/CanalBelt" unique_id=712738424]
 position = Vector2(15172, 288)
@@ -701,6 +760,7 @@ script = ExtResource("13_t1rse")
 length = 1209.0
 seed_value = 108
 keep_clear = Array[Vector2]([Vector2(-45, 45), Vector2(559, 719)])
+quay_trees = true
 
 [node name="Flats" type="Node2D" parent="StreetLife" unique_id=106167776]
 
@@ -766,6 +826,7 @@ monitorable = false
 script = ExtResource("20_j1unl")
 target_scene = "res://scenes/levels/abilities_test.tscn"
 area_size = Vector2(30, 40)
+draw_door = false
 
 [node name="VenueDoor" type="Area2D" parent="Places/CanalBelt" unique_id=842680170]
 position = Vector2(15172, 288)
@@ -775,6 +836,7 @@ monitorable = false
 script = ExtResource("20_j1unl")
 target_scene = "res://scenes/levels/venue_puzzle.tscn"
 area_size = Vector2(30, 40)
+draw_door = false
 
 [node name="Start" type="Marker2D" parent="Places/CanalBelt" unique_id=1028837069]
 position = Vector2(12172, 288)
@@ -955,6 +1017,11 @@ lane = 1
 town = Vector2(6000, 18706)
 map_width = 22616.0
 map_min = -4000.0
+
+[node name="QuayTrees" type="Node2D" parent="."]
+position = Vector2(0, 288)
+script = ExtResource("92_qtree")
+span = Vector2(9884, 16436)
 
 [node name="Water" type="Node2D" parent="." unique_id=985293818]
 modulate = Color(1, 1, 1, 0.45882353)

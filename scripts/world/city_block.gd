@@ -66,6 +66,11 @@ const SIDE_W := 24.0
 	set(value):
 		style = value
 		queue_redraw()
+@export var kit := false:                   ## draw from the SpriteCook canal kit (CanalRow): flat facades at 1:1
+	set(value):
+		kit = value
+		_kit_row = []
+		queue_redraw()
 
 
 var _glow: NightGlow                        # lit windows at night (game only)
@@ -204,6 +209,9 @@ func _draw_side(edge: float, house_h: float, to_the_left: bool) -> void:
 func _draw() -> void:
 	if _glow:
 		_glow.clear()
+	if kit:
+		_draw_kit()
+		return
 	if WorldPalette.V3:
 		var art := v3_art()
 		_draw_reference_row()
@@ -221,6 +229,58 @@ func _draw() -> void:
 		_house(x, d, i, signed)
 		x += d.w * 2.0
 	draw_set_transform(Vector2.ZERO)
+	if _glow:
+		_glow.queue_redraw()
+
+
+# --- The canal kit (CanalRow) ---------------------------------------------------
+
+var _kit_row: Array = []
+
+
+## Door houses by sign: the studio, the venue (anything else with a sign: the café).
+func _door_piece() -> StringName:
+	match sign_text:
+		"STUDIO": return &"door_studio"
+		"CAFE DE KAT": return &"door_venue"
+	return &"door_cafe"
+
+
+## The row as [name, art x, joint]: the block keeps the width of its old
+## layout, so it still meets the openings; a signed block gets its door house
+## centred on the signed house (where its WorldDoor stands), drawn last.
+func kit_row() -> Array:
+	if not _kit_row.is_empty():
+		return _kit_row
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value * 7919 + houses
+	var total := int(round(width() * 2.0))
+	if sign_text == "":
+		_kit_row = CanalRow.fill(0, total, rng)
+		return _kit_row
+	var door := _door_piece()
+	var dw := CanalRow.width(door)
+	var dx := int(round(signed_center() * 2.0)) - dw / 2
+	var g: int = CanalKit.GABLES[door]
+	var left := CanalRow.fill(0, dx, rng, false, true, 60, -1, g)
+	var right := CanalRow.fill(dx + dw, total - dx - dw, rng, true, false, 60, g, -1)
+	_kit_row = left + right + [[door, dx, 0]]
+	return _kit_row
+
+
+func _draw_kit() -> void:
+	var row := kit_row()
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
+	CanalRow.draw(self, row)
+	draw_set_transform(Vector2.ZERO)
+	if sign_text != "":
+		var door: Array = row[-1]
+		var sign: Rect2i = CanalKit.SIGNS[door[0]]
+		var top := -CanalRow.height(door[0]) - CanalRow.LIFT
+		var board := Rect2((door[1] + sign.position.x) * 0.5, (top + sign.position.y) * 0.5, sign.size.x * 0.5, sign.size.y * 0.5)
+		PixelFont.draw_string(self, Vector2(board.position.x, board.position.y + 5.0), sign_text,
+			HORIZONTAL_ALIGNMENT_CENTER, board.size.x, 5, WorldPalette.O2)
+	CanalRow.add_glow(_glow, row)
 	if _glow:
 		_glow.queue_redraw()
 
