@@ -11,3 +11,8 @@
 # OS / backups
 .DS_Store
 project.godot.bak
+
+# Export outputs and git bundles (keep them out of the repo)
+/build/
+/*.zip
+*.bundle

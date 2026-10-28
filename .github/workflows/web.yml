@@ -1,0 +1,66 @@
+name: Web build
+
+# Exports the Web preset and publishes it to the gh-pages branch, which
+# GitHub Pages serves at https://mrmrmrrep.github.io/TheLostCats--gamedev-v1.1/
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: web-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot and Web templates
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot
+          key: godot-4.7.2-web-${{ hashFiles('tools/install_godot.sh') }}
+
+      - name: Install Godot 4.7.2 + Web templates
+        run: |
+          tools/install_godot.sh --templates
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Run headless tests
+        run: tools/run_tests.sh
+
+      - name: Stamp the title with the commit time (Amsterdam)
+        run: |
+          stamp="$(TZ=Europe/Amsterdam date -d "@$(git log -1 --format=%ct)" '+%d/%m  %H:%M')"
+          sed -i "s|^const BUILT := .*|const BUILT := \"$stamp\"|" scripts/ui/title_screen.gd
+          grep -n '^const BUILT' scripts/ui/title_screen.gd
+
+      - name: Export Web
+        run: |
+          mkdir -p build/web
+          godot --headless --disable-crash-handler --path . --export-release Web build/web/index.html
+          test -s build/web/index.pck
+          touch build/web/.nojekyll
+
+      - name: Publish to gh-pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch --depth 1 origin gh-pages
+          git worktree add pages origin/gh-pages
+          rm -rf pages/* pages/.nojekyll
+          cp -r build/web/. pages/
+          cd pages
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          git commit -m "Browser build of ${GITHUB_SHA::7}."
+          git push origin HEAD:gh-pages

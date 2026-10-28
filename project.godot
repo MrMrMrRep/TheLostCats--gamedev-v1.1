@@ -33,10 +33,6 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="keep_height"
 window/stretch/scale_mode="integer"
 
-[dotnet]
-
-project/assembly_name="<null>"
-
 [input]
 
 move_left={
