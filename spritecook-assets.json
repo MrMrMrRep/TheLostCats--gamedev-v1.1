@@ -247,5 +247,15 @@
     "geoff_loop": "e614086a-babf-4517-9331-4349b778fe34",
     "geoff_in": "5c7e4c59-1548-417e-8a49-6d3f1dfcae3c",
     "geoff_out": "7c59887c-eca8-4103-96c8-62366ec3d3bf"
+  },
+  "concept_canal_belt_rebuild": {
+    "asset_id": "c5a455c7-389a-4e35-90dc-33b437ee9c65",
+    "label": "Map rebuild concept: canal belt layers (mock-up, not used in game)",
+    "sha12": "6efa4ebc7575"
+  },
+  "concept_ring_road_rebuild": {
+    "asset_id": "92d800c4-d213-42ab-83da-f25fbea3581e",
+    "label": "Map rebuild concept: ring road lanes + parking (mock-up, not used in game)",
+    "sha12": "94abb58036f4"
   }
 }
