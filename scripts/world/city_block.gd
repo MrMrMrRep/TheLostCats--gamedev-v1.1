@@ -17,6 +17,7 @@ extends Node2D
 enum Style { CANAL, OLD_TOWN, RING }
 
 const GROUND := 44.0
+const DOOR_TOP := 38.0                      # a WorldDoor's height: the sign board goes above it
 const STOREY := 38.0
 const BRICKS := [WorldPalette.B1, WorldPalette.B1, WorldPalette.B1, WorldPalette.W0, WorldPalette.B2, WorldPalette.B1]
 const PAINTED := [WorldPalette.W4, WorldPalette.G4, WorldPalette.T3, WorldPalette.T1, WorldPalette.R2, WorldPalette.O1, WorldPalette.R3]
@@ -155,7 +156,8 @@ func _draw_reference_row() -> void:
 		if i == rows.size() - 1:
 			last_h = h
 		if i == mid and sign_text != "":
-			var board := Rect2(x + 3.0, -GROUND + 8.0, w - 6.0, 9.0)
+			# Just above the door (a WorldDoor, 38 px tall), not behind it.
+			var board := Rect2(x + 3.0, -DOOR_TOP - 11.0, w - 6.0, 9.0)
 			draw_rect(board, Color("1d2838"))
 			PixelFont.draw_string(self, Vector2(board.position.x, board.position.y + 7.0), sign_text, HORIZONTAL_ALIGNMENT_CENTER, board.size.x, 6, Color("f2bc58"))
 		x += w

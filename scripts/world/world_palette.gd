@@ -96,10 +96,13 @@ static func nearest(c: Color) -> Color:
 	var best: Color = PALETTE[0]
 	var bd := INF
 	for p: Color in PALETTE:
-		var dr := (c.r - p.r) * 0.30
-		var dg := (c.g - p.g) * 0.59
-		var db := (c.b - p.b) * 0.11
-		var d := dr * dr + dg * dg + db * db
+		# "Redmean" distance: close to how the eye judges colour. (A luminance-
+		# weighted RGB distance let a teal day sky snap to olive green.)
+		var rm := (c.r + p.r) * 0.5
+		var dr := c.r - p.r
+		var dg := c.g - p.g
+		var db := c.b - p.b
+		var d := (2.0 + rm) * dr * dr + 4.0 * dg * dg + (3.0 - rm) * db * db
 		if d < bd:
 			bd = d
 			best = p
