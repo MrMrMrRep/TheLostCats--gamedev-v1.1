@@ -27,6 +27,10 @@ const KINDS := ["canal", "street", "alley", "steeg"]
 	set(value):
 		seed_value = value
 		_changed()
+@export var district := &"canal":           ## which district's views (DISTRICT_PIECES): canal, oldtown, wallen, flats
+	set(value):
+		district = value
+		_changed()
 @export var poort := false:                 ## steeg only: a covered gateway under the house
 	set(value):
 		poort = value
@@ -81,13 +85,19 @@ const PIECES := {
 	Kind.ALLEY: [&"open_steeg"],
 	Kind.STEEG: [&"open_steeg"],
 }
+## Per district (`district`), where it has its own views; other kinds fall back to PIECES.
+const DISTRICT_PIECES := {
+	&"oldtown": {Kind.STREET: [&"open_ot_street"], Kind.ALLEY: [&"open_ot_steeg"], Kind.STEEG: [&"open_ot_steeg"]},
+	&"wallen": {Kind.CANAL: [&"open_wal_canal"], Kind.ALLEY: [&"open_wal_steeg"], Kind.STEEG: [&"open_wal_steeg"]},
+	&"flats": {Kind.STREET: [&"open_fl_street"]},
+}
 
 var _glow_back: NightGlow                   # the corner houses' windows at night
 
 
 ## The kit piece for this opening (by kind; seed_value picks among them).
 func piece() -> StringName:
-	var list: Array = PIECES[kind]
+	var list: Array = DISTRICT_PIECES.get(district, {}).get(kind, PIECES[kind])
 	return list[posmod(seed_value, list.size())]
 
 

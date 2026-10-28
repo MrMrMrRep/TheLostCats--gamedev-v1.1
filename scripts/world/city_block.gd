@@ -66,6 +66,11 @@ const SIDE_W := 24.0
 	set(value):
 		style = value
 		queue_redraw()
+@export var district := &"canal":           ## kit rows: which houses (CanalRow.POOLS: canal, oldtown, wallen, flats)
+	set(value):
+		district = value
+		_kit_row = []
+		queue_redraw()
 @export var kit := false:                   ## draw from the SpriteCook canal kit (CanalRow): flat facades at 1:1
 	set(value):
 		kit = value
@@ -267,15 +272,14 @@ func kit_span() -> Vector2:
 		elif bx < x0 or (bx == x0 and b.get_index() < get_index()):
 			prev = maxf(prev, bx)
 	var start := x0
-	var after := -INF                       # the east edge of an opening between the previous row and this one
-	for o in root.find_children("*", "SideOpening", true, false):
-		var sp: Vector2 = (o as SideOpening).span()
+	var after := -INF                       # the east edge of an opening or landmark between the previous row and this one
+	var anchors := _anchors(root)
+	for sp: Vector2 in anchors:
 		if sp.y > prev and sp.x <= x0 + 0.5:
 			after = maxf(after, sp.y)
 	if after > -INF:
 		start = after                       # begin right at that edge (west of the block, or past it when the block sits inside the opening)
-	for o in root.find_children("*", "SideOpening", true, false):
-		var sp: Vector2 = (o as SideOpening).span()
+	for sp: Vector2 in anchors:
 		if sp.x >= start:
 			x1 = minf(x1, sp.x)
 	var street := root.find_child("Street", true, false)
@@ -284,6 +288,16 @@ func kit_span() -> Vector2:
 	if x1 == INF:
 		x1 = x0 + width()
 	return Vector2(start, maxf(x1, start))
+
+
+## World x ranges the rows stop at: openings (SideOpening) and landmarks (KitLandmark).
+static func _anchors(root: Node) -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	for o in root.find_children("*", "SideOpening", true, false):
+		out.append((o as SideOpening).span())
+	for o in root.find_children("*", "KitLandmark", true, false):
+		out.append((o as KitLandmark).span())
+	return out
 
 
 func _scene_root() -> Node:
@@ -308,14 +322,14 @@ func kit_row() -> Array:
 	var b := int(round((sp.y - origin) * 2.0))
 	if sign_text == "":
 		var g := _door_gables(sp)
-		_kit_row = CanalRow.fill(a, b - a, rng, g.x, g.y)
+		_kit_row = CanalRow.fill(a, b - a, rng, g.x, g.y, district)
 		return _kit_row
 	var door := _door_piece()
 	var dw := CanalRow.width(door)
 	var dx := int(round((_door_x() - origin) * 2.0)) - dw / 2
 	var g: int = CanalKit.GABLES[door]
-	var left := CanalRow.fill(a, dx - a, rng, -1, g)
-	var right := CanalRow.fill(dx + dw, b - dx - dw, rng, g, -1)
+	var left := CanalRow.fill(a, dx - a, rng, -1, g, district)
+	var right := CanalRow.fill(dx + dw, b - dx - dw, rng, g, -1, district)
 	_kit_row = left + right + [[door, dx, 0]]
 	return _kit_row
 

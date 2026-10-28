@@ -21,6 +21,7 @@ const PANTS := [WorldPalette.T0, WorldPalette.W0, WorldPalette.P0, WorldPalette.
 
 @export var side := Side.BACK
 var busy: Array[Vector3] = []               # (x0, x1, people per screen width), from the zones
+var red_light: Array[Vector2] = []          # world x ranges of the red light district: at night its own people (RedLightNight)
 
 var _people: Array = []                     # dictionaries: x, dir, speed, look, phase, kid, extra
 var _rng := RandomNumberGenerator.new()
@@ -29,16 +30,23 @@ var _rng := RandomNumberGenerator.new()
 func _ready() -> void:
 	_rng.seed = 21 + side
 	busy.clear()
+	red_light.clear()
 	for z in WorldZone.all(self):
 		var r := z.span()
 		busy.append(Vector3(r.x, r.y, z.people_per_screen))
+		if z.red_light:
+			red_light.append(r)
 
 
 func density_at(x: float) -> float:
 	for b in busy:
 		if x >= b.x and x <= b.y:
 			var cfg := PeopleConfig.current()
-			return b.z * cfg.busy_scale * (cfg.front_share if side == Side.FRONT else 1.0)
+			var d := b.z * cfg.busy_scale * (cfg.front_share if side == Side.FRONT else 1.0)
+			for r in red_light:             # after dark the night people stand here; only a few tourists walk through
+				if x >= r.x and x <= r.y and WorldDayCycle.night_now > RedLightNight.NIGHT_FROM:
+					d *= 0.25
+			return d
 	return 0.0
 
 

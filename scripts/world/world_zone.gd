@@ -21,6 +21,10 @@ extends Node2D
 	set(value):
 		bikes_only = value
 		queue_redraw()
+@export var red_light := false:             ## the red light district: red windows, neon and night-life people at night (RedLightNight)
+	set(value):
+		red_light = value
+		queue_redraw()
 @export var parked_cars := false:           ## cars parked along the street
 	set(value):
 		parked_cars = value

@@ -41,6 +41,8 @@
 [ext_resource type="Script" uid="uid://bmhu5sltisqoo" path="res://scripts/world/side_opening.gd" id="90_sideop"]
 [ext_resource type="Script" path="res://scripts/world/canal_backdrop.gd" id="91_cbkdp"]
 [ext_resource type="Script" path="res://scripts/world/quay_trees.gd" id="92_qtree"]
+[ext_resource type="Script" path="res://scripts/world/kit_landmark.gd" id="93_kitlm"]
+[ext_resource type="Script" path="res://scripts/world/red_light.gd" id="94_redlt"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ao3qg"]
 shader = ExtResource("27_078hn")
@@ -130,7 +132,7 @@ map_width = 22616.0
 map_min = -4000.0
 cows_until = 0.0
 farm_clear = Vector2(5250, 6100)
-skip = Vector2(9884, 16436)
+skip = Vector2(7822, 17276)
 
 [node name="CanalSkyline" type="Node2D" parent="Background"]
 script = ExtResource("3_x5aeg")
@@ -139,7 +141,7 @@ factor = 0.2
 [node name="Backdrop" type="Node2D" parent="Background/CanalSkyline"]
 script = ExtResource("91_cbkdp")
 kind = 0
-span = Vector2(9884, 16436)
+span = Vector2(7822, 17276)
 base = 190.0
 seed_value = 3
 
@@ -173,7 +175,7 @@ map_min = -4000.0
 cows_until = 0.0
 farm_clear = Vector2(5250, 6100)
 seed_value = 13
-skip = Vector2(9884, 16436)
+skip = Vector2(7822, 17276)
 
 [node name="CanalBackRow" type="Node2D" parent="Background"]
 script = ExtResource("3_x5aeg")
@@ -182,7 +184,7 @@ factor = 0.5
 [node name="Backdrop" type="Node2D" parent="Background/CanalBackRow"]
 script = ExtResource("91_cbkdp")
 kind = 1
-span = Vector2(9884, 16436)
+span = Vector2(7822, 17276)
 base = 274.0
 seed_value = 5
 
@@ -210,7 +212,7 @@ factor = 0.8
 [node name="Backdrop" type="Node2D" parent="Background/CanalYards"]
 script = ExtResource("91_cbkdp")
 kind = 2
-span = Vector2(9884, 16436)
+span = Vector2(7822, 17276)
 base = 232.0
 seed_value = 7
 
@@ -266,6 +268,34 @@ kind = 2
 width = 250.0
 open_width = 44.0
 seed_value = 83
+
+[node name="OldTownStreet" type="Node2D" parent="Bridges"]
+position = Vector2(8299.75, 288)
+script = ExtResource("90_sideop")
+kind = 1
+seed_value = 5
+district = &"oldtown"
+
+[node name="WallenSteeg" type="Node2D" parent="Bridges"]
+position = Vector2(9175.75, 288)
+script = ExtResource("90_sideop")
+kind = 3
+seed_value = 7
+district = &"wallen"
+
+[node name="WallenCanal" type="Node2D" parent="Bridges"]
+position = Vector2(9771.25, 288)
+script = ExtResource("90_sideop")
+kind = 0
+seed_value = 9
+district = &"wallen"
+
+[node name="FlatsStreet" type="Node2D" parent="Bridges"]
+position = Vector2(16810.5, 288)
+script = ExtResource("90_sideop")
+kind = 1
+seed_value = 11
+district = &"flats"
 
 [node name="Buildings" type="Node2D" parent="." unique_id=986741327]
 
@@ -338,78 +368,81 @@ houses = 2
 seed_value = 73
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 2
+kit = true
+district = &"oldtown"
 
 [node name="West9_Church" type="Node2D" parent="Buildings/OldTown" unique_id=863274191]
-texture_repeat = 2
-position = Vector2(7986, 288)
-script = ExtResource("7_q6byn")
-kind = 4
-seed_value = 6
-span = 342.0
+position = Vector2(7922, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_church"
 
 [node name="West10_Houses" type="Node2D" parent="Buildings/OldTown" unique_id=1402578671]
 texture_repeat = 2
-position = Vector2(8328, 288)
+position = Vector2(8056.5, 288)
 script = ExtResource("6_1co5k")
 houses = 2
 seed_value = 75
 shop_rate = 0.8
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 1
+kit = true
+district = &"oldtown"
 
 [node name="West11_Market" type="Node2D" parent="Buildings/OldTown" unique_id=1212363950]
-texture_repeat = 2
-position = Vector2(8454, 288)
-script = ExtResource("7_q6byn")
-kind = 5
-seed_value = 7
-sign_text = "MARKT"
+position = Vector2(8543, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_waag"
 
 [node name="West12_Houses" type="Node2D" parent="Buildings/OldTown" unique_id=1495455230]
 texture_repeat = 2
-position = Vector2(8714, 288)
+position = Vector2(8413, 288)
 script = ExtResource("6_1co5k")
 houses = 5
 seed_value = 77
 shop_rate = 0.9
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 1
+kit = true
+district = &"oldtown"
 
 [node name="West13_Houses" type="Node2D" parent="Buildings/OldTown" unique_id=1702332531]
 texture_repeat = 2
-position = Vector2(9012, 288)
+position = Vector2(8790.5, 288)
 script = ExtResource("6_1co5k")
 houses = 2
 seed_value = 79
 shop_rate = 0.8
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 1
+kit = true
+district = &"oldtown"
 
 [node name="West14_Church" type="Node2D" parent="Buildings/OldTown" unique_id=2064162413]
-texture_repeat = 2
-position = Vector2(9144, 288)
-script = ExtResource("7_q6byn")
-kind = 4
-seed_value = 8
-span = 326.0
+position = Vector2(9412.5, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_oude_kerk"
 
 [node name="West15_Houses" type="Node2D" parent="Buildings/OldTown" unique_id=1313049866]
 texture_repeat = 2
-position = Vector2(9470, 288)
+position = Vector2(8990, 288)
 script = ExtResource("6_1co5k")
 houses = 1
 seed_value = 81
 shop_rate = 0.6
 shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
 style = 1
+kit = true
+district = &"wallen"
 
 [node name="Block40_0" type="Node2D" parent="Buildings/OldTown" unique_id=1684330448]
 texture_repeat = 2
-position = Vector2(9530, 288)
+position = Vector2(9251.5, 288)
 script = ExtResource("6_1co5k")
 seed_value = 40
 style = 1
 shop_signs = PackedStringArray("KOFFIE", "BOEKEN", "ANTIEK", "KAAS", "GALERIE", "CAFE DE GRACHT", "BLOEMEN", "VINTAGE", "BAR \'T SLUISJE", "FIETSEN")
+kit = true
+district = &"wallen"
 
 [node name="CanalBelt" type="Node2D" parent="Buildings" unique_id=1315734540]
 
@@ -563,29 +596,18 @@ kit = true
 [node name="Flats0_Flats" type="Node2D" parent="Buildings/Flats" unique_id=23732073]
 texture_repeat = 2
 position = Vector2(16436, 288)
-script = ExtResource("7_q6byn")
-kind = 9
-seed_value = 0
-
-[node name="Flats2_Flats" type="Node2D" parent="Buildings/Flats" unique_id=1184644772]
-texture_repeat = 2
-position = Vector2(16646, 288)
-script = ExtResource("7_q6byn")
-kind = 9
+script = ExtResource("6_1co5k")
+seed_value = 3
+kit = true
+district = &"flats"
 
 [node name="Flats4_Flats" type="Node2D" parent="Buildings/Flats" unique_id=316820380]
 texture_repeat = 2
-position = Vector2(16856, 288)
-script = ExtResource("7_q6byn")
-kind = 9
-seed_value = 2
-
-[node name="Flats6_Flats" type="Node2D" parent="Buildings/Flats" unique_id=741472560]
-texture_repeat = 2
-position = Vector2(17066, 288)
-script = ExtResource("7_q6byn")
-kind = 9
-seed_value = 3
+position = Vector2(16921, 288)
+script = ExtResource("6_1co5k")
+seed_value = 5
+kit = true
+district = &"flats"
 
 [node name="Industry" type="Node2D" parent="Buildings" unique_id=92419518]
 
@@ -682,7 +704,8 @@ script = ExtResource("12_sloqf")
 map_width = 22616.0
 map_min = -4000.0
 town = Vector2(6000, 18706)
-kit_span = Vector2(9884, 16436)
+kit_span = Vector2(7822, 17276)
+kit_road = Vector2(16436, 17276)
 
 [node name="StreetLife" type="Node2D" parent="." unique_id=1776310546]
 
@@ -712,6 +735,7 @@ length = 1200.0
 script = ExtResource("13_t1rse")
 kind = 1
 seed_value = 102
+quay_trees = true
 
 [node name="Stretch3" type="Node2D" parent="StreetLife/OldTown" unique_id=1145729057]
 position = Vector2(8956, 288)
@@ -719,6 +743,7 @@ script = ExtResource("13_t1rse")
 kind = 1
 length = 600.0
 seed_value = 103
+quay_trees = true
 
 [node name="CanalBelt" type="Node2D" parent="StreetLife" unique_id=776692287]
 
@@ -928,6 +953,10 @@ kind = 1
 save_id = &"van_x"
 area_size = Vector2(76, 34)
 
+[node name="RedLightNight" type="Node2D" parent="."]
+position = Vector2(0, 288)
+script = ExtResource("94_redlt")
+
 [node name="PeopleBack" type="Node2D" parent="." unique_id=452844296]
 position = Vector2(0, 288)
 script = ExtResource("14_1pnen")
@@ -1021,7 +1050,7 @@ map_min = -4000.0
 [node name="QuayTrees" type="Node2D" parent="."]
 position = Vector2(0, 288)
 script = ExtResource("92_qtree")
-span = Vector2(9884, 16436)
+span = Vector2(7822, 16436)
 
 [node name="Water" type="Node2D" parent="." unique_id=985293818]
 modulate = Color(1, 1, 1, 0.45882353)
@@ -1258,10 +1287,19 @@ color = Color(0.4, 0.8, 0.5, 1)
 [node name="OldTown" type="Node2D" parent="Zones" unique_id=1660708231]
 position = Vector2(7822, 288)
 script = ExtResource("38_ao3qg")
-length = 2062.0
+length = 1168.0
 people_per_screen = 6.0
 bikes_only = true
 color = Color(0.95, 0.45, 0.4, 1)
+
+[node name="RedLight" type="Node2D" parent="Zones"]
+position = Vector2(8990, 288)
+script = ExtResource("38_ao3qg")
+length = 894.0
+people_per_screen = 6.0
+bikes_only = true
+red_light = true
+color = Color(1, 0.2, 0.35, 1)
 
 [node name="CanalBelt" type="Node2D" parent="Zones" unique_id=839745235]
 position = Vector2(9884, 288)

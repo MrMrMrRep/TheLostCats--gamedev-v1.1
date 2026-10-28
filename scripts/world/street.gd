@@ -11,6 +11,7 @@ extends Node2D
 @export var map_min := 0.0
 @export var town := Vector2(1100, 3640)
 @export var kit_span := Vector2.ZERO        ## world x range with the canal-kit street (pavement, cobbles, quay)
+@export var kit_road := Vector2.ZERO        ## part of kit_span with an asphalt road instead of cobbles (the flats)
 
 const STREET_H := 14.0
 const EDGE_H := 36.0                        # town: sidewalk + curb + quay wall, down to the water
@@ -177,6 +178,9 @@ func _draw_kit_street(a: float, b: float) -> void:
 	draw_rect(Rect2(x0, KIT_KERB, w, 1), WorldPalette.W4)               # kerb stone, lit from above
 	draw_rect(Rect2(x0, KIT_KERB + 1, w, 2), WorldPalette.R3)
 	draw_texture_rect(KIT_SETTS, Rect2(x0, KIT_SETTS_Y, w, KIT_COPING - KIT_SETTS_Y), true)
+	var road := Vector2(maxf(kit_road.x, a), minf(kit_road.y, b))
+	if kit_road != Vector2.ZERO and road.y > road.x:
+		_kit_asphalt(road.x * 2.0, (road.y - road.x) * 2.0)
 	draw_rect(Rect2(x0, KIT_SETTS_Y, w, 1), WorldPalette.R1)            # gutter
 	draw_rect(Rect2(x0, KIT_COPING, w, 1), WorldPalette.W3)             # coping
 	draw_rect(Rect2(x0, KIT_COPING + 1, w, 2), WorldPalette.R2)
@@ -189,6 +193,28 @@ func _draw_kit_street(a: float, b: float) -> void:
 		if h1 - h0 > 8.0:
 			_kit_arch(h0, h1)
 	draw_set_transform(Vector2.ZERO)
+
+
+## Asphalt instead of cobbles (art px): the ring road in front of the flats,
+## with worn patches and a dashed centre line.
+func _kit_asphalt(x0: float, w: float) -> void:
+	var p := WorldPalette
+	var h := float(KIT_COPING - KIT_SETTS_Y)
+	draw_rect(Rect2(x0, KIT_SETTS_Y, w, h), p.R0)
+	draw_rect(Rect2(x0, KIT_SETTS_Y + 1, w, 1), p.R1)
+	var x := x0 - fposmod(x0, 7.0)
+	while x < x0 + w:                       # a little grain
+		var hh := NightGlow.spot_hash(x, 3.0)
+		if hh < 0.5:
+			draw_rect(Rect2(maxf(x, x0), KIT_SETTS_Y + 3 + int(hh * 2.0 * (h - 6)), 2, 1), p.R1)
+		x += 7.0
+	var d := x0 - fposmod(x0, 36.0)
+	while d < x0 + w:                       # centre line: 18 on, 18 off
+		var s0 := maxf(d, x0)
+		var s1 := minf(d + 18.0, x0 + w)
+		if s1 > s0:
+			draw_rect(Rect2(s0, KIT_SETTS_Y + h * 0.5 - 1.0, s1 - s0, 2), p.W4)
+		d += 36.0
 
 
 ## A brick arch under the street where a side canal runs out (art px).

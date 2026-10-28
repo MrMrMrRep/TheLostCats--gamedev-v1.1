@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 70
+const EXPECTED_CHECKS := 75
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -28,6 +28,7 @@ func _run() -> void:
 	map = await _load_map()
 
 	_test_canal_kit()
+	_test_red_light()
 	await _test_zoom_walking()
 	await _test_day_night()
 	await _test_band_line()
@@ -54,7 +55,7 @@ func _test_canal_kit() -> void:
 	var row_script = load("res://scripts/world/canal_row.gd")
 	var gables: Dictionary = load("res://scripts/world/canal_kit.gd").GABLES
 	var doors := [&"door_venue", &"door_studio", &"door_cafe"]
-	var blocks: Array = map.get_node("Buildings/CanalBelt").get_children().filter(func(n): return n.has_method("kit_row"))
+	var blocks: Array = map.get_node("Buildings").find_children("*", "", true, false).filter(func(n): return n.has_method("kit_row") and n.kit)
 	var bad := []
 	var flat := true
 	var pieces := []                        # [world x0, world x1] of every row and opening
@@ -85,17 +86,20 @@ func _test_canal_kit() -> void:
 			if i + 1 < items.size() and gables.has(it[0]) and gables.has(items[i + 1][0]) \
 					and gables[it[0]] == gables[items[i + 1][0]]:
 				flat = false
-	_check(not blocks.is_empty() and bad.is_empty(), "canal-belt rows: exactly filled, no overlaps, steegjes only between houses %s" % [bad])
+	_check(blocks.size() >= 20 and bad.is_empty(), "kit rows (old town, Wallen, canal belt, flats): exactly filled, no overlaps, steegjes only between houses %s" % [bad])
 	_check(flat, "neighbouring facades never share a gable")
 	for o in map.get_node("Bridges").get_children():
 		pieces.append(o.span())
+	for o in map.get_node("Buildings").find_children("*", "", true, false):
+		if o.has_method("span") and "piece" in o:   # landmarks: the church, the Waag, the Oude Kerk
+			pieces.append(o.span())
 	pieces.sort_custom(func(p, q): return p.x < q.x)
 	var gaps := []
 	for i in pieces.size() - 1:
 		if absf(pieces[i + 1].x - pieces[i].y) > 1.0:
 			gaps.append("%.1f..%.1f" % [pieces[i].y, pieces[i + 1].x])
-	_check(gaps.is_empty() and absf(pieces[0].x - 9884.0) < 1.0 and absf(pieces[-1].y - 16436.0) < 1.0,
-		"rows and openings meet without gaps or overlaps from 9884 to 16436 %s" % [gaps])
+	_check(gaps.is_empty() and absf(pieces[0].x - 7822.0) < 1.0 and absf(pieces[-1].y - 17276.0) < 1.0,
+		"rows, openings and landmarks meet without gaps or overlaps from the old town (7822) to the flats' end (17276) %s" % [gaps])
 	for pair in [["Studio", "StudioDoor", &"door_studio"], ["Venue", "VenueDoor", &"door_venue"]]:
 		var block = map.get_node("Buildings/CanalBelt/" + pair[0])
 		var door = map.get_node("Places/CanalBelt/" + pair[1])
@@ -118,6 +122,50 @@ func _test_canal_kit() -> void:
 		if floor.get_cell_source_id(Vector2i(x, used.position.y)) == -1:
 			holes.append(x * floor.tile_set.tile_size.x)
 	_check(holes.is_empty(), "the street floor has no holes to fall through %s" % [holes])
+
+
+## De Wallen between the old town and the canal belt: red at night, neon,
+## night people who stand around and now and then offer something.
+func _test_red_light() -> void:
+	var zones: Node = map.get_node("Zones")
+	var rl_zone = zones.get_node_or_null("RedLight")
+	var old_town = zones.get_node("OldTown")
+	var canal = zones.get_node("CanalBelt")
+	_check(rl_zone != null and rl_zone.red_light and absf(rl_zone.span().x - old_town.span().y) < 1.0
+		and absf(rl_zone.span().y - canal.span().x) < 1.0 and rl_zone.length >= 800.0,
+		"the red light district lies between the old town and the canal belt, about two canal blocks long")
+	var wallen := 0
+	var neon := 0
+	var kit: Dictionary = load("res://scripts/world/canal_kit.gd").NEON
+	for b in map.get_node("Buildings").find_children("*", "", true, false):
+		if b.has_method("kit_row") and b.kit and b.district == &"wallen":
+			for it: Array in b.kit_row():
+				wallen += 1
+				neon += kit.get(it[0], []).size()
+	_check(wallen >= 6 and neon >= 6, "the district is Wallen houses with red neon windows (%d houses, %d red windows)" % [wallen, neon])
+	var night = map.get_node("RedLightNight")
+	var day_cycle = load("res://scripts/world/day_cycle.gd")
+	var was: float = day_cycle.night_now
+	day_cycle.night_now = 1.0
+	_check(night.signs.size() >= 3 and night.people.size() >= 6 and night.crowd() == 1.0,
+		"at night: %d neon signs, %d night people out" % [night.signs.size(), night.people.size()])
+	var seller: Dictionary = {}
+	for p: Dictionary in night.people:
+		if night.SELLERS[p.kind]:
+			seller = p
+			break
+	map.leader.global_position.x = night.global_position.x + seller.x + 10.0
+	night._offers()
+	var bubbles: int = night._bubbles.size()
+	_check(not seller.is_empty() and bubbles == 1 and seller.cooldown > 0.0 and not paused,
+		"a seller near the band asks if they want something (a bubble, the game runs on)")
+	night._offers()
+	_check(night._bubbles.size() == bubbles, "and doesn't ask again right away")
+	day_cycle.night_now = was
+	for b: Array in night._bubbles:
+		b[0].queue_free()
+	night._bubbles.clear()
+	map.leader.global_position = map.get_node("Places/CanalBelt/Start").global_position
 
 
 func _test_day_night() -> void:
