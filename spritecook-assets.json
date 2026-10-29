@@ -512,5 +512,96 @@
   "canal2_composite_fl_street": {
     "asset_id": "829e7b42-2739-4f1c-858d-7fee004d38f4",
     "label": "Uploaded composite (source of an edit)"
+  },
+  "canal2_hst_a": {
+    "asset_id": "a26e26d3-b23b-4c39-9a78-d5002a24f034",
+    "label": "District kit source hst_a (tools/spritecook/canal_kit_src/hst_a.png)",
+    "sha12": "da7c1d5bf5f8"
+  },
+  "canal2_park_a": {
+    "asset_id": "edf27feb-28d0-4992-9abd-55524e5da168",
+    "label": "District kit source park_a (tools/spritecook/canal_kit_src/park_a.png)",
+    "sha12": "3a71e08f19a2"
+  },
+  "canal2_ind_a": {
+    "asset_id": "66c8781c-5400-428b-bdd0-fab10234d05e",
+    "label": "District kit source ind_a (tools/spritecook/canal_kit_src/ind_a.png)",
+    "sha12": "62dc17a42b0b"
+  },
+  "canal2_sm_a": {
+    "asset_id": "99884aa7-c12d-4730-9630-e00b238707d4",
+    "label": "District kit source sm_a (tools/spritecook/canal_kit_src/sm_a.png)",
+    "sha12": "039ebf153953"
+  },
+  "canal2_cp_a": {
+    "asset_id": "9b2af794-19a6-4e6d-94d0-fbc95811d69d",
+    "label": "District kit source cp_a (tools/spritecook/canal_kit_src/cp_a.png)",
+    "sha12": "3decb850b25e"
+  },
+  "canal2_ah_a": {
+    "asset_id": "93e3889c-e712-4846-b517-21fa64ffc66a",
+    "label": "District kit source ah_a (tools/spritecook/canal_kit_src/ah_a.png)",
+    "sha12": "9b7abea758f5"
+  },
+  "canal2_th_b": {
+    "asset_id": "ffe4134d-7a56-4ad9-bd2d-7348f75cea58",
+    "label": "District kit source th_b (tools/spritecook/canal_kit_src/th_b.png)",
+    "sha12": "5b97e88f5198"
+  },
+  "canal2_th_c": {
+    "asset_id": "2cb698e0-cff1-452f-8c9f-6d90bf666b47",
+    "label": "District kit source th_c (tools/spritecook/canal_kit_src/th_c.png)",
+    "sha12": "36fdc00dcdd3"
+  },
+  "canal2_bs_c": {
+    "asset_id": "0c99b6ae-9b2b-42d3-8fc3-904f1d43c7dd",
+    "label": "District kit source bs_c (tools/spritecook/canal_kit_src/bs_c.png)",
+    "sha12": "25518cf1e347"
+  },
+  "canal2_tw_a": {
+    "asset_id": "370f4519-0326-47f2-bff3-812f3f0f14dd",
+    "label": "District kit source tw_a (tools/spritecook/canal_kit_src/tw_a.png)",
+    "sha12": "c20bcc1ce5e7"
+  },
+  "canal2_term_a": {
+    "asset_id": "bf60ef2c-1e5e-4fce-8f81-c6563996932c",
+    "label": "District kit source term_a (tools/spritecook/canal_kit_src/term_a.png)",
+    "sha12": "356a9178bebc"
+  },
+  "canal2_open_hs": {
+    "asset_id": "b821b7d3-4d8c-4b7b-8810-07bce84ebaf6",
+    "label": "District kit source open_hs (tools/spritecook/canal_kit_src/open_hs.png)",
+    "sha12": "5939408767f1"
+  },
+  "canal2_open_ts": {
+    "asset_id": "b31612c1-1f03-401e-aabc-4ca25d924a61",
+    "label": "District kit source open_ts (tools/spritecook/canal_kit_src/open_ts.png)",
+    "sha12": "d644b2004451"
+  },
+  "canal2_open_ir": {
+    "asset_id": "09ccd025-6191-47eb-903a-7ad2466a759f",
+    "label": "District kit source open_ir (tools/spritecook/canal_kit_src/open_ir.png)",
+    "sha12": "2841af9a873a"
+  },
+  "canal2_open_is": {
+    "asset_id": "1c42b100-15b2-42db-8543-df6884e933e5",
+    "label": "District kit source open_is (tools/spritecook/canal_kit_src/open_is.png)",
+    "sha12": "12b7a274a9a1"
+  },
+  "canal2_composite_hot_street": {
+    "asset_id": "08d28512-d772-4c2c-ab98-77f5d4cb724e",
+    "label": "Uploaded composite (source of an edit)"
+  },
+  "canal2_composite_th_steeg": {
+    "asset_id": "f16d8936-7eb8-4f9a-b132-200894a9c7d0",
+    "label": "Uploaded composite (source of an edit)"
+  },
+  "canal2_composite_ind_road": {
+    "asset_id": "e06707cb-d094-4206-9abc-e597cd694160",
+    "label": "Uploaded composite (source of an edit)"
+  },
+  "canal2_composite_ind_steeg": {
+    "asset_id": "229b9aa8-8c1b-4f80-9eaa-37ae8c0dcc0d",
+    "label": "Uploaded composite (source of an edit)"
   }
 }

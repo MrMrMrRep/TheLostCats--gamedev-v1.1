@@ -131,7 +131,7 @@ The same kit system now runs from the old town (x 7822) to the end of the flats 
 | 7822–8990 | **Old town** (Nieuwmarkt side) | shops with shutters: cheese, brown café, bike shop, antiques, curiosa; old houses with geraniums | church (`lm_church`), an old-town side street with a tower at the end, the **Waag** with market stalls (`lm_waag`) |
 | 8990–9884 | **Red light district** (De Wallen), zone `RedLight` (`red_light`) | the oldest leaning houses: brown bars (BRUINE KROEG), coffeeshops, red-neon windows with red curtains | a Wallen steeg with red windows, the **Oude Kerk** (`lm_oude_kerk`), the Oudezijds Achterburgwal canal |
 | 9884–16436 | Canal belt | §8 | §8 |
-| 16436–17276 | **Flats** (the ring) | 19th-century blocks with balconies: supermarket, café with awning, launderette | a ring side street with trees; asphalt road with a centre line in front (`Street.kit_road`), parked cars |
+| 16436–17276 | **Flats** (the ring) | 19th-century blocks with balconies: supermarket, café with awning, launderette | a ring side street with trees; asphalt road with a centre line in front (`Street.kit_roads`), parked cars |
 
 **The red light district at night** (`RedLightNight`, `scripts/world/red_light.gd`):
 - Every red-curtain window glows red with a halo (`CanalKit.NEON`, found by the slicer), and a red haze hangs over the street.
@@ -140,3 +140,26 @@ The same kit system now runs from the old town (x 7822) to the end of the flats 
 - Some of them are sellers: when the band's leader walks past (30 px) one leans in, "Psst... want something?", with a little sound and a speech bubble. It never stops the game and there is nothing to buy yet; the same one waits 14 s before asking again. Tuning: the constants at the top of `red_light.gd`.
 
 **Next**: the park/theatre and hotels west of the old town, and the industry and airport in the east, are still in the older style; then the ring road lanes and parking after concept 2.
+
+## 10. Hotels, park and theatre, industry, airport (2026-10-29)
+
+The kit now covers the whole town, x 6400–18706, plus the airport. New pools (`CanalRow.POOLS`: `hotels`, `park`, `industry`), new openings and landmarks, all from SpriteCook:
+
+| x (world) | District | Rows | Openings and landmarks |
+|---|---|---|---|
+| 6400–7092 | **Hotels** (on the viaduct) | boutique hotel, hostel, café with awnings, a few canal houses | the **hotel street** (asphalt, trees, flags; `open_hot_street`), the **Grand Hotel** (`lm_grand_hotel`) |
+| 7092–7822 | **Park and theatre** | the park's railings: fence with lamp, gate, willow pond | the **stage-door steeg** behind the theatre (`open_th_steeg`), the **theatre** (`lm_theatre`) |
+| 17276–18366 | **Industry** | sawtooth workshop, white shed, small office, loading-dock warehouse; they stand apart on their yards | service station (`lm_station`, its shop door on `StationDoor`), mall (`lm_mall`, WINKELCENTRUM), car park (`lm_carpark`), the **industrial road** (`open_ind_road`), self storage (`lm_selfstorage`), an **industrial steeg** with pallets and a forklift (`open_ind_steeg`) |
+| 18366–18706 | **The band's storage** | sheds to the town's end | the storage shed (`lm_band_storage`, THE LOST CATS - STORAGE; its roller door behind `StorageGate`) |
+| 19386–20330 | **Airport** (by the motorway) | – | two hotels (`lm_ahotel_a` AIRPORT HOTEL, `lm_ahotel_b` SKY INN), the terminal (`lm_terminal`, three halls: `KitLandmark.repeat`), the tower (`lm_tower`); `on_pavement = false`: they stand on the street line |
+
+What's new in the rules:
+- **Side streets connect.** Where a side street's own road leaves its piece (`CanalKit.ROADS`: its kerb-to-kerb columns, measured on the piece, and asphalt or cobbles), the street runs it across the pavement into the road, widening towards the kerb with kerb stones round the corners (`Street._kit_road_mouth`, from `SideOpening.road_mouth()`). Asphalt carries on the piece's own bottom row; cobbles carry on as setts. Street furniture keeps out of the mouths and no car parks across one. Steegs have no mouth: the pavement runs on past them.
+- **Standing apart.** The park and the industry (`CanalRow.OPEN_JOINTS`) have open gaps between their pieces (up to 6 / 56 px, no dark party wall, no steeg): sheds stand on their own lots and the back layers show between them.
+- **Landmark signs.** A `KitLandmark` can letter its empty board (`sign_text`, `CanalKit.SIGNS`).
+- **Modern windows.** Glass towers fool the window finder, so their window grids are measured by eye (`WINDOW_GRIDS` in the slicer).
+- Doors stay put: the station is placed so its shop door is on `StationDoor` (17376, `draw_door = false`), the storage so its roller door is behind `StorageGate` (18431); Geordie, the van, the P spots don't move.
+- Back layers: the canal skyline, back row and yards run 6400–17276; the industry and the airport keep their modern skyline. Quay elms along the park's canal from 7092.
+- Asphalt (`Street.kit_roads`) in front of the hotels and the park (6400–7822) and from the flats to the town's end (16436–18706); cobbles in between. Over the viaduct the viaduct's own deck is the road.
+
+The scene change: `tools/scene_edits/2026_10_29_outer_districts.py` (after `2026_10_28_districts.py`).

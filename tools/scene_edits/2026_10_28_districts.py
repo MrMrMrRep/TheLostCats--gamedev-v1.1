@@ -2,7 +2,7 @@
 """One-off edit of scenes/world/world_map.tscn (2026-10-28, after the canal
 belt): the old town, a red light district (De Wallen) and the flats rebuilt
 from the SpriteCook kit. Text edits only, so the hand edits in the scene stay.
-Safe to run twice.
+Safe to run twice; 2026_10_29_outer_districts.py comes after it.
 
     python3 -I tools/scene_edits/2026_10_28_districts.py
 
@@ -111,7 +111,7 @@ def main():
     remove("Flats6_Flats", "Buildings/Flats")
 
     # The kit street, the back layers and the quay trees over the new stretch.
-    set_props("Street", "Road", {"kit_span": KIT, "kit_road": "Vector2(16436, 17276)"})
+    set_props("Street", "Road", {"kit_span": KIT, "kit_roads": "Array[Vector2]([Vector2(16436, 17276)])"}, drop=("kit_road",))
     for layer in ("CanalSkyline", "CanalBackRow", "CanalYards"):
         set_props("Backdrop", f"Background/{layer}", {"span": KIT})
     set_props("Scenery", "Background/Skyline", {"skip": KIT})

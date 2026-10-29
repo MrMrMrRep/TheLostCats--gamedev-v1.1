@@ -50,14 +50,29 @@ func _ready() -> void:
 	if lane == Lane.BACK:
 		var prng := RandomNumberGenerator.new()
 		prng.seed = 31
+		var mouths := _road_mouths()
 		for r in parked:
 			var x := r.x + prng.randf_range(10, 60)
 			while x < r.y - 70:
-				if prng.randf() < cfg.parked_fill:
+				if prng.randf() < cfg.parked_fill and not _in(mouths, x):
 					var k := Kind.VAN if prng.randf() < cfg.parked_vans else Kind.CAR
 					var sd := prng.randi()
 					_parked.append([x, k, CarArt.colour(sd), sd])
 				x += prng.randf_range(72, 90) if prng.randf() < 0.85 else prng.randf_range(120, 200)
+
+
+## Where side streets come out (SideOpening.road_mouth()), widened by half a
+## car: nobody parks across them.
+func _road_mouths() -> Array[Vector2]:
+	var out: Array[Vector2] = []
+	var root: Node = owner if owner else (get_tree().current_scene if is_inside_tree() else null)
+	if root == null:
+		return out
+	for o in root.find_children("*", "SideOpening", true, false):
+		var m: Vector3 = (o as SideOpening).road_mouth()
+		if m != Vector3.ZERO:
+			out.append(Vector2(m.x - 26.0, m.y + 26.0))
+	return out
 
 
 func _in_town(x: float) -> bool:

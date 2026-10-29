@@ -66,6 +66,9 @@ Useful settings in the Inspector:
 | Piece | Settings |
 |---|---|
 | Canal houses (CityBlock) | `houses` (how many), `style` (canal / old town / ring), `shop_rate`, `shop_signs`, `sign_text`, `seed_value` |
+| Kit row (CityBlock with `kit` on, 6400–18706) | `district` (hotels, park, oldtown, wallen, canal, flats, industry: which houses), `seed_value` (another mix). It fills from where it stands to the next row, opening or landmark by itself |
+| Kit opening (SideOpening, under Bridges) | `kind` (canal, street, steeg), `district` (its view), `seed_value`. A side street's road runs across the pavement into the street by itself |
+| Kit landmark (KitLandmark) | `piece` (lm_theatre, lm_mall, lm_band_storage…), `sign_text` on its board, `repeat`, `on_pavement` (off by the motorway) |
 | Big buildings (WorldBuilding) | `kind` (mall, church, hotel, flats, airport…), `sign_text`, `seed_value` |
 | Bridge | `width`, `kind` (bridge or side street), `landmark` (the Pontsteiger view) |
 | Canopy (tree clump) | `width`, `seed_value` |

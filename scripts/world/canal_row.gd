@@ -21,6 +21,16 @@ const POOLS := {
 	&"wallen": [&"wal_kroeg", &"wal_neon_a", &"wal_coffee", &"wal_neon_b", &"wal_kroeg2", &"wal_coffee2", &"wal_neon_c", &"wal_neon_d",
 		&"ot_res_a", &"ot_res_d"],
 	&"flats": [&"flat_shop", &"flat_cafe", &"flat_laund", &"flat_shop2", &"flat_cafe2", &"flat_laund2"],
+	&"hotels": [&"hot_boutique", &"hot_hostel", &"hot_cafe", &"res_cream", &"res_blue2", &"shop_cream"],
+	&"park": [&"park_fence", &"park_gate", &"park_pond"],
+	&"industry": [&"ind_workshop", &"ind_shed", &"ind_office", &"ind_warehouse"],
+}
+## Districts whose pieces stand apart (sheds on their yards, the park's
+## trees): the gaps between them are open, wider and show the back layers.
+## [between two pieces, at either end] in art px; elsewhere JOINT, END_JOINT.
+const OPEN_JOINTS := {
+	&"park": Vector2i(6, 6),
+	&"industry": Vector2i(56, 40),
 }
 const JOINT := 3                            # art px of dark party wall allowed between two facades
 const END_JOINT := 2                        # and at either end of a stretch
@@ -55,9 +65,11 @@ static func height(name: StringName) -> int:
 ## joints (JOINT px at most, between two houses or at the ends) or into one
 ## steeg, a narrow alley cut from the side-street view, and a steeg only ever
 ## stands between two houses. `avoid_left` / `avoid_right`: the gables of the
-## neighbours outside the stretch. Returns [] when the stretch can't be filled.
+## neighbours outside the stretch. OPEN_JOINTS districts get wider open gaps
+## and no steeg. Returns [] when the stretch can't be filled.
 static func fill(x0: int, length: int, rng: RandomNumberGenerator, avoid_left := -1, avoid_right := -1, district := &"canal") -> Array:
 	var pool: Array = POOLS.get(district, POOL)
+	var joints: Vector2i = OPEN_JOINTS.get(district, Vector2i(JOINT, END_JOINT))
 	if length <= 0:
 		return []
 	var best: Array = []
@@ -80,14 +92,14 @@ static func fill(x0: int, length: int, rng: RandomNumberGenerator, avoid_left :=
 			for n: StringName in opt:
 				sum += width(n)
 			var seams: int = opt.size() - 1
-			var slack := JOINT * seams + END_JOINT * 2
+			var slack := joints.x * seams + joints.y * 2
 			var diff := length - sum
 			if diff < 0:
 				continue
 			var alley := 0
 			var score := diff
 			if diff > slack:
-				if seams < 1:
+				if seams < 1 or OPEN_JOINTS.has(district):   # no steeg in the park or between sheds
 					continue
 				alley = clampi(diff, ALLEY_MIN, ALLEY_MAX)
 				if diff - alley < 0 or diff - alley > slack:
@@ -96,7 +108,7 @@ static func fill(x0: int, length: int, rng: RandomNumberGenerator, avoid_left :=
 			if score < best_score:
 				best_score = score
 				var at := rng.randi_range(1, seams) if alley > 0 else -1
-				best = _place(x0, length, opt, alley, at)
+				best = _place(x0, length, opt, alley, at, joints.x)
 		if best_score <= 2:
 			break
 	return best
@@ -116,7 +128,7 @@ static func _pick(rng: RandomNumberGenerator, not_gable: int, not_gable2: int, p
 ## Lay out `seq` with a steeg of `alley` px just before facade `alley_at`
 ## (1 .. size-1: always between two houses) and spread what's left over the
 ## joints: first between the houses, then at the two ends.
-static func _place(x0: int, length: int, seq: Array, alley: int, alley_at: int) -> Array:
+static func _place(x0: int, length: int, seq: Array, alley: int, alley_at: int, joint_max := JOINT) -> Array:
 	var total := alley
 	for n: StringName in seq:
 		total += width(n)
@@ -124,7 +136,7 @@ static func _place(x0: int, length: int, seq: Array, alley: int, alley_at: int) 
 	var seams := seq.size() - 1
 	var per := []
 	for i in seams:
-		var share := mini(int(ceil(float(rest) / float(seams - i))), JOINT) if rest > 0 else 0
+		var share := mini(int(ceil(float(rest) / float(seams - i))), joint_max) if rest > 0 else 0
 		share = mini(share, maxi(rest - 0, 0))
 		per.append(share)
 		rest -= share
@@ -162,9 +174,17 @@ static func draw(ci: CanvasItem, row: Array) -> void:
 		var x: int = it[1]
 		var joint: int = it[2]
 		ci.draw_texture(texture(n), Vector2(x, -height(n) - LIFT))
-		if joint > 0:                       # a dark sliver of party wall where two facades don't touch
+		if joint > 0 and not _stands_apart(n):   # a dark sliver of party wall where two facades don't touch
 			var nh := mini(height(n), 240)
 			ci.draw_rect(Rect2(x + width(n), -nh + 30 - LIFT, joint, nh - 30), WorldPalette.T0)
+
+
+## A shed or a stretch of park: no party wall to its neighbour (OPEN_JOINTS).
+static func _stands_apart(n: StringName) -> bool:
+	for d: StringName in OPEN_JOINTS:
+		if POOLS[d].has(n):
+			return true
+	return false
 
 
 ## Its windows into a NightGlow (world px, relative to the row's origin).

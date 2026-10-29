@@ -93,7 +93,7 @@ Not relevant (can be removed to cut noise): `fps-shooter`, `card-game`, `tower-d
 | M5 Level framework | ✅ | |
 | M6 Abilities | ✅ → reworked as M6b | skill set v2 (2026-10-28): run, crouch, wall-slide, punch for all + special/instrument per member ([`skills.md`](skills.md)) |
 | M7 Items & inventory | ✅ | |
-| M8 World map | ✅ (well beyond scope) | 18k+ px city, traffic, day/night, radio, airport. **Rebuild in progress** (2026-10-28): canal belt, old town, red light district (De Wallen, with its night life) and flats done from the SpriteCook kit ([`city-layout.md`](city-layout.md) §8–9); park/theatre, hotels, industry and airport next |
+| M8 World map | ✅ (well beyond scope) | 18k+ px city, traffic, day/night, radio, airport. **Rebuilt** (2026-10-28/29) from the SpriteCook kit, the whole town 6400–18706 plus the airport: hotels, park and theatre, old town, red light district (De Wallen, with its night life), canal belt, flats, industry, the band's storage; side streets run into the street ([`city-layout.md`](city-layout.md) §8–10) |
 | M9 Slice level "Café De Kat" | ✅ | `scenes/levels/venue_puzzle.tscn`: BackEntrance, Storage, Bar, Backstage, Finale; Gwinny hidden NPC; end screen |
 | M10 Pace, audio & juice | ✅ (one item open) | crossfade 1.5 s (`audio.gd`), dust/squash/hit-stop/shake (`scripts/fx/`), 18 SFX, title + pause. Open: zoom tween on world ↔ level doors (they fade only) |
 | M11 Playtest, tune & balance | ❌ not started | no `docs/v1-playtest-notes.md` |

@@ -132,7 +132,7 @@ map_width = 22616.0
 map_min = -4000.0
 cows_until = 0.0
 farm_clear = Vector2(5250, 6100)
-skip = Vector2(7822, 17276)
+skip = Vector2(6400, 17276)
 
 [node name="CanalSkyline" type="Node2D" parent="Background"]
 script = ExtResource("3_x5aeg")
@@ -141,7 +141,7 @@ factor = 0.2
 [node name="Backdrop" type="Node2D" parent="Background/CanalSkyline"]
 script = ExtResource("91_cbkdp")
 kind = 0
-span = Vector2(7822, 17276)
+span = Vector2(6400, 17276)
 base = 190.0
 seed_value = 3
 
@@ -175,7 +175,7 @@ map_min = -4000.0
 cows_until = 0.0
 farm_clear = Vector2(5250, 6100)
 seed_value = 13
-skip = Vector2(7822, 17276)
+skip = Vector2(6400, 17276)
 
 [node name="CanalBackRow" type="Node2D" parent="Background"]
 script = ExtResource("3_x5aeg")
@@ -184,7 +184,7 @@ factor = 0.5
 [node name="Backdrop" type="Node2D" parent="Background/CanalBackRow"]
 script = ExtResource("91_cbkdp")
 kind = 1
-span = Vector2(7822, 17276)
+span = Vector2(6400, 17276)
 base = 274.0
 seed_value = 5
 
@@ -212,7 +212,7 @@ factor = 0.8
 [node name="Backdrop" type="Node2D" parent="Background/CanalYards"]
 script = ExtResource("91_cbkdp")
 kind = 2
-span = Vector2(7822, 17276)
+span = Vector2(6400, 17276)
 base = 232.0
 seed_value = 7
 
@@ -297,6 +297,34 @@ kind = 1
 seed_value = 11
 district = &"flats"
 
+[node name="HotelStreet" type="Node2D" parent="Bridges"]
+position = Vector2(6620.25, 288)
+script = ExtResource("90_sideop")
+kind = 1
+seed_value = 13
+district = &"hotels"
+
+[node name="TheatreSteeg" type="Node2D" parent="Bridges"]
+position = Vector2(7507.25, 288)
+script = ExtResource("90_sideop")
+kind = 3
+seed_value = 15
+district = &"theatre"
+
+[node name="IndustryRoad" type="Node2D" parent="Bridges"]
+position = Vector2(17800, 288)
+script = ExtResource("90_sideop")
+kind = 1
+seed_value = 17
+district = &"industry"
+
+[node name="IndustrySteeg" type="Node2D" parent="Bridges"]
+position = Vector2(18083.25, 288)
+script = ExtResource("90_sideop")
+kind = 3
+seed_value = 19
+district = &"industry"
+
 [node name="Buildings" type="Node2D" parent="." unique_id=986741327]
 
 [node name="Viaduct" type="Node2D" parent="Buildings" unique_id=1486407362]
@@ -309,54 +337,37 @@ length = 410.0
 [node name="Hotels" type="Node2D" parent="Buildings" unique_id=1843274197]
 
 [node name="West0_Hotel" type="Node2D" parent="Buildings/Hotels" unique_id=85734132]
-texture_repeat = 2
-position = Vector2(6410, 288)
-script = ExtResource("7_q6byn")
-kind = 8
-sign_text = "HOTEL AMSTEL"
-
-[node name="West1_Houses" type="Node2D" parent="Buildings/Hotels" unique_id=2100231112]
-texture_repeat = 2
-position = Vector2(6580, 288)
+position = Vector2(6400, 288)
 script = ExtResource("6_1co5k")
-houses = 2
-seed_value = 71
-shop_rate = 0.2
-shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
-style = 2
+seed_value = 13
+kit = true
+district = &"hotels"
 
 [node name="West2_Hotel" type="Node2D" parent="Buildings/Hotels" unique_id=1629953341]
-texture_repeat = 2
-position = Vector2(6752, 288)
-script = ExtResource("7_q6byn")
-kind = 8
-seed_value = 2
-sign_text = "GRAND HOTEL"
+position = Vector2(6745.75, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_grand_hotel"
 
 [node name="West4_Hotel" type="Node2D" parent="Buildings/Hotels" unique_id=1099547861]
-texture_repeat = 2
-position = Vector2(6922, 288)
-script = ExtResource("7_q6byn")
-kind = 8
-seed_value = 3
-sign_text = "HOSTEL"
+position = Vector2(6992.75, 288)
+script = ExtResource("6_1co5k")
+seed_value = 17
+kit = true
+district = &"hotels"
 
 [node name="ParkTheater" type="Node2D" parent="Buildings" unique_id=2092735481]
 
 [node name="West6_Park" type="Node2D" parent="Buildings/ParkTheater" unique_id=147918368]
-texture_repeat = 2
 position = Vector2(7092, 288)
-script = ExtResource("7_q6byn")
-kind = 6
+script = ExtResource("6_1co5k")
 seed_value = 4
-sign_text = "VONDELPARK"
+kit = true
+district = &"park"
 
 [node name="West7_Theater" type="Node2D" parent="Buildings/ParkTheater" unique_id=538712435]
-texture_repeat = 2
-position = Vector2(7572, 288)
-script = ExtResource("7_q6byn")
-kind = 7
-seed_value = 5
+position = Vector2(7589, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_theatre"
 
 [node name="OldTown" type="Node2D" parent="Buildings" unique_id=1031607918]
 
@@ -612,74 +623,86 @@ district = &"flats"
 [node name="Industry" type="Node2D" parent="Buildings" unique_id=92419518]
 
 [node name="ServiceStation" type="Node2D" parent="Buildings/Industry" unique_id=1624999023]
-texture_repeat = 2
-position = Vector2(17276, 288)
-script = ExtResource("7_q6byn")
-kind = 13
+position = Vector2(17284, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_station"
 
 [node name="Mall" type="Node2D" parent="Buildings/Industry" unique_id=1461038394]
-texture_repeat = 2
-position = Vector2(17426, 288)
-script = ExtResource("7_q6byn")
-seed_value = 3
+position = Vector2(17403, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_mall"
 sign_text = "WINKELCENTRUM"
 
 [node name="CarPark" type="Node2D" parent="Buildings/Industry" unique_id=641822533]
-texture_repeat = 2
-position = Vector2(17746, 288)
-script = ExtResource("7_q6byn")
-kind = 1
-seed_value = 5
+position = Vector2(17518.5, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_carpark"
+
+[node name="Industry1_Sheds" type="Node2D" parent="Buildings/Industry"]
+position = Vector2(17615, 288)
+script = ExtResource("6_1co5k")
+seed_value = 21
+kit = true
+district = &"industry"
 
 [node name="SelfStorage" type="Node2D" parent="Buildings/Industry" unique_id=1191535895]
-texture_repeat = 2
-position = Vector2(17946, 288)
-script = ExtResource("7_q6byn")
-kind = 2
-seed_value = 7
+position = Vector2(17912.5, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_selfstorage"
 sign_text = "SELF STORAGE"
+
+[node name="Industry2_Sheds" type="Node2D" parent="Buildings/Industry"]
+position = Vector2(18160.5, 288)
+script = ExtResource("6_1co5k")
+seed_value = 23
+kit = true
+district = &"industry"
 
 [node name="Storage" type="Node2D" parent="Buildings" unique_id=529694442]
 
 [node name="BandStorage" type="Node2D" parent="Buildings/Storage" unique_id=145038313]
-texture_repeat = 2
-position = Vector2(18366, 288)
-script = ExtResource("7_q6byn")
-kind = 3
+position = Vector2(18373.5, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_band_storage"
 sign_text = "THE LOST CATS - STORAGE"
+
+[node name="Storage1_Sheds" type="Node2D" parent="Buildings/Storage"]
+position = Vector2(18615, 288)
+script = ExtResource("6_1co5k")
+seed_value = 25
+kit = true
+district = &"industry"
 
 [node name="Airport" type="Node2D" parent="Buildings" unique_id=893875170]
 
 [node name="AirportHotel4" type="Node2D" parent="Buildings/Airport" unique_id=1275443488]
-texture_repeat = 2
 position = Vector2(19386, 288)
-script = ExtResource("7_q6byn")
-kind = 8
-seed_value = 4
+script = ExtResource("93_kitlm")
+piece = &"lm_ahotel_a"
 sign_text = "AIRPORT HOTEL"
+sign_color = Color(0.118, 0.141, 0.2, 1)
+on_pavement = false
 
 [node name="AirportHotel5" type="Node2D" parent="Buildings/Airport" unique_id=1165404845]
-texture_repeat = 2
 position = Vector2(19556, 288)
-script = ExtResource("7_q6byn")
-kind = 8
-seed_value = 5
+script = ExtResource("93_kitlm")
+piece = &"lm_ahotel_b"
 sign_text = "SKY INN"
+sign_color = Color(0.118, 0.141, 0.2, 1)
+on_pavement = false
 
 [node name="Terminal0" type="Node2D" parent="Buildings/Airport" unique_id=610845760]
-texture_repeat = 2
-position = Vector2(19726, 288)
-script = ExtResource("7_q6byn")
-kind = 10
-seed_value = 0
-sign_text = "AIRPORT"
+position = Vector2(19744, 288)
+script = ExtResource("93_kitlm")
+piece = &"lm_terminal"
+repeat = 3
+on_pavement = false
 
 [node name="Tower0" type="Node2D" parent="Buildings/Airport" unique_id=1878904019]
-texture_repeat = 2
 position = Vector2(20286, 288)
-script = ExtResource("7_q6byn")
-kind = 11
-seed_value = 0
+script = ExtResource("93_kitlm")
+piece = &"lm_tower"
+on_pavement = false
 
 [node name="Airfield" type="Node2D" parent="Buildings/Airport" unique_id=548658439]
 position = Vector2(20356, 288)
@@ -704,8 +727,8 @@ script = ExtResource("12_sloqf")
 map_width = 22616.0
 map_min = -4000.0
 town = Vector2(6000, 18706)
-kit_span = Vector2(7822, 17276)
-kit_road = Vector2(16436, 17276)
+kit_span = Vector2(6400, 18706)
+kit_roads = Array[Vector2]([Vector2(6400, 7822), Vector2(16436, 18706)])
 
 [node name="StreetLife" type="Node2D" parent="." unique_id=1776310546]
 
@@ -726,6 +749,7 @@ script = ExtResource("13_t1rse")
 kind = 2
 length = 200.0
 seed_value = 101
+quay_trees = true
 
 [node name="OldTown" type="Node2D" parent="StreetLife" unique_id=247283634]
 
@@ -909,6 +933,7 @@ monitorable = false
 script = ExtResource("20_j1unl")
 closed_text = "Service station: coffee machine broken. Again."
 area_size = Vector2(30, 40)
+draw_door = false
 
 [node name="ParkingMall" type="Node2D" parent="Places/Industry" unique_id=836461303]
 position = Vector2(17596, 288)
@@ -1050,7 +1075,7 @@ map_min = -4000.0
 [node name="QuayTrees" type="Node2D" parent="."]
 position = Vector2(0, 288)
 script = ExtResource("92_qtree")
-span = Vector2(7822, 16436)
+span = Vector2(7092, 16436)
 
 [node name="Water" type="Node2D" parent="." unique_id=985293818]
 modulate = Color(1, 1, 1, 0.45882353)

@@ -11,7 +11,7 @@ extends Node2D
 @export var map_min := 0.0
 @export var town := Vector2(1100, 3640)
 @export var kit_span := Vector2.ZERO        ## world x range with the canal-kit street (pavement, cobbles, quay)
-@export var kit_road := Vector2.ZERO        ## part of kit_span with an asphalt road instead of cobbles (the flats)
+@export var kit_roads: Array[Vector2] = []  ## parts of kit_span with an asphalt road instead of cobbles (the ring, hotels, industry)
 
 const STREET_H := 14.0
 const EDGE_H := 36.0                        # town: sidewalk + curb + quay wall, down to the water
@@ -178,10 +178,14 @@ func _draw_kit_street(a: float, b: float) -> void:
 	draw_rect(Rect2(x0, KIT_KERB, w, 1), WorldPalette.W4)               # kerb stone, lit from above
 	draw_rect(Rect2(x0, KIT_KERB + 1, w, 2), WorldPalette.R3)
 	draw_texture_rect(KIT_SETTS, Rect2(x0, KIT_SETTS_Y, w, KIT_COPING - KIT_SETTS_Y), true)
-	var road := Vector2(maxf(kit_road.x, a), minf(kit_road.y, b))
-	if kit_road != Vector2.ZERO and road.y > road.x:
-		_kit_asphalt(road.x * 2.0, (road.y - road.x) * 2.0)
+	for r: Vector2 in kit_roads:
+		var road := Vector2(maxf(r.x, a), minf(r.y, b))
+		if road.y > road.x:
+			_kit_asphalt(road.x * 2.0, (road.y - road.x) * 2.0)
 	draw_rect(Rect2(x0, KIT_SETTS_Y, w, 1), WorldPalette.R1)            # gutter
+	for m: Array in _road_mouths():           # side streets run across the pavement into the street
+		if m[1] > a and m[0] < b:
+			_kit_road_mouth(m[0] * 2.0, m[1] * 2.0, m[2], m[3])
 	draw_rect(Rect2(x0, KIT_COPING, w, 1), WorldPalette.W3)             # coping
 	draw_rect(Rect2(x0, KIT_COPING + 1, w, 2), WorldPalette.R2)
 	draw_rect(Rect2(x0, KIT_COPING + 3, w, 1), WorldPalette.R0)
@@ -193,6 +197,48 @@ func _draw_kit_street(a: float, b: float) -> void:
 		if h1 - h0 > 8.0:
 			_kit_arch(h0, h1)
 	draw_set_transform(Vector2.ZERO)
+
+
+var _mouths: Array = []
+var _mouths_ready := false
+
+
+## Where side streets meet the street: [x0, x1 (world x, this node's
+## space), the opening's piece, its road's columns on the piece (Vector3i)].
+func _road_mouths() -> Array:
+	if _mouths_ready:
+		return _mouths
+	_mouths_ready = true
+	var root := _map_root()
+	if root == null:
+		return _mouths
+	for o in root.find_children("*", "SideOpening", true, false):
+		var op := o as SideOpening
+		var m: Vector3 = op.road_mouth()
+		if m != Vector3.ZERO:
+			_mouths.append([m.x - global_position.x, m.y - global_position.x, op.piece(), CanalKit.ROADS[op.piece()]])
+	return _mouths
+
+
+## The side street's road across the pavement, down to the gutter (art px x
+## range at the back of the pavement). It carries on from the piece's own
+## road: asphalt continues its bottom row, cobbles the setts. The corners
+## round out towards the street, kerb stones curving with them.
+func _kit_road_mouth(m0: float, m1: float, piece: StringName, road: Vector3i) -> void:
+	var lift := float(CanalRow.LIFT)
+	var tex := CanalRow.texture(piece)
+	var top := -lift
+	var rows := int(float(KIT_SETTS_Y) - top)
+	for i in rows:
+		var spread := roundf(float(i) / float(rows) * 10.0)
+		var r := Rect2(m0 - spread, top + i, (m1 - m0) + spread * 2.0, 1.0)
+		if road.z == 1:
+			draw_texture_rect_region(tex, r, Rect2(road.x, tex.get_height() - 1, road.y - road.x, 1))
+		else:
+			draw_texture_rect_region(KIT_SETTS, r, Rect2(fposmod(r.position.x, KIT_SETTS.get_width()),
+				fposmod(r.position.y - KIT_SETTS_Y, KIT_SETTS.get_height()), r.size.x, 1.0))
+		draw_rect(Rect2(r.position.x - 1.0, r.position.y, 1.0, 1.0), WorldPalette.R3)   # kerb stones
+		draw_rect(Rect2(r.end.x, r.position.y, 1.0, 1.0), WorldPalette.R3)
 
 
 ## Asphalt instead of cobbles (art px): the ring road in front of the flats,

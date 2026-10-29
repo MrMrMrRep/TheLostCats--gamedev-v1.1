@@ -27,7 +27,7 @@ const KINDS := ["canal", "street", "alley", "steeg"]
 	set(value):
 		seed_value = value
 		_changed()
-@export var district := &"canal":           ## which district's views (DISTRICT_PIECES): canal, oldtown, wallen, flats
+@export var district := &"canal":           ## which district's views (DISTRICT_PIECES): canal, oldtown, wallen, flats, hotels, theatre, industry
 	set(value):
 		district = value
 		_changed()
@@ -90,6 +90,9 @@ const DISTRICT_PIECES := {
 	&"oldtown": {Kind.STREET: [&"open_ot_street"], Kind.ALLEY: [&"open_ot_steeg"], Kind.STEEG: [&"open_ot_steeg"]},
 	&"wallen": {Kind.CANAL: [&"open_wal_canal"], Kind.ALLEY: [&"open_wal_steeg"], Kind.STEEG: [&"open_wal_steeg"]},
 	&"flats": {Kind.STREET: [&"open_fl_street"]},
+	&"hotels": {Kind.STREET: [&"open_hot_street"]},
+	&"theatre": {Kind.ALLEY: [&"open_th_steeg"], Kind.STEEG: [&"open_th_steeg"]},
+	&"industry": {Kind.STREET: [&"open_ind_road"], Kind.ALLEY: [&"open_ind_steeg"], Kind.STEEG: [&"open_ind_steeg"]},
 }
 
 var _glow_back: NightGlow                   # the corner houses' windows at night
@@ -117,6 +120,18 @@ func mouth() -> Vector2:
 	var m: Vector2i = CanalKit.MOUTHS[n]
 	var left := global_position.x - CanalRow.width(n) * 0.25
 	return Vector2(left + m.x * 0.5, left + m.y * 0.5)
+
+
+## World x range where a side street's own road meets the street, between
+## its kerbs (the street runs it across the pavement there), and whether it
+## is asphalt: Vector3(x0, x1, 1 or 0). Canals and steegs: Vector3.ZERO.
+func road_mouth() -> Vector3:
+	var n := piece()
+	if kind != Kind.STREET or not CanalKit.ROADS.has(n):
+		return Vector3.ZERO
+	var r: Vector3i = CanalKit.ROADS[n]
+	var left := global_position.x - CanalRow.width(n) * 0.25
+	return Vector3(left + r.x * 0.5, left + r.y * 0.5, r.z)
 
 
 const REFINED_DIR := "res://assets/sprites/world/openings/"
