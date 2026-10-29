@@ -43,13 +43,44 @@ FACADE_SHEETS = {
     # The flats east of the canal belt: 19th-century ring blocks with shops.
     "flats_a": ["flat_shop", "flat_cafe", "flat_laund"],
     "flats_b": ["flat_shop2", "flat_cafe2", "flat_laund2"],
+    # The hotel street (west): boutique hotel, hostel, café.
+    "hst_a": ["hot_boutique", "hot_hostel", "hot_cafe"],
+}
+# Sheets cut by their empty columns (pieces that aren't wall-to-wall facades:
+# park fence, gate and pond, sheds), optionally one band of rows. Pool items
+# (no window glow when `glow` is False) or landmarks (KitLandmark).
+COLUMN_SHEETS = {
+    "park_a": (["park_fence", "park_gate", "park_pond"], None, False),
+    "ind_a": (["ind_workshop", "ind_shed", "ind_office", "ind_warehouse"], (150, 288), True),
+    "sm_a": (["lm_station", "lm_mall"], None, True),
+    "cp_a": (["lm_carpark", "lm_selfstorage"], None, True),
+    "ah_a": (["lm_ahotel_a", "lm_ahotel_b"], None, True),
 }
 # Door houses: the empty sign band above the double door (piece px, measured).
 SIGNS = {
     "door_venue": (48, 171, 110, 13),
     "door_studio": (7, 188, 90, 12),
     "door_cafe": (5, 188, 85, 12),
+    # Landmarks' empty boards (KitLandmark.sign_text).
+    "lm_mall": (73, 103, 94, 26), "lm_selfstorage": (32, 1, 123, 18), "lm_band_storage": (135, 72, 235, 25),
+    "lm_ahotel_a": (84, 2, 83, 27), "lm_ahotel_b": (95, 4, 75, 22),
 }
+# Modern buildings: light glass and grey-blue walls fool windows(), so their
+# window grids are measured by eye: (columns x, rows y, w, h) in piece px.
+WINDOW_GRIDS = {
+    "lm_ahotel_a": [((31, 51, 71, 101, 121), (43, 80, 116, 153, 190), 16, 28),
+                    ((174, 196), (84, 121, 158, 194), 20, 24)],
+    "lm_ahotel_b": [((84, 116, 149, 179), (57, 97, 137, 179), 14, 21),
+                    ((18, 48), (97, 137, 178), 7, 21)],
+    "lm_mall": [((5, 35, 170, 200), (60,), 26, 34), ((82, 106, 128), (5, 52), 20, 38), ((82, 106, 128), (136,), 20, 30),
+                ((22, 44, 170, 190), (152, 195), 18, 34)],
+}
+
+
+def grid_windows(name, img):
+    if name not in WINDOW_GRIDS:
+        return windows(img)
+    return [(x, y, w, h) for xs, ys, w, h in WINDOW_GRIDS[name] for y in ys for x in xs]
 # Gable silhouette per facade: neighbours never share one.
 GABLES = {
     "res_blue": 0, "res_blue2": 0, "shop_orange": 0,
@@ -64,9 +95,14 @@ GABLES = {
     "wal_kroeg": 2, "wal_neon_a": 0, "wal_coffee": 7, "wal_neon_b": 6,
     "wal_kroeg2": 6, "wal_coffee2": 2, "wal_neon_c": 0, "wal_neon_d": 3,
     "flat_shop": 8, "flat_cafe": 10, "flat_laund": 9, "flat_shop2": 10, "flat_cafe2": 8, "flat_laund2": 9,
+    "hot_boutique": 11, "hot_hostel": 12, "hot_cafe": 13,
+    "park_fence": 20, "park_gate": 21, "park_pond": 22,
+    "ind_workshop": 30, "ind_shed": 31, "ind_office": 32, "ind_warehouse": 33,
 }
 # Landmarks: one building each, a row anchor like an opening (KitLandmark).
-LANDMARKS = {"waag_a": "lm_waag", "church_n1": "lm_church", "church_oude": "lm_oude_kerk"}
+LANDMARKS = {"waag_a": "lm_waag", "church_n1": "lm_church", "church_oude": "lm_oude_kerk",
+             "th_c": "lm_theatre", "th_b": "lm_grand_hotel", "bs_c": "lm_band_storage", "tw_a": "lm_tower",
+             "term_a": "lm_terminal"}
 # Night-life people for the red light district (RedLightNight): drawn at twice
 # the band's size, so halved (nearest) to stand at band scale.
 NIGHT_SHEET = ("night_b", ["nl_hoodie", "nl_leather", "nl_coat", "nl_cap", "nl_tourist"])
@@ -87,6 +123,16 @@ OPENINGS = {
     "open_s1a": "open_street_a", "open_s1b": "open_street_b", "open_s2b": "open_steeg",
     "open_ots": "open_ot_street", "open_otg": "open_ot_steeg",
     "open_wc": "open_wal_canal", "open_ws": "open_wal_steeg", "open_fs": "open_fl_street",
+    "open_hs": "open_hot_street", "open_ts": "open_th_steeg", "open_ir": "open_ind_road", "open_is": "open_ind_steeg",
+}
+# Where each side street's own road leaves its piece: the columns between its
+# kerbs on the bottom row (piece px, after the crop) and 1 for asphalt, 0 for
+# cobbles. Measured by eye on the pieces; the street runs the road across the
+# pavement there (Street._kit_road_mouth). Steegs have none: the pavement runs on.
+ROADS = {
+    "open_street_a": (160, 280, 0), "open_street_b": (160, 280, 0),
+    "open_ot_street": (166, 287, 0), "open_fl_street": (161, 283, 1),
+    "open_hot_street": (168, 309, 1), "open_ind_road": (152, 292, 1),
 }
 TREES = {"tree_a": ["elm_0", "elm_1"], "trees": ["elm_2", "elm_3", "elm_4"]}
 TEXTURES = {"tex_setts": "setts", "tex_paver": "paver", "tex_wall": "quay_wall"}
@@ -249,6 +295,11 @@ def main():
             strips[name] = piece.size
     for src, name in TEXTURES.items():
         clean(Image.open(SRC / (src + ".png")), 32, hard_alpha=False).save(OUT / (name + ".png"))
+    for src, (names, band, glow) in COLUMN_SHEETS.items():
+        for name, piece in cut_columns(Image.open(SRC / (src + ".png")), names, band):
+            piece = clean(piece, 56)
+            piece.save(OUT / (name + ".png"))
+            facades[name] = (piece.size, grid_windows(name, piece) if glow else [])
     for src, name in LANDMARKS.items():
         img = clean(Image.open(SRC / (src + ".png")), 64)
         img = img.crop(bbox(img))
@@ -309,7 +360,7 @@ def main():
     for name in facades:
         if name.startswith("wal_") or name.startswith("open_wal"):
             neons[name] = neon_windows(Image.open(OUT / (name + ".png")))
-    write_gd(facades, strips, mouths, neons)
+    write_gd(facades, strips, mouths, neons, ROADS)
     for k, (size, win) in facades.items():
         print(f"{k:12s} {size[0]:3d}x{size[1]:3d}  windows {len(win)}")
     for k, size in strips.items():
@@ -331,6 +382,34 @@ def water_mouth(img):
     while x1 < a.shape[1] - 1 and (wet[x1 + 1] or (x1 < a.shape[1] - 2 and wet[x1 + 2])):
         x1 += 1
     return (x0, x1 + 1)
+
+
+def cut_columns(sheet, names, band=None):
+    """Pieces separated by empty columns, feet on the sheet's ground line (dropped)."""
+    if band:
+        sheet = sheet.crop((0, band[0], sheet.width, min(band[1], sheet.height)))
+    a = np.array(sheet.convert("RGBA"))[:, :, 3] >= 128
+    rows = np.nonzero(a.any(1))[0]
+    base = rows[-1]
+    for _ in range(8):                      # a drawn ground strip wider than the pieces: drop it
+        if a[base].sum() > a[base - 1].sum() * 1.3 or a[base].mean() > 0.97:
+            base -= 1
+    cols = a[: base - 2].any(0)
+    spans, x = [], 0
+    while x < len(cols):
+        if cols[x]:
+            st = x
+            while x < len(cols) and (cols[x] or (x + 1 < len(cols) and cols[x + 1])):
+                x += 1
+            if x - st > 20:
+                spans.append((st, x))
+        x += 1
+    assert len(spans) == len(names), (names, spans)
+    out = []
+    for (s0, s1), name in zip(spans, names):
+        piece = sheet.crop((s0, 0, s1, base + 1))
+        out.append((name, piece.crop(bbox(piece))))
+    return out
 
 
 def neon_windows(img):
@@ -377,7 +456,7 @@ def ground_trim(img):
     return img
 
 
-def write_gd(facades, strips, mouths, neons=None):
+def write_gd(facades, strips, mouths, neons=None, roads=None):
     lines = [
         "class_name CanalKit",
         "## The SpriteCook canal-belt kit (2026-10-28): flat facades, the back",
@@ -399,6 +478,9 @@ def write_gd(facades, strips, mouths, neons=None):
     lines += ["}", "", "## Openings over a side canal: the water's columns at the bottom edge (texture px).", "const MOUTHS := {"]
     for name, (x0, x1) in mouths.items():
         lines.append(f'\t&"{name}": Vector2i({x0}, {x1}),')
+    lines += ["}", "", "## Side streets: their road's columns at the bottom edge (texture px) and 1 for asphalt (0: cobbles).", "const ROADS := {"]
+    for name, (x0, x1, asphalt) in (roads or {}).items():
+        lines.append(f'\t&"{name}": Vector3i({x0}, {x1}, {asphalt}),')
     lines += ["}", "", "## Red-light windows (red curtains, neon frames): lit red at night (texture px).", "const NEON := {"]
     for name, rects in (neons or {}).items():
         lines.append(f'\t&"{name}": [' + ", ".join(f"Rect2i({x}, {y}, {w}, {h})" for x, y, w, h in rects) + "],")

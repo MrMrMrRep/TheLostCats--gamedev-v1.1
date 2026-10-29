@@ -10,7 +10,8 @@ extends Node2D
 ##   RING      young trees in pits, bins, bike racks, parking meters
 ##   INDUSTRY  tall lamps, fences, signs
 ##   AIRPORT   tall lamps, flags, a bus stop
-## `keep_clear` (local x ranges) stays empty: doors and gates.
+## `keep_clear` (local x ranges) stays empty: doors and gates; so do the
+## mouths of the side streets (SideOpening.road_mouth()).
 ## Origin = street level at the stretch's left end.
 
 enum Kind { CANAL, OLD_TOWN, RING, INDUSTRY, AIRPORT }
@@ -38,10 +39,29 @@ func _ready() -> void:
 
 
 func _clear(x: float, half: float) -> bool:
-	for r in keep_clear:
+	for r in keep_clear + _road_mouths():
 		if x + half > r.x and x - half < r.y:
 			return false
 	return true
+
+
+var _mouths: Array[Vector2] = []
+var _mouths_ready := false
+
+
+## Side streets meeting the street in this stretch (local x, with room to turn in).
+func _road_mouths() -> Array[Vector2]:
+	if _mouths_ready or not is_inside_tree():
+		return _mouths
+	_mouths_ready = true
+	var root: Node = get_tree().edited_scene_root if Engine.is_editor_hint() else owner
+	if root == null:
+		return _mouths
+	for o in root.find_children("*", "SideOpening", true, false):
+		var m: Vector3 = (o as SideOpening).road_mouth()
+		if m != Vector3.ZERO and m.y + 20.0 > global_position.x and m.x - 20.0 < global_position.x + length:
+			_mouths.append(Vector2(m.x - 20.0, m.y + 20.0) - Vector2(global_position.x, global_position.x))
+	return _mouths
 
 
 func _draw() -> void:
@@ -65,7 +85,7 @@ func _draw() -> void:
 
 ## The stretch in the style v3 look (baked once, see V3Cache / V3Painter).
 func v3_art(items: Array = plan()) -> V3Art:
-	var key := "life%d_%d|%s|%s|t2%s" % [kind, seed_value, length, keep_clear, "q" if quay_trees else ""]
+	var key := "life%d_%d|%s|%s|t2%s|%s" % [kind, seed_value, length, keep_clear, "q" if quay_trees else "", _road_mouths()]
 	var paint := func() -> V3Art: return V3Painter.street_life(items, length, seed_value)
 	return V3Cache.art(key, paint)
 

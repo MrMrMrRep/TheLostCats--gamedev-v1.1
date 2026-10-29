@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 75
+const EXPECTED_CHECKS := 77
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -72,34 +72,60 @@ func _test_canal_kit() -> void:
 			continue
 		var items: Array = row.duplicate()
 		items.sort_custom(func(p, q): return p[1] < q[1])
-		if items[0][1] < a or items[0][1] - a > 2:
+		var lead: int = row_script.OPEN_JOINTS.get(b.district, Vector2i(0, 2)).y   # sheds and the park stand apart
+		if items[0][1] < a or items[0][1] - a > lead:
 			bad.append("%s starts at %d of %d" % [b.name, items[0][1], a])
 		for i in items.size():
 			var it: Array = items[i]
 			var end: int = it[1] + row_script.item_width(it)
 			if i + 1 < items.size() and end > items[i + 1][1]:
 				bad.append("%s: %s overlaps %s" % [b.name, it[0], items[i + 1][0]])
-			if i + 1 == items.size() and (end > e or e - end > 4):
+			if i + 1 == items.size() and (end > e or e - end > lead * 2):
 				bad.append("%s ends at %d of %d" % [b.name, end, e])
 			if it[0] == row_script.ALLEY and (i == 0 or i == items.size() - 1):
 				bad.append("%s: a steeg at the end of the row" % b.name)
 			if i + 1 < items.size() and gables.has(it[0]) and gables.has(items[i + 1][0]) \
 					and gables[it[0]] == gables[items[i + 1][0]]:
 				flat = false
-	_check(blocks.size() >= 20 and bad.is_empty(), "kit rows (old town, Wallen, canal belt, flats): exactly filled, no overlaps, steegjes only between houses %s" % [bad])
+	_check(blocks.size() >= 25 and bad.is_empty(), "kit rows (hotels, park, old town, Wallen, canal belt, flats, industry): exactly filled, no overlaps, steegjes only between houses %s" % [bad])
 	_check(flat, "neighbouring facades never share a gable")
 	for o in map.get_node("Bridges").get_children():
 		pieces.append(o.span())
 	for o in map.get_node("Buildings").find_children("*", "", true, false):
-		if o.has_method("span") and "piece" in o:   # landmarks: the church, the Waag, the Oude Kerk
+		if o.has_method("span") and "piece" in o and o.on_pavement:   # landmarks (not the airport's, by the motorway)
 			pieces.append(o.span())
 	pieces.sort_custom(func(p, q): return p.x < q.x)
 	var gaps := []
 	for i in pieces.size() - 1:
 		if absf(pieces[i + 1].x - pieces[i].y) > 1.0:
 			gaps.append("%.1f..%.1f" % [pieces[i].y, pieces[i + 1].x])
-	_check(gaps.is_empty() and absf(pieces[0].x - 7822.0) < 1.0 and absf(pieces[-1].y - 17276.0) < 1.0,
-		"rows, openings and landmarks meet without gaps or overlaps from the old town (7822) to the flats' end (17276) %s" % [gaps])
+	_check(gaps.is_empty() and absf(pieces[0].x - 6400.0) < 1.0 and absf(pieces[-1].y - 18706.0) < 1.0,
+		"rows, openings and landmarks meet without gaps or overlaps from the town's start (6400) to its end (18706) %s" % [gaps])
+	# Side streets: their road runs across the pavement into the street, and nobody parks across it.
+	var mouths := []
+	var loose := []
+	for o in map.get_node("Bridges").get_children():
+		var m: Vector3 = o.road_mouth()
+		if o.kind == 1 and (m == Vector3.ZERO or m.x < o.span().x or m.y > o.span().y):
+			loose.append(o.name)
+		if m != Vector3.ZERO:
+			mouths.append(m)
+	var traffic = map.get_node("TrafficBack")
+	for pc: Array in traffic._parked:
+		for m: Vector3 in mouths:
+			if pc[0] > m.x - 20.0 and pc[0] < m.y + 20.0:
+				loose.append("car parked at %.0f" % pc[0])
+	_check(mouths.size() >= 5 and loose.is_empty() and map.get_node("Road/Street")._road_mouths().size() == mouths.size(),
+		"%d side streets meet the street with their road, none blocked by a parked car %s" % [mouths.size(), loose])
+	# The outer districts' doors stay where they were, on their buildings' own doors.
+	var station = map.get_node("Buildings/Industry/ServiceStation")
+	var store = map.get_node("Buildings/Storage/BandStorage")
+	var sdoor = map.get_node("Places/Industry/StationDoor")
+	var gate = map.get_node("Places/Storage/StorageGate")
+	_check(absf(sdoor.global_position.x - 17376.0) < 0.5 and absf(station.span().x + 92.0 - sdoor.global_position.x) <= 1.5
+		and not sdoor.draw_door and absf(gate.global_position.x - 18431.0) < 0.5
+		and absf(store.span().x + 57.5 - gate.global_position.x) <= 1.5,
+		"the service station's and the storage's doors stand on their buildings' doors (StationDoor 17376, StorageGate 18431)")
 	for pair in [["Studio", "StudioDoor", &"door_studio"], ["Venue", "VenueDoor", &"door_venue"]]:
 		var block = map.get_node("Buildings/CanalBelt/" + pair[0])
 		var door = map.get_node("Places/CanalBelt/" + pair[1])
