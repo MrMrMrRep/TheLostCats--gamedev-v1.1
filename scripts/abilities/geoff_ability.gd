@@ -81,3 +81,11 @@ func charm_target() -> Node:
 func reset() -> void:
 	super()
 	_bubble_cooldown = 0.0
+
+
+func special_label() -> String:
+	return "BUBBLE"
+
+
+func instrument_label() -> String:
+	return "CHARM"

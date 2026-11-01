@@ -1,7 +1,8 @@
 extends SceneTree
 ## Headless checks for the on-screen touch gamepad (exits 1 on failure):
 ## touching a button presses its action, the stick presses directions and
-## sprint, two fingers work at once, and a key press hides the pad.
+## sprint, two fingers work at once, only the buttons for the moment show
+## (set_context), and a key press hides the pad.
 ## Run: Summer --headless --path . --script res://tests/test_touch_pad.gd
 
 var failures := 0
@@ -38,6 +39,15 @@ func _run() -> void:
 	_check(not Input.is_action_pressed(&"move_up"), "lifting the thumb releases the stick")
 	await _touch(0, jump_at, false)
 	_check(not Input.is_action_pressed(&"jump"), "lifting releases jump")
+
+	# Only the buttons that do something here (the world map: jump and E).
+	pad.set_context({&"jump": "JUMP", &"interact": "TALK"})
+	await _touch(4, pad._centre(1), true)       # where PUNCH is in a level
+	_check(not Input.is_action_pressed(&"action_a"), "a button that isn't showing does nothing")
+	await _touch(4, pad._centre(1), false)
+	pad.set_context({})
+	_check(pad.context().has(&"action_a") and not pad.context().has(&"switch_next") and not pad.context().has(&"item_next"),
+		"the level set: no switch or item buttons (those live on the character box)")
 
 	var e_at: Vector2 = pad._centre(3)
 	await _touch(2, e_at, true)

@@ -172,7 +172,15 @@ Speeds are in **pixels per second** (the band walks 85; a canal house is about
 | *_rolling, *_drag | 60, 0.3 / 34, 0.12 | How quickly it rolls to a stop when you let go |
 | skid_from | 60 | Braking faster than this: the van skids (smoke, marks) |
 | pitch_* | | How much the van body tilts and bounces |
-| lane_east / lane_west | 4 / -5 | Van's height on the motorway heading in / out of the city |
+| van_lane | Left | The motorway lane the van keeps to (Left: next to the median); it takes the other one to overtake |
+| overtake_look, overtake_clear | 90, 60 | How far ahead it looks for something slower in its lane; how far behind the other lane must be free |
+| lane_change | 14 | px/s: how gently it changes lane (and crosses over when it turns around) |
+
+Where the lanes are (motorway 2 each way, the city's edges 1 each way, the
+centre 1) is code, not a config: `scripts/world/road_lanes.gd` (`RoadLanes`),
+with the tapers where their number changes (x 5600-6000, 7702-7822,
+16436-16556, 18706-19100). Traffic, the van and the road's markings all
+follow it.
 
 ### map_camera_config.tres: the world map camera
 | Value | Now | Meaning |
@@ -196,14 +204,22 @@ Speeds are in **pixels per second** (the band walks 85; a canal house is about
 | catch_up, jog_factor | 90, 1.9 | When someone is this far behind they jog, at this speed |
 | sprint_factor | 2 | Holding left Shift on the map: everyone moves this many times faster |
 | pause_every, pause_length | 5–12 s, 0.4–1.3 s | Little stops (a look around, a sip) |
-| fidget_after | 2.5–7 s | Standing still: they start smoking, drinking, playing |
+| jam_after | 60 s | Standing still this long: they line up and play together |
+| jam_spacing, jam_order | 26, Nikki Joep Germ Geoff Jay | The line-up, left to right |
 | ride_gap | 30 | On the bikes: distance between riders (a loose group, like walking) |
 | ride_sway, ride_catch_up, ride_sprint, ride_follow | 10, 120, 1.2, 1.4 | How loosely they ride, when they pedal hard to catch up, how firmly they keep their spot |
 
 ### traffic_config.tres: cars and bikes on the road
 How many vehicles per screen (motorway / town), speeds per kind of vehicle,
 how much slower they drive in town, the mix of bikes, buses, vans and trucks,
-and how full the parking lanes are.
+and how full the parking lanes are. Every vehicle keeps to a lane
+(`RoadLanes`) and to its distance from the one ahead (the band's van too);
+in the one-lane centre cars only go east (westbound ones turn off before it).
+
+**Draw order on the map** (`z_index`): the band and the pavement 0, traffic
+behind the van 1, the van 2, traffic in front of it 3, and what stands in
+front of the road 4 (QuayTrees, FrontGround, Canopies, Foreground). Put
+anything new that stands in front of the road under one of those four.
 
 ### people_config.tres: walkers
 `busy_scale` (more or fewer people everywhere), walking speeds, share of
@@ -236,10 +252,11 @@ top right under the coins. A full day now takes 15 real minutes.
 | night_windows | 0.55 | How many windows are lit deep in the night |
 | world_tint, sky_top/mid/low | | The colours over the day (click a gradient to edit: left = midnight, middle = noon) |
 
-While testing: click **+1 / +4 / +8** under the clock to sleep that many
-hours (the screen fades to black and you wake up later), or press **N** to
-jump an hour ahead (Shift+N back). Turn off `time_buttons` to hide the
-buttons; `sleep_fade` sets how slowly the screen fades.
+Click (or tap) the clock: a little panel opens with **-1 h** and **+1 h**
+to turn time back or on; click the clock again to close it. Or press **N**
+to jump an hour ahead (Shift+N back). Turn off `time_buttons` to make the
+clock just a clock; `sleep_fade` sets how slowly the screen fades when the
+band sleeps.
 
 **Lights you can place:**
 - `WorldLight`: a glow that comes on at night, with an optional pool of

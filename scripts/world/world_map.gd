@@ -65,8 +65,16 @@ var _spread := 0.0                          # px from the front member to the ba
 var _focus: Node2D                          # what the camera follows on foot / on the bikes
 var _idle_cam := 0.0                        # seconds the band has stood still (camera wander)
 var _foot_note := 0.0                       # cooldown for the "no walking/cycling" line
-var _lane_y := 0.0                          # the van's lane offset on the motorway
+var _lane_y := 0.0                          # the van's tyre line (world px below the street line)
+var _van_side: int = RoadLanes.Side.LEFT    # the motorway lane it's in
+var _overtaking := false                    # in the other lane, passing something
+const VAN_HALF := 40.0                      # world px from the van's middle to its bumper
+const VAN_Z := 2                            # traffic behind the van draws at 1, in front of it at 3 (WorldTraffic)
 var _drift := 0.0                           # current sideways drift of the shot
+var jamming := false                        # standing still a long while: lined up, playing together
+var _still := 0.0                           # seconds the band has stood still (for the jam)
+var _jam_spots := {}                        # BandMember -> world x in the line-up
+var _jam_playing := false
 
 @onready var band: Band = $Band
 @onready var hud: MapHud = $MapHud
@@ -104,6 +112,11 @@ func _ready() -> void:
 	day.hour_changed.connect(func(_h: float) -> void: hud.set_clock(day.clock_text()))
 	hud.set_clock(day.clock_text())
 	hud.skip_requested.connect(day.sleep)
+	hud.time_shift_requested.connect(func(h: float) -> void:
+		day.set_hour(Game.time_of_day + h)
+		hud.set_clock(day.clock_text()))
+	hud.switch_requested.connect(func() -> void: get_node(^"/root/TouchPad").tap(&"switch_next"))
+	hud.inventory_requested.connect(func() -> void: InventoryPopup.open(leader, self))
 	var cam := band.camera
 	cam.position_smoothing_speed = cam_cfg.smoothing_speed
 	cam.deadzone = cam_cfg.deadzone
@@ -143,7 +156,7 @@ func _ready() -> void:
 		_fstate[m] = {"v": 0.0, "gap": 0.0, "pause": 0.0, "walked": 0.0,
 			"next_pause": randf_range(bc.pause_every.x, bc.pause_every.y), "ride_gap": 0.0,
 			"jitter": randf_range(-1.0, 1.0), "phase": randf() * TAU, "sway": randf_range(0.15, 0.3)}
-		m.fidget_after = randf_range(bc.fidget_after.x, bc.fidget_after.y)
+		m.fidget_after = INF                # on the map they play together (_update_jam)
 	_line_up(party.filter(func(m: BandMember) -> bool: return m != leader))
 	_min_x = map_min + EDGE_MARGIN
 	_max_x = map_width - EDGE_MARGIN
@@ -154,17 +167,17 @@ func _ready() -> void:
 			_max_x = minf(_max_x, b.global_position.x - EDGE_MARGIN)
 	for v in vehicles():
 		v.restore_position()
-		if v.kind == Vehicle.Kind.VAN:      # on the road, in front of the band and the pavement
-			v.z_index = 1
-			if v.global_position.x >= road_from and v.global_position.x <= town.y:
-				v.global_position.y = GROUND_Y + veh_cfg.lane_town
-				_lane_y = veh_cfg.lane_town
+		if v.kind == Vehicle.Kind.VAN:      # parked along the kerb, in front of the band and the pavement
+			v.z_index = VAN_Z
+			_lane_y = RoadLanes.park_y(v.global_position.x)
+			v.global_position.y = GROUND_Y + _lane_y
 	var spawn := _spawn_from_router()
 	if spawn == null:
 		spawn = get_node(start_spawn)
 	zoom = target_zoom_at(spawn.global_position.x)
 	_apply_zoom()
 	place_band(spawn.global_position.x, 1.0)
+	hud.set_member(leader, band.members.find(leader))
 	_update_vehicle_hint()
 	MapCapture.from_args(self)              # dev: -- --capture=3:11800,... (screenshots, then quit)
 
@@ -185,6 +198,7 @@ func _physics_process(delta: float) -> void:
 		_drive(delta)
 	else:
 		_switch_input()
+	_update_jam(delta)
 	_update_pace()
 	_foot_note = maxf(_foot_note - delta, 0.0)
 	if vehicle == null and leader.global_position.x < foot_limit:
@@ -193,11 +207,12 @@ func _physics_process(delta: float) -> void:
 		_foot_warning(leader)
 	if vehicle and vehicle.kind == Vehicle.Kind.BIKES:
 		_ride_followers(delta)              # riding: a loose group, each at their own pace
-	elif vehicle == null:
+	elif vehicle == null and not jamming:
 		_walk_followers(delta)              # walking: each follows at their own pace
 	_update_bike_lights()
 	_update_focus(delta)
 	_update_zoom(delta)
+	_touch_buttons()
 	_update_interact()
 
 
@@ -333,6 +348,8 @@ func at_parking(x: float) -> bool:
 
 ## Put the band in a line ending at `x`, facing `facing`.
 func place_band(x: float, facing: float) -> void:
+	_end_jam()
+	_still = 0.0
 	leader.respawn(Vector2(x, GROUND_Y), leader.health.hp)
 	leader.facing = facing
 	for m in followers:                     # each stands at their own distance
@@ -348,12 +365,45 @@ func place_band(x: float, facing: float) -> void:
 	band.camera.follow(_focus, true)
 
 
+func _exit_tree() -> void:
+	Audio.hush_music(false, 0.0)            # never carry a silenced van ride into a level
+	var pad := get_node_or_null(^"/root/TouchPad")
+	if pad:
+		pad.set_context({})
+
+
+## The phone pad shows what you can do here: on foot jump and E (named for
+## what's in reach), on the bikes get off, in the van park and the radio.
+func _touch_buttons() -> void:
+	var pad := get_node_or_null(^"/root/TouchPad")
+	if pad == null:
+		return
+	var labels := {&"pause": "II"}
+	if vehicle and vehicle.kind == Vehicle.Kind.VAN:
+		labels[&"use_item"] = "RADIO"
+		if at_parking(vehicle.global_position.x):
+			labels[&"interact"] = "PARK"
+	elif vehicle:
+		labels[&"interact"] = "OFF"
+	else:
+		labels[&"jump"] = "JUMP"
+		var e := "E"
+		if _highlighted is Vehicle:
+			e = "RIDE" if _highlighted.kind == Vehicle.Kind.BIKES else "DRIVE"
+		elif _highlighted is Npc:
+			e = "TALK"
+		elif _highlighted is StorageGate or _highlighted is WorldDoor:
+			e = "OPEN" if _highlighted is StorageGate else "ENTER"
+		labels[&"interact"] = e
+	pad.set_context(labels)
+
+
 # --- Vehicles --------------------------------------------------------------
 
-func board(v: Vehicle) -> void:
+func board(v: Vehicle, anywhere := false) -> void:
 	if vehicle:
 		return
-	if v.kind == Vehicle.Kind.VAN and not at_parking(v.global_position.x):
+	if v.kind == Vehicle.Kind.VAN and not anywhere and not at_parking(v.global_position.x):
 		leader.show_text("The van only stops at P signs")
 		return
 	vehicle = v
@@ -378,8 +428,12 @@ func board(v: Vehicle) -> void:
 	else:
 		band.camera.follow(v)
 		band.camera.look_ahead = cam_cfg.drive_look_ahead
-	if not riding:
+	if not riding:                          # in the van only the radio plays
+		v.riders.clear()
+		for m in [leader] + party.filter(func(x: BandMember) -> bool: return x != leader):
+			v.riders.append(m.profile.sprite_frames)
 		radio.power(true)
+		Audio.hush_music(true)
 	_cooldown = INTERACT_COOLDOWN
 	_update_vehicle_hint()
 
@@ -394,8 +448,12 @@ func leave_vehicle() -> bool:
 	vehicle = null
 	v.occupied = false
 	radio.power(false)
+	Audio.hush_music(false)
 	v.velocity = Vector2.ZERO
 	v.save_position()
+	if v.kind == Vehicle.Kind.VAN:          # it pulls over to the kerb
+		_lane_y = RoadLanes.park_y(v.global_position.x)
+		create_tween().tween_property(v, "global_position:y", GROUND_Y + _lane_y, 0.5).set_trans(Tween.TRANS_SINE)
 	for m in party:
 		m.visible = true
 		_bikes[m].visible = false
@@ -428,16 +486,16 @@ func _drive(delta: float) -> void:
 		lo = maxf(lo, foot_limit)            # bikes stop at the motorway fork
 		if vehicle.global_position.x <= lo + 0.5 and dir < 0.0:
 			_foot_warning(vehicle)
+	if vehicle.kind == Vehicle.Kind.VAN and dir != 0.0:
+		top = _van_top(vehicle.global_position.x, signf(dir), top)
 	vehicle.drive(dir, top, delta, lo, _max_x)
-	# On the motorway the van keeps to its own carriageway: a little lower
-	# heading into the city (east), a little higher heading out (west).
+	# The van keeps to its lane (RoadLanes): the eastbound side going east, the
+	# westbound side going west (turning around, it moves over), on the
+	# motorway its own lane unless it's overtaking.
 	if vehicle.kind == Vehicle.Kind.VAN:
 		var vx := vehicle.global_position.x
-		var vc := veh_cfg
-		var lane := vc.lane_town
-		if vx < road_from or vx > town.y:
-			lane = vc.lane_east if vehicle.facing > 0.0 else vc.lane_west
-		_lane_y = move_toward(_lane_y, lane, vc.lane_change * delta)
+		var lane := _choose_lane(vx, vehicle.facing)
+		_lane_y = move_toward(_lane_y, lane, veh_cfg.lane_change * delta)
 		vehicle.global_position.y = GROUND_Y + _lane_y
 	# The leader rides along (visible on the bikes, hidden in the van).
 	leader.global_position = vehicle.global_position
@@ -453,6 +511,79 @@ func _drive(delta: float) -> void:
 		radio.next_channel()
 	if Input.is_action_just_pressed("interact"):
 		leave_vehicle()
+
+
+## The van's lane (a tyre line): its own (on the motorway VehicleConfig.van_lane),
+## or, while it passes something slower ahead in it, the other lane (on the
+## motorway the other lane its way, at the city's edges the oncoming one when
+## it's clear; never in the one-lane centre). Back once it's past.
+func _choose_lane(vx: float, dir: float) -> float:
+	var own_side: int = veh_cfg.van_lane
+	var own := RoadLanes.y(vx, dir, own_side)
+	var alt := own
+	match RoadLanes.section(vx):
+		RoadLanes.Section.MOTORWAY:
+			alt = RoadLanes.y(vx, dir, 1 - own_side)
+		RoadLanes.Section.EDGE:
+			alt = RoadLanes.y(vx, -dir)
+	var speed := absf(vehicle.velocity.x)
+	if alt == own or speed < 5.0:
+		_overtaking = false
+		return own
+	var look := veh_cfg.overtake_look + speed * 0.8
+	var cars := _cars_near(vx)
+	if not _overtaking:
+		var slow := _ahead(cars, vx, dir, own, look)
+		if not slow.is_empty() and slow[2] * dir < speed - 5.0 and _lane_free(cars, vx, dir, alt, look):
+			_overtaking = true
+	elif _lane_free(cars, vx, dir, own, look) or not _lane_free(cars, vx, dir, alt, look * 0.5):
+		_overtaking = false                 # past it (or something's coming): back in
+	_van_side = (1 - own_side) if _overtaking else own_side
+	return alt if _overtaking else own
+
+
+func _cars_near(vx: float) -> Array:
+	var cars := []
+	for t in find_children("*", "WorldTraffic", false, false):
+		cars += t.cars_between(vx - 400.0, vx + 400.0)
+	return cars
+
+
+## The nearest vehicle ahead of the van in lane `y` within `look` px: [x, y, velocity, half length] or [].
+func _ahead(cars: Array, vx: float, dir: float, y: float, look: float) -> Array:
+	var best := []
+	var best_d := INF
+	for c in cars:
+		var d: float = (c[0] - vx) * dir - c[3] - VAN_HALF
+		if c[2] * dir < -5.0 or c[4] == WorldTraffic.Kind.BIKE:   # oncoming, or a bike (it keeps to the side): they pass
+			continue
+		if absf(c[1] - y) < 3.0 and d > -VAN_HALF and d < look and d < best_d:
+			best = c
+			best_d = d
+	return best
+
+
+## Lane `y` has nothing in the way: ahead (oncoming traffic: twice as far, it
+## closes in) or alongside / just behind.
+func _lane_free(cars: Array, vx: float, dir: float, y: float, look: float) -> bool:
+	for c in cars:
+		if absf(c[1] - y) >= 3.0:
+			continue
+		var d: float = (c[0] - vx) * dir
+		var reach: float = look * (2.0 if c[2] * dir < 0.0 else 1.0)
+		if d > -veh_cfg.overtake_clear - c[3] - VAN_HALF and d < reach + c[3] + VAN_HALF:
+			return false
+	return true
+
+
+## The van can't drive through what's ahead in its lane: it follows it.
+func _van_top(vx: float, dir: float, top: float) -> float:
+	var c := _ahead(_cars_near(vx), vx, dir, _lane_y, 140.0)
+	if c.is_empty():
+		return top
+	var gap: float = (c[0] - vx) * dir - c[3] - VAN_HALF
+	var their: float = maxf(c[2] * dir, 0.0)
+	return minf(top, their + maxf(gap - 14.0, 0.0) * 1.5)
 
 
 # --- Followers -------------------------------------------------------------
@@ -516,6 +647,7 @@ func _next_in_party(from: int, step: int) -> int:
 func switch_leader(m: BandMember) -> void:
 	if m == leader or not party.has(m) or vehicle:
 		return
+	_end_jam()
 	var old := leader
 	old.velocity = Vector2.ZERO
 	_fstate[old].v = 0.0
@@ -525,6 +657,7 @@ func switch_leader(m: BandMember) -> void:
 	leader.velocity = Vector2.ZERO
 	_fstate[m].v = 0.0
 	_line_up(party.filter(func(x: BandMember) -> bool: return x != leader))
+	hud.set_member(leader, band.members.find(leader))
 	old.animate_as_follower(0.0)
 	band.camera.follow(_focus)
 	leader.show_text(leader.profile.display_name)
@@ -625,6 +758,84 @@ func _walk_followers(delta: float) -> void:
 			m.facing = signf(st.v)
 		m.velocity = Vector2(st.v, 0.0)
 		m.animate_as_follower(st.v)
+
+
+# --- Standing still: the band plays ----------------------------------------
+
+## A long while standing still (band_cfg.jam_after): they walk into a line-up,
+## Nikki, Joep, the Germ, Geoff and Jay from left to right (band_cfg.jam_order),
+## and all start playing at once. Any move ends it.
+func _update_jam(delta: float) -> void:
+	var input := Input.get_axis("move_left", "move_right") != 0.0 or Input.is_action_pressed("jump") \
+		or Input.is_action_just_pressed("interact")
+	if vehicle or talking or input:
+		_end_jam()
+		_still = 0.0
+		return
+	if jamming:
+		_jam_step(delta)
+		return
+	var still := absf(leader.velocity.x) < 1.0 and leader.is_on_floor()
+	for m in followers:
+		still = still and absf(_fstate[m].v) < 1.0
+	_still = _still + delta if still else 0.0
+	if _still >= band_cfg.jam_after and party.size() > 0:
+		_start_jam()
+
+
+func _start_jam() -> void:
+	var order := band_cfg.jam_order
+	var line := party.duplicate()
+	line.sort_custom(func(a: BandMember, b: BandMember) -> bool: return order.find(a.profile.id) < order.find(b.profile.id))
+	var mid := 0.0
+	for m in party:
+		mid += m.global_position.x
+	var half := (line.size() - 1) * band_cfg.jam_spacing * 0.5
+	mid = clampf(mid / party.size(), _min_x + half, _max_x - half)
+	_jam_spots.clear()
+	for i in line.size():
+		_jam_spots[line[i]] = mid - half + i * band_cfg.jam_spacing
+	jamming = true
+	_jam_playing = false
+	leader.velocity = Vector2.ZERO
+	leader.set_physics_process(false)       # the map walks them all to their spots
+
+
+## Walk to the spots; once everyone is there, all instruments out at once.
+func _jam_step(delta: float) -> void:
+	var there := true
+	for m: BandMember in _jam_spots:
+		var dx: float = _jam_spots[m] - m.global_position.x
+		var v := 0.0
+		if absf(dx) > 0.5:
+			there = false
+			v = signf(dx) * minf(band_cfg.walk_speed, absf(dx) / delta)
+			m.facing = signf(dx)
+		m.global_position.x += v * delta
+		if not _jam_playing:
+			m.animate_as_follower(v)
+	if _jam_playing:
+		for m: BandMember in _jam_spots:
+			m.animate_as_follower(0.0)      # keeps the loop going
+	elif there:
+		_jam_playing = true
+		for m: BandMember in _jam_spots:
+			m.facing = 1.0
+			m.start_instrument()
+
+
+func _end_jam() -> void:
+	if not jamming:
+		return
+	jamming = false
+	_jam_playing = false
+	for m: BandMember in _jam_spots:
+		m.stop_instrument()
+		if m in followers:
+			_fstate[m].v = 0.0
+	_jam_spots.clear()
+	leader.velocity = Vector2.ZERO
+	leader.set_physics_process(true)
 
 
 func _set_anim(m: BandMember, anim: StringName) -> void:

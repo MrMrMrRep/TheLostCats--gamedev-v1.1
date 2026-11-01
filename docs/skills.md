@@ -16,12 +16,17 @@ end). Tests: `tests/test_abilities.gd` (69 checks).
 | Run | hold Shift | L3 | push the stick all the way |
 | Crouch | hold down | down | stick down |
 | Jump | Space / C | A | JUMP |
-| Punch (swings a weapon if one is selected) | J / X | X | PNCH |
-| Special skill | K / Z | Y | SPCL |
-| Instrument skill | L | RT | INST |
-| Door, talk, hack panel; with nothing near: use the selected item | E | B | E |
-| Use item (a beer is drunk) | R | (B with nothing near) | ITEM |
-| Next item / give / drop | T / F / V | R3 / LT / — | NEXT / GIVE / DROP |
+| Punch (swings a weapon if one is selected) | J / X | X | PUNCH |
+| Special skill | K / Z | Y | the member's own: HACK, LIFT, RAGE, HOOK, BUBBLE |
+| Instrument skill | L | RT | the member's own: SHOCK, SLAP, BEAT, SOLO, CHARM |
+| Door, talk, hack panel; with nothing near: use the selected item | E | B | E (on the map named for what's in reach: TALK, ENTER, OPEN, DRIVE, RIDE) |
+| Use item (a beer is drunk) | R | (B with nothing near) | hold the character box: the inventory, USE |
+| Next item / give / drop | T / F / V | R3 / LT / — | the inventory: tap a slot, GIVE / DROP |
+| Next member | Tab / Q, 1-5 | — | tap the character box (in a level: tap a member's card) |
+
+The phone pad only shows the buttons that do something there (`TouchPad.set_context`):
+in a level JUMP, PUNCH, the two skills, E, GATHER and pause; on the world map JUMP, E
+and pause; in the van PARK (at a P sign) and RADIO; on the bikes OFF.
 
 On the world map only walking (Shift sprints) and jumping work: the skills are
 for the levels (`BandMember.map_mode`).
@@ -36,6 +41,7 @@ for the levels (`BandMember.map_mode`).
 | Wall-slide | push into a wall while falling: slide at 40 px/s | no wall jump |
 | Punch | knocks rats back (stunned). Breaks nothing | 22 px reach, 0.35 s |
 | Punch with a weapon | the selected item has `weapon` (the mic stand): longer reach, knocks rats out | mic stand 40 px |
+| Standing still | they breathe (idle); now and then (every 12-30 s) a sip or a smoke for a few seconds (`BandMember.SNACK_EVERY`, `SNACK_LENGTH`); after a minute the instrument comes out and they play until they move (`BandMember.FIDGET_TIME`). On the world map the band lines up instead, Nikki, Joep, the Germ, Geoff, Jay from left to right, and they all start playing together (`BandMapConfig.jam_after`, `jam_order`) | 60 s |
 | Beer | R drinks it: +1 HP for anyone. Joep: quick for 5 s. Nikki: heals members within 2 tiles too | |
 
 Instrument skills cost stamina and share a 3 s cooldown ("Not yet...",

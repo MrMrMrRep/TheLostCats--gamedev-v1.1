@@ -6,8 +6,12 @@ extends CanvasLayer
 ## The buttons send the same input actions as the keyboard (jump, action_a,
 ## interact, ...), so the game, menus, dialogue and pause need no changes.
 ## Left side: a joystick that appears where the thumb lands (push it all the
-## way to run / sprint; down crouches). Right side: action buttons (punch,
-## special, instrument, jump, E, items).
+## way to run / sprint; down crouches). Right side: only the buttons that do
+## something here, named for what they do (set_context): in a level jump,
+## punch, the member's special and instrument skills (their own names), E,
+## gather and pause; on the world map jump and E (talk, enter, drive...);
+## in the van park and radio. Switching members and the items live on the
+## character box top left (tap: next member, hold: the inventory).
 ##
 ## Dev switch: F7 (debug builds) or the user arg `-- --touchpad` forces the
 ## pad on and lets the left mouse button act as a finger.
@@ -22,22 +26,21 @@ const HIT_SLACK := 6.0             # extra px around a button that still counts
 const MOUSE_FINGER := 99
 const TITLE_SCENE := "res://scenes/ui/title.tscn"   # no pad here: the menu is tapped directly
 
-# [action, label, centre, radius] on the 640x360 base screen. Buttons on the
-# right half stay the same distance from the right edge on wider screens.
+# [action, default label, centre, radius] on the 640x360 base screen. Buttons
+# on the right half stay the same distance from the right edge on wider screens.
 const BUTTONS := [
 	[&"jump", "JUMP", Vector2(598, 306), 24.0],
-	[&"action_a", "PNCH", Vector2(546, 322), 18.0],
+	[&"action_a", "PUNCH", Vector2(546, 322), 18.0],
 	[&"action_b", "SPCL", Vector2(562, 264), 16.0],
 	[&"interact", "E", Vector2(612, 248), 15.0],
-	[&"use_item", "ITEM", Vector2(512, 212), 11.0],
-	[&"item_next", "NEXT", Vector2(540, 212), 11.0],
-	[&"give", "GIVE", Vector2(568, 212), 11.0],
-	[&"drop_item", "DROP", Vector2(596, 212), 11.0],
-	[&"gather", "GATH", Vector2(614, 142), 12.0],
-	[&"switch_next", "SWAP", Vector2(614, 112), 12.0],
-	[&"pause", "II", Vector2(614, 82), 12.0],
 	[&"instrument", "INST", Vector2(510, 280), 15.0],
+	[&"use_item", "RADIO", Vector2(556, 262), 15.0],
+	[&"gather", "GATHER", Vector2(614, 142), 12.0],
+	[&"pause", "II", Vector2(614, 82), 12.0],
 ]
+## The level set, when nothing else was asked for.
+const LEVEL := {&"jump": "JUMP", &"action_a": "PUNCH", &"action_b": "SPCL", &"instrument": "INST",
+	&"interact": "E", &"gather": "GATHER", &"pause": "II"}
 
 const COL_FILL := Color(0.05, 0.06, 0.1, 0.35)
 const COL_FILL_DOWN := Color(1, 0.83, 0.42, 0.45)
@@ -55,6 +58,35 @@ var _stick_origin := STICK_HOME
 var _stick_vec := Vector2.ZERO
 var _held := {}                     # action -> true, for actions we pressed
 var _on_title := false
+var _context: Dictionary = LEVEL             # action -> label: the buttons showing
+
+
+## Which buttons show and what they say ({action: label}; {} = the level set).
+func set_context(labels: Dictionary) -> void:
+	var want: Dictionary = LEVEL if labels.is_empty() else labels
+	if want == _context:
+		return
+	_context = want
+	for f in _fingers.keys():               # a button that went away lets go
+		var b = _fingers[f]
+		if b is int and not _context.has(BUTTONS[b][0]):
+			_fingers.erase(f)
+			_down.erase(b)
+			_release(BUTTONS[b][0])
+	if _view:
+		_view.queue_redraw()
+
+
+func context() -> Dictionary:
+	return _context
+
+
+## A quick press of `action`, as if a key went down and up (taps on the HUD).
+func tap(action: StringName) -> void:
+	_send(action, true, 1.0)
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	_send(action, false, 0.0)
 
 
 func _ready() -> void:
@@ -231,6 +263,8 @@ func _button_at(pos: Vector2) -> int:
 	var best := -1
 	var best_d := INF
 	for i in BUTTONS.size():
+		if not _context.has(BUTTONS[i][0]):
+			continue
 		var d: float = pos.distance_to(_centre(i))
 		if d <= BUTTONS[i][3] + HIT_SLACK and d < best_d:
 			best = i
@@ -250,12 +284,14 @@ func _draw_pad() -> void:
 	_view.draw_arc(knob, KNOB_RADIUS, 0, TAU, 20, COL_EDGE, 1.0)
 
 	for i in BUTTONS.size():
+		if not _context.has(BUTTONS[i][0]):
+			continue
 		var c := _centre(i)
 		var r: float = BUTTONS[i][3]
 		_view.draw_circle(c, r, COL_FILL_DOWN if _down.has(i) else COL_FILL)
 		_view.draw_arc(c, r, 0, TAU, 24, COL_EDGE, 1.0)
-		var size := 8 if r >= 15.0 else 6
-		var text: String = BUTTONS[i][1]
+		var text: String = _context[BUTTONS[i][0]]
+		var size := 8 if r >= 15.0 and text.length() <= 5 else 6
 		var w := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 		_view.draw_string_outline(font, c + Vector2(-w * 0.5, size * 0.35), text,
 				HORIZONTAL_ALIGNMENT_LEFT, -1, size, 2, Color(0, 0, 0, 0.6))

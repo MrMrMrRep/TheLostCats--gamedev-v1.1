@@ -37,9 +37,11 @@ const CROUCH_HEIGHT := 14.0
 const WALL_SLIDE_SPEED := 40.0              # px/s max fall while sliding down a wall
 const WALL_CHECK := 2.0                     # px probe for a wall beside the member
 const PLACEHOLDER_OFFSET := Vector2(0, -28)
-const FIDGET_TIME := 6.0                    # idle this long -> play an instrument, drink or smoke
-const FIDGET_LENGTH := 5.0                  # drinking / smoking lasts this long (the instrument until you move)
-const FIDGETS: Array[StringName] = [&"idle_instrument", &"idle_drinking", &"idle_smoking", &"idle_bottle"]
+const FIDGET_TIME := 60.0                   # idle this long -> get the instrument out and play (until you move)
+const FIDGETS: Array[StringName] = [&"idle_instrument"]
+const SNACKS: Array[StringName] = [&"idle_drinking", &"idle_smoking", &"idle_bottle"]   # now and then while standing
+const SNACK_EVERY := Vector2(12.0, 30.0)   # seconds of standing between two sips or smokes (random in range)
+const SNACK_LENGTH := 5.0                  # a sip or a smoke lasts this long
 # The game asks for logical animations; a sprite set without one plays the first
 # alias it has (band sheets name things differently from the placeholder).
 # (Older temp sheets use idle_fists, jump, attack_special, crouch.)
@@ -78,7 +80,7 @@ var crouching := false
 var running := false
 var wall_sliding := false
 var shield_left := 0.0                      # Jay's bass bubble: hits bounce off while > 0
-var fidget_after := FIDGET_TIME             # idle this long before an instrument / drink / smoke
+var fidget_after := FIDGET_TIME             # idle this long before the instrument comes out (INF: never by itself)
 var sprite_data: JTCSpriteData              # boxes and spawn events of a band sheet, else null
 var ability: MemberAbility
 var inventory: Inventory
@@ -129,6 +131,7 @@ var _placeholder_frames: SpriteFrames
 var _idle_time := 0.0
 var _fidget: StringName = &""               # idle variation playing (FIDGETS)
 var _fidget_time := 0.0
+var _next_snack := randf_range(SNACK_EVERY.x, SNACK_EVERY.y)   # _idle_time of the next sip or smoke
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 @onready var stamina: StaminaComponent = $Stamina
@@ -714,27 +717,36 @@ func _run_speed() -> float:
 	return profile.run_speed_tiles * TILE if profile else 1.0
 
 
-## Standing still: breathe; after a while play an instrument, drink or smoke
-## (band sheets only), with the _in / _loop / _out parts where the sheet has them.
+## Standing still: breathe; now and then (SNACK_EVERY) a sip or a smoke for a
+## few seconds; after a long while (fidget_after) get the instrument out and
+## play until you move (band sheets only), with the _in / _loop / _out parts
+## where the sheet has them.
 func _update_idle() -> void:
 	var delta := get_physics_process_delta_time()
 	_idle_time += delta
-	if _fidget == &"" and _idle_time >= fidget_after and profile and profile.sprite_frames:
-		var options := FIDGETS.filter(func(f: StringName) -> bool: return _has_part(f, "") or _has_part(f, "_in"))
-		if not options.is_empty():
-			_fidget = options[randi() % options.size()]
-			_fidget_time = 0.0
-			if _has_part(_fidget, "_in"):
-				_play_raw_once(StringName(_fidget + "_in"))
-				return
+	if _idle_time < delta * 1.5:            # just stopped: the first sip or smoke comes a while later
+		_next_snack = randf_range(SNACK_EVERY.x, SNACK_EVERY.y)
+	var pool: Array[StringName] = []
+	if _fidget == &"" and profile and profile.sprite_frames:
+		if _idle_time >= fidget_after:
+			pool = FIDGETS
+		elif _idle_time >= _next_snack:
+			pool = SNACKS
+	var options := pool.filter(func(f: StringName) -> bool: return _has_part(f, "") or _has_part(f, "_in"))
+	if not options.is_empty():
+		_fidget = options[randi() % options.size()]
+		_fidget_time = 0.0
+		if _has_part(_fidget, "_in"):
+			_play_raw_once(StringName(_fidget + "_in"))
+			return
 	if _fidget == &"":
 		_play(&"idle")
 		return
 	_fidget_time += delta
-	if _fidget != &"idle_instrument" and _fidget_time >= FIDGET_LENGTH:
+	if _fidget != &"idle_instrument" and _fidget_time >= SNACK_LENGTH:   # done: put it away, breathe
 		var out := StringName(_fidget + "_out")
 		_fidget = &""
-		_idle_time = 0.0
+		_next_snack = _idle_time + randf_range(SNACK_EVERY.x, SNACK_EVERY.y)
 		if _has_part(out, ""):
 			_play_raw_once(out)
 		else:
@@ -742,6 +754,37 @@ func _update_idle() -> void:
 		return
 	var loop := StringName(_fidget + "_loop")
 	_play_raw(loop if _has_part(loop, "") else _fidget)
+
+
+## Get the instrument out now and play it until moving (the band's jam on the map).
+func start_instrument() -> void:
+	if sprite.sprite_frames == null or not (_has_part(&"idle_instrument", "_in") or _has_part(&"idle_instrument", "_loop")):
+		return
+	_idle_time = 0.0
+	_fidget = &"idle_instrument"
+	_fidget_time = 0.0
+	if _has_part(_fidget, "_in"):
+		_play_raw_once(&"idle_instrument_in")
+	else:
+		_play_raw(&"idle_instrument_loop")
+
+
+## Put the instrument away (its _out part where the sheet has one), then breathe.
+func stop_instrument() -> void:
+	if _fidget != &"idle_instrument":
+		return
+	_fidget = &""
+	_idle_time = 0.0
+	_anim_lock = false
+	if _has_part(&"idle_instrument", "_out"):
+		_play_raw_once(&"idle_instrument_out")
+	else:
+		_play(&"idle")
+
+
+## Playing the instrument while standing (a fidget or the jam).
+func playing_instrument() -> bool:
+	return _fidget == &"idle_instrument"
 
 
 func _has_part(base: StringName, suffix: String) -> bool:

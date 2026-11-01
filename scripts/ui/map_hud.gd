@@ -1,15 +1,18 @@
 class_name MapHud
 extends CanvasLayer
 ## World map HUD, kept small and tidy so the street stays the picture: the
-## current objective in a little panel top left (a gold quest mark, the
+## character box top left (who you are; tap it: the next member, hold it:
+## their items), the current objective next to it (a gold quest mark, the
 ## vehicle hint under it), the clock and coins in a panel top right, the van
-## radio's station under that. The controls line along the bottom shows for
-## the first seconds and then fades out (it comes back for a while when the
-## band stands still long). Developer mode (F3, with the debug overlay)
-## shows +1 / +4 / +8 buttons under the clock that skip time
-## (DayConfig.time_buttons).
+## radio's station under that. Tap the clock: a little panel to turn time an
+## hour back or on (DayConfig.time_buttons). The controls line along the
+## bottom shows for the first seconds and then fades out (it comes back for a
+## while when the band stands still long).
 
-signal skip_requested(hours: float)         # a +1 / +4 / +8 button was clicked
+signal skip_requested(hours: float)         # sleep this many hours (fade out, the clock jumps on)
+signal time_shift_requested(hours: float)   # the time panel's -1 h / +1 h
+signal switch_requested                     # the character box was tapped
+signal inventory_requested                  # ... or held
 
 const INK := Color("fff7df")                ## WorldPalette.W5
 const DIM := Color("b0dcc9")                ## WorldPalette.T6
@@ -26,7 +29,9 @@ var _radio: Label
 var _clock: Label
 var _left: PanelContainer
 var _right: PanelContainer
-var _dev: HBoxContainer
+var _time: PanelContainer                   # the -1 h / +1 h panel under the clock
+var _time_label: Label
+var _card: MemberCard
 var _hint: Label                            # the scene's DevHint/Hint line
 var _hint_time := 0.0
 var _idle := 0.0
@@ -34,9 +39,9 @@ var _idle := 0.0
 
 func _ready() -> void:
 	layer = 40
-	# Top left: objective (+ vehicle hint).
+	# Top left: the character box, then the objective (+ vehicle hint).
 	_left = _panel()
-	_left.position = Vector2(6, 6)
+	_left.position = Vector2(6 + MemberCard.SIZE.x + 4, 6)
 	var lbox := VBoxContainer.new()
 	lbox.add_theme_constant_override("separation", 1)
 	_left.add_child(lbox)
@@ -68,14 +73,23 @@ func _ready() -> void:
 	_radio = _label(GOLD)
 	_radio.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	add_child(_radio)
-	# Developer mode: skip time.
-	_dev = HBoxContainer.new()
-	_dev.add_theme_constant_override("separation", 2)
-	_dev.visible = false
-	add_child(_dev)
+	# Tap the clock: turn time an hour back or on.
 	if DayConfig.current().time_buttons:
-		for h in [1, 4, 8]:
-			_skip_button(h)
+		_right.mouse_filter = Control.MOUSE_FILTER_STOP
+		_right.gui_input.connect(func(e: InputEvent) -> void:
+			if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+				toggle_time_panel()
+				_right.accept_event())
+	_time = _panel()
+	_time.visible = false
+	_time.mouse_filter = Control.MOUSE_FILTER_STOP
+	var trow := HBoxContainer.new()
+	trow.add_theme_constant_override("separation", 4)
+	_time.add_child(trow)
+	trow.add_child(_time_button("-1 h", -1.0))
+	_time_label = _label(INK)
+	trow.add_child(_time_label)
+	trow.add_child(_time_button("+1 h", 1.0))
 	Game.coins_changed.connect(func(_c: int) -> void: refresh())
 	Game.flag_changed.connect(func(_f: StringName, _v: Variant) -> void: refresh())
 	get_viewport().size_changed.connect(_layout)
@@ -84,9 +98,6 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if Input.is_action_just_pressed("debug_overlay"):
-		_dev.visible = not _dev.visible and _dev.get_child_count() > 0
-		_layout()
 	if _hint == null:
 		return
 	_hint_time += delta
@@ -105,7 +116,28 @@ func refresh() -> void:
 
 func set_clock(text: String) -> void:
 	_clock.text = text
+	_time_label.text = text
 	_layout.call_deferred()
+
+
+## Who you are: the leader's card in the character box.
+func set_member(m: BandMember, index: int) -> void:
+	if _card and _card.member == m:
+		return
+	if _card:
+		_card.queue_free()
+	_card = MemberCard.new()
+	_card.position = Vector2(6, 6)
+	add_child(_card)
+	_card.bind(m, index)
+	_card.set_active(true)
+	_card.tapped.connect(func() -> void: switch_requested.emit())
+	_card.held.connect(func() -> void: inventory_requested.emit())
+
+
+func toggle_time_panel() -> void:
+	_time.visible = not _time.visible
+	_layout()
 
 
 func set_vehicle_hint(text: String) -> void:
@@ -144,10 +176,10 @@ func _layout() -> void:
 	_right.size = Vector2.ZERO
 	_right.position = Vector2(w - _right.get_combined_minimum_size().x - 6, 6)
 	var y := _right.position.y + _right.get_combined_minimum_size().y + 3
-	_dev.size = Vector2.ZERO
-	_dev.position = Vector2(w - _dev.get_combined_minimum_size().x - 6, y)
-	if _dev.visible:
-		y += _dev.get_combined_minimum_size().y + 3
+	_time.size = Vector2.ZERO
+	_time.position = Vector2(w - _time.get_combined_minimum_size().x - 6, y)
+	if _time.visible:
+		y += _time.get_combined_minimum_size().y + 3
 	_radio.size = Vector2(240, 12)
 	_radio.position = Vector2(w - 240 - 8, y)
 
@@ -164,24 +196,23 @@ func _style_hint() -> void:
 	_hint.position.y = 360 - 14
 
 
-func _skip_button(hours: int) -> void:
+func _time_button(text: String, hours: float) -> Button:
 	var b := Button.new()
-	b.text = "+%d" % hours
-	b.tooltip_text = "Sleep %d hour%s" % [hours, "" if hours == 1 else "s"]
+	b.text = text
 	b.focus_mode = Control.FOCUS_NONE        # never steals the keyboard (space = jump)
 	for state in ["normal", "hover", "pressed"]:
 		var sb := StyleBoxFlat.new()
 		sb.bg_color = Color(PANEL, 0.6 if state == "normal" else (0.8 if state == "hover" else 0.95))
 		sb.border_color = EDGE
 		sb.set_border_width_all(1)
-		sb.content_margin_left = 3
-		sb.content_margin_right = 3
-		sb.content_margin_top = 1
-		sb.content_margin_bottom = 1
+		sb.content_margin_left = 4
+		sb.content_margin_right = 4
+		sb.content_margin_top = 2
+		sb.content_margin_bottom = 2
 		b.add_theme_stylebox_override(state, sb)
 	b.add_theme_color_override("font_color", INK)
-	b.pressed.connect(func() -> void: skip_requested.emit(float(hours)))
-	_dev.add_child(b)
+	b.pressed.connect(func() -> void: time_shift_requested.emit(hours))
+	return b
 
 
 func _panel() -> PanelContainer:

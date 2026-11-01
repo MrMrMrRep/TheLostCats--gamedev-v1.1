@@ -82,6 +82,15 @@ func special() -> void:
 	pass
 
 
+## The touch buttons' names for the two skills (up to 6 letters).
+func special_label() -> String:
+	return "SPCL"
+
+
+func instrument_label() -> String:
+	return "INST"
+
+
 ## L: checks the cooldown and stamina, then plays instrument().
 func play_instrument() -> bool:
 	if _instrument_cooldown > 0.0:
