@@ -201,3 +201,16 @@ as a blank salmon block. It's repainted (SpriteCook edit of
 `canal_kit_src/open_s1b.png`): windows on every floor and a downpipe, in the
 shaded tone of its front. Parked cars now keep a whole car length clear of
 every side street's mouth.
+
+**Steegjes and openings refined (2026-11-01, from playtest screenshots):**
+- The steegjes in the rows (`CanalRow.ALLEY`) were a slice cut from the
+  middle of a wide street view, without walls. Now they're real steegjes
+  (SpriteCook edits of two kit fronts with an 84 px gap): the two houses'
+  side walls run into them, cobbles, a lantern; red-lit in the Wallen
+  (`CanalRow.ALLEY_VIEWS`: `alley_canal`, `alley_wallen`). A narrower one
+  is drawn from the piece's two edges, so both walls always show.
+- The Wallen canal's corner houses got proper roofs and chimneys on their
+  side walls (they ended in a flat cut).
+- The industrial road is flanked by a low brick warehouse and a corrugated
+  one, in scale with the sheds (it had a tall canal house and a tall
+  wooden building).

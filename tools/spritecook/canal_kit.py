@@ -134,6 +134,11 @@ ROADS = {
     "open_ot_street": (166, 287, 0), "open_fl_street": (161, 283, 1),
     "open_hot_street": (168, 309, 1), "open_ind_road": (152, 292, 1),
 }
+# Steegjes between two houses of a row (CanalRow.ALLEY_VIEWS): SpriteCook
+# edits of two kit fronts with an 84 px gap; the gap's columns are the piece.
+# Its edges are the two houses' side walls running into the steeg (CanalRow
+# draws a narrower steeg from its two edges, so the walls always show).
+ALLEYS = {"steeg_canal": ("alley_canal", 212, 296), "steeg_wallen": ("alley_wallen", 215, 299)}
 TREES = {"tree_a": ["elm_0", "elm_1"], "trees": ["elm_2", "elm_3", "elm_4"]}
 TEXTURES = {"tex_setts": "setts", "tex_paver": "paver", "tex_wall": "quay_wall"}
 
@@ -266,6 +271,13 @@ def main():
         facades[name] = (img.size, windows(img))
         if "canal" in name:
             mouths[name] = water_mouth(img)
+    for src, (name, x0, x1) in ALLEYS.items():
+        img = clean(Image.open(SRC / (src + ".png")), 64).crop((x0, 0, x1, 288))
+        a = np.array(img)[:, :, 3]
+        top = int(np.nonzero(a.any(1))[0][0])
+        img = img.crop((0, top, img.width, img.height))
+        img.save(OUT / (name + ".png"))
+        strips[name] = img.size
     for src, names in TREES.items():
         img = clean(Image.open(SRC / (src + ".png")), 40)
         a = np.array(img)[:, :, 3] > 0

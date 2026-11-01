@@ -4,7 +4,7 @@ class_name CanalRow
 ## (scale 0.5, never stretched) with their lit windows at night.
 ## A row is an Array of [name, art x, joint]: the facade's left edge and, when
 ## the next facade doesn't quite meet it, the width of the dark party-wall
-## joint after it. An alley is [ALLEY, art x, 0, width].
+## joint after it. An alley is [ALLEY, art x, 0, width, view].
 
 ## Facades for an ordinary terrace (door houses are only placed on purpose).
 const POOL: Array[StringName] = [
@@ -38,7 +38,8 @@ const TRIES := 400
 const ALLEY := &"alley"
 const ALLEY_MIN := 22                       # art px: the narrowest steeg
 const ALLEY_MAX := 84
-const ALLEY_VIEW := &"gap_street_b"         # cut from the middle of this view
+const ALLEY_VIEW := &"alley_canal"          # a steeg between two houses: their side walls run into it
+const ALLEY_VIEWS := {&"wallen": &"alley_wallen"}   # per district, where it has its own
 const NEON_RED := Color(1.0, 0.12, 0.22, 0.85)
 const NEON_HALO := Color(1.0, 0.1, 0.25, 0.4)
 const LIFT := 16                            # art px: the facades stand at the back of the pavement, the band walks on it
@@ -108,7 +109,7 @@ static func fill(x0: int, length: int, rng: RandomNumberGenerator, avoid_left :=
 			if score < best_score:
 				best_score = score
 				var at := rng.randi_range(1, seams) if alley > 0 else -1
-				best = _place(x0, length, opt, alley, at, joints.x)
+				best = _place(x0, length, opt, alley, at, joints.x, ALLEY_VIEWS.get(district, ALLEY_VIEW))
 		if best_score <= 2:
 			break
 	return best
@@ -128,7 +129,7 @@ static func _pick(rng: RandomNumberGenerator, not_gable: int, not_gable2: int, p
 ## Lay out `seq` with a steeg of `alley` px just before facade `alley_at`
 ## (1 .. size-1: always between two houses) and spread what's left over the
 ## joints: first between the houses, then at the two ends.
-static func _place(x0: int, length: int, seq: Array, alley: int, alley_at: int, joint_max := JOINT) -> Array:
+static func _place(x0: int, length: int, seq: Array, alley: int, alley_at: int, joint_max := JOINT, view := ALLEY_VIEW) -> Array:
 	var total := alley
 	for n: StringName in seq:
 		total += width(n)
@@ -145,7 +146,7 @@ static func _place(x0: int, length: int, seq: Array, alley: int, alley_at: int, 
 	var x := x0 + lead
 	for i in seq.size():
 		if i == alley_at:
-			out.append([ALLEY, x, 0, alley])
+			out.append([ALLEY, x, 0, alley, view])
 			x += alley
 		var joint: int = per[i] if i < seams else 0
 		out.append([seq[i], x, joint])
@@ -161,12 +162,9 @@ static func item_width(it: Array) -> int:
 ## Draw a row (art px, origin on the street line). Call between
 ## draw_set_transform(…, Vector2(0.5, 0.5)) and its reset.
 static func draw(ci: CanvasItem, row: Array) -> void:
-	var view := texture(ALLEY_VIEW)
 	for it: Array in row:                   # alleys first: the facades either side close over their edges
 		if it[0] == ALLEY:
-			var w: int = it[3]
-			var h := view.get_height()
-			ci.draw_texture_rect_region(view, Rect2(it[1], -h - LIFT, w, h), Rect2((view.get_width() - w) / 2, 0, w, h))
+			_draw_alley(ci, texture(it[4] if it.size() > 4 else ALLEY_VIEW), it[1], it[3])
 	for it: Array in row:
 		var n: StringName = it[0]
 		if n == ALLEY:
@@ -185,6 +183,22 @@ static func _stands_apart(n: StringName) -> bool:
 		if POOLS[d].has(n):
 			return true
 	return false
+
+
+## A steeg `w` art px wide at art x `x`: the view's left wall from its left
+## edge, its right wall from its right edge (the middle, the far end, gives
+## way when the steeg is narrower than the view).
+static func _draw_alley(ci: CanvasItem, view: Texture2D, x: int, w: int) -> void:
+	var vw := view.get_width()
+	var h := view.get_height()
+	var y := -h - LIFT
+	if w >= vw:
+		ci.draw_texture(view, Vector2(x + (w - vw) / 2, y))
+		return
+	var l := (w + 1) / 2
+	var r := w - l
+	ci.draw_texture_rect_region(view, Rect2(x, y, l, h), Rect2(0, 0, l, h))
+	ci.draw_texture_rect_region(view, Rect2(x + l, y, r, h), Rect2(vw - r, 0, r, h))
 
 
 ## Its windows into a NightGlow (world px, relative to the row's origin).

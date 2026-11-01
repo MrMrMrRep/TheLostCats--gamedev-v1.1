@@ -475,9 +475,9 @@
     "sha12": "201985bc390d"
   },
   "canal2_open_wc": {
-    "asset_id": "a803fe33-51da-4915-9579-e3edb843ef8a",
-    "label": "District kit source open_wc (tools/spritecook/canal_kit_src/open_wc.png)",
-    "sha12": "0108760d597d"
+    "asset_id": "a21d445e-3844-4481-bb23-c05ed15317f8",
+    "label": "District kit source open_wc (tools/spritecook/canal_kit_src/open_wc.png): the corner houses side walls given roofs and chimneys",
+    "sha12": "1406ccfb83b2"
   },
   "canal2_open_ws": {
     "asset_id": "a1fa3486-54dd-425e-9db2-e02be07d7a12",
@@ -579,9 +579,9 @@
     "sha12": "d644b2004451"
   },
   "canal2_open_ir": {
-    "asset_id": "09ccd025-6191-47eb-903a-7ad2466a759f",
-    "label": "District kit source open_ir (tools/spritecook/canal_kit_src/open_ir.png)",
-    "sha12": "2841af9a873a"
+    "asset_id": "b0066a1d-ea8d-4fb1-8cbf-a59824163477",
+    "label": "District kit source open_ir (tools/spritecook/canal_kit_src/open_ir.png): low brick and corrugated warehouses flanking the road",
+    "sha12": "ed78b6e850f5"
   },
   "canal2_open_is": {
     "asset_id": "1c42b100-15b2-42db-8543-df6884e933e5",
@@ -617,5 +617,23 @@
     "asset_id": "928dc131-4b66-4213-ac48-1bf573ad9970",
     "label": "Germ drumming, 8 frames animated from germ_kit_a (tools/spritecook/germ_src/loop_sheet.png)",
     "sha12": "8313dcc2a55a"
+  },
+  "canal2_steeg_canal": {
+    "asset_id": "a60b64c0-848d-4f7c-a0b5-d3993ef52901",
+    "label": "Steeg between two houses (tools/spritecook/canal_kit_src/steeg_canal.png), edit of a kit-front composite",
+    "sha12": "ed38af6acba5"
+  },
+  "canal2_steeg_wallen": {
+    "asset_id": "14e053bc-5eec-40dd-8d09-52ea0e2703c6",
+    "label": "Red light steeg between two houses (tools/spritecook/canal_kit_src/steeg_wallen.png), edit of a kit-front composite",
+    "sha12": "bd960f3be64a"
+  },
+  "canal2_composite_steeg_canal": {
+    "asset_id": "10ca32d5-a421-4e40-a7d5-842cd71fce7c",
+    "label": "Uploaded composite (source of an edit)"
+  },
+  "canal2_composite_steeg_wallen": {
+    "asset_id": "c26652e0-95dd-4b66-b533-2c164a2d29ab",
+    "label": "Uploaded composite (source of an edit)"
   }
 }
