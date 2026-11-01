@@ -41,7 +41,7 @@ for the levels (`BandMember.map_mode`).
 | Wall-slide | push into a wall while falling: slide at 40 px/s | no wall jump |
 | Punch | knocks rats back (stunned). Breaks nothing | 22 px reach, 0.35 s |
 | Punch with a weapon | the selected item has `weapon` (the mic stand): longer reach, knocks rats out | mic stand 40 px |
-| Standing still | they breathe (idle); after a minute the instrument comes out and they play until they move (`BandMember.FIDGET_TIME`). On the world map the band lines up instead, Nikki, Joep, the Germ, Geoff, Jay from left to right, and they all start playing together (`BandMapConfig.jam_after`, `jam_order`) | 60 s |
+| Standing still | they breathe (idle); now and then (every 12-30 s) a sip or a smoke for a few seconds (`BandMember.SNACK_EVERY`, `SNACK_LENGTH`); after a minute the instrument comes out and they play until they move (`BandMember.FIDGET_TIME`). On the world map the band lines up instead, Nikki, Joep, the Germ, Geoff, Jay from left to right, and they all start playing together (`BandMapConfig.jam_after`, `jam_order`) | 60 s |
 | Beer | R drinks it: +1 HP for anyone. Joep: quick for 5 s. Nikki: heals members within 2 tiles too | |
 
 Instrument skills cost stamina and share a 3 s cooldown ("Not yet...",

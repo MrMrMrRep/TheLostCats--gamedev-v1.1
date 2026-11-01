@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 85
+const EXPECTED_CHECKS := 87
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -329,6 +329,16 @@ func _test_band_line() -> void:
 		var gap: float = map._fstate[f].gap
 		settled = settled and absf(leader.global_position.x - f.global_position.x - gap) < 12.0
 	_check(settled, "standing still, each keeps their own distance %s" % [map.followers.map(func(f): return int(leader.global_position.x - f.global_position.x))])
+	for f in map.followers:                     # (now and then: a sip or a smoke)
+		f._next_snack = f._idle_time + 0.2
+	await _frames(40)
+	var snacks: Array = map.followers.map(func(f): return String(f.sprite.animation))
+	_check(snacks.any(func(a): return a.begins_with("idle_drinking") or a.begins_with("idle_smoking") or a.begins_with("idle_bottle")),
+		"standing still, now and then someone has a drink or a smoke %s" % [snacks])
+	await _frames(int(map.leader.SNACK_LENGTH * 60.0) + 90)
+	_check(map.followers.all(func(f): return not String(f.sprite.animation).begins_with("idle_drinking") \
+		and not String(f.sprite.animation).begins_with("idle_smoking") and f._fidget == &""),
+		"after a few seconds they put it away and just stand %s" % [map.followers.map(func(f): return String(f.sprite.animation))])
 	var jam_after: float = map.band_cfg.jam_after
 	map.band_cfg.jam_after = 1.0                # (a minute in the game)
 	await _frames(300)
