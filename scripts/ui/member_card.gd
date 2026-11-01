@@ -6,6 +6,13 @@ extends Control
 ## (only while below max), 3 item slots (selected slot outlined on the active
 ## member's card) and name.
 ## The active member's card is highlighted, the others are dimmed.
+## Tap it (finger or mouse): `tapped`; hold it HOLD seconds: `held` (the HUD
+## switches members on a tap and opens the inventory on a hold).
+
+signal tapped
+signal held
+
+const HOLD := 0.45
 
 const SIZE := Vector2(52, 32)
 const SHEET := preload("res://public/assets/amwoods/character/char_blue.png")
@@ -19,11 +26,31 @@ const SLOT_Y := 14.0
 
 var member: BandMember
 var active := false
+var _press := -1.0                          # seconds held, -1: not pressed
 
 
 func _init() -> void:
 	custom_minimum_size = SIZE
-	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mouse_filter = Control.MOUSE_FILTER_STOP
+
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_press = 0.0
+		elif _press >= 0.0:
+			_press = -1.0
+			tapped.emit()
+		accept_event()
+
+
+func _process(delta: float) -> void:
+	if _press < 0.0:
+		return
+	_press += delta
+	if _press >= HOLD:
+		_press = -1.0
+		held.emit()
 
 
 func bind(m: BandMember, index: int) -> void:

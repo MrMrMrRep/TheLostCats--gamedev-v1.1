@@ -727,8 +727,8 @@ script = ExtResource("12_sloqf")
 map_width = 22616.0
 map_min = -4000.0
 town = Vector2(6000, 18706)
-kit_span = Vector2(6400, 18706)
-kit_roads = Array[Vector2]([Vector2(6400, 7822), Vector2(16436, 18706)])
+kit_span = Vector2(6000, 18706)
+kit_roads = Array[Vector2]([Vector2(6000, 7822), Vector2(16436, 18706)])
 
 [node name="StreetLife" type="Node2D" parent="." unique_id=1776310546]
 
@@ -1076,6 +1076,7 @@ map_min = -4000.0
 position = Vector2(0, 288)
 script = ExtResource("92_qtree")
 span = Vector2(7092, 16436)
+z_index = 4
 
 [node name="Water" type="Node2D" parent="." unique_id=985293818]
 modulate = Color(1, 1, 1, 0.45882353)
@@ -1175,8 +1176,8 @@ seed_value = 9
 water_y = 38.0
 
 [node name="FrontGround" type="Node2D" parent="." unique_id=242481259]
-
 [node name="WestRoad" type="Node2D" parent="FrontGround" unique_id=1459083502]
+z_index = 4
 
 [node name="GrassBank" type="Node2D" parent="FrontGround/WestRoad" unique_id=1756990035]
 texture_repeat = 2
@@ -1200,7 +1201,7 @@ texture_repeat = 2
 position = Vector2(6000, 288)
 script = ExtResource("32_75cur")
 length = 1059.0
-top = 16.0
+top = 23.0
 
 [node name="ConstructionFront" type="Node2D" parent="FrontGround/Viaduct" unique_id=928895911]
 position = Vector2(5600, 288)
@@ -1209,11 +1210,11 @@ length = 260.0
 front = true
 
 [node name="Canopies" type="Node2D" parent="." unique_id=602061058]
-
 [node name="Canopy0" type="Node2D" parent="Canopies" unique_id=181304308]
 position = Vector2(7059, 288)
 script = ExtResource("33_c4aei")
 seed_value = 11
+z_index = 4
 
 [node name="Canopy1" type="Node2D" parent="Canopies" unique_id=1437239807]
 position = Vector2(6000, 288)
@@ -1238,6 +1239,7 @@ seed_value = 15
 [node name="Foreground" type="Node2D" parent="." unique_id=1521625310]
 script = ExtResource("3_x5aeg")
 factor = 1.35
+z_index = 4
 
 [node name="RoundHotelNear" type="Node2D" parent="Foreground" unique_id=274952865]
 position = Vector2(6912, 689)

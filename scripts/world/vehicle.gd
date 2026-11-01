@@ -28,6 +28,13 @@ const VAN_SCALE := 0.75                     # the sheet is drawn bigger than the
 
 # Speeds, pull/brake/rolling/drag, skids and body pitch: resources/config/vehicle_config.tres
 const EXHAUST := Vector2(-39, -7)           # tailpipe (world px, facing right)
+# Who you see through the windows (sheet px, facing right): the driver in the
+# cab, the others two to a rear window, nearest the front first.
+const VAN_WINDOWS := [Rect2(75, 11, 12, 10), Rect2(31, 12, 18, 9), Rect2(9, 12, 18, 9)]
+const VAN_SEATS := [Vector2(80, 0), Vector2(43, 1), Vector2(35, 1), Vector2(21, 2), Vector2(13, 2)]   # head x, window
+const HEAD := Vector2(48, 41)               # top of the head in a member's 96 px cell
+const HEAD_SCALE := 0.56                    # sheet px per cell px: a head fills a window
+const HEAD_TOP := 11.5                      # sheet y of the tops of their heads
 const SMOKE_LIFE := 1.4
 
 var velocity := Vector2.ZERO
@@ -46,6 +53,8 @@ var occupied := false:
 	set(value):
 		occupied = value
 		queue_redraw()
+var riders: Array[SpriteFrames] = []        # in the van: the driver first, then the others
+var _idle_t := 0.0
 
 
 func _ready() -> void:
@@ -53,6 +62,7 @@ func _ready() -> void:
 	super()
 	if kind == Kind.VAN:
 		_glow = NightGlow.attach(self)
+		add_to_group(&"band_van")           # traffic keeps its distance and draws around it
 
 
 func interact(_member: BandMember, map: Node) -> void:
@@ -149,6 +159,7 @@ func _process(delta: float) -> void:
 		puff[1] += delta
 		puff[0] += puff[3] * delta - Vector2(velocity.x * 0.15 * delta, 0)
 	_smoke = _smoke.filter(func(puff: Array) -> bool: return puff[1] < SMOKE_LIFE)
+	_idle_t += delta
 	if occupied or not _smoke.is_empty() or not _skids.is_empty() or absf(_pitch) > 0.0005:
 		queue_redraw()
 
@@ -184,6 +195,8 @@ func _draw_van() -> void:
 	xf = xf * Transform2D(-_pitch, axle) * Transform2D(0.0, -axle)
 	draw_set_transform_matrix(xf)
 	draw_texture_rect_region(VAN_SHEET, Rect2(Vector2(-VAN_FRAME.x / 2.0, -VAN_GROUND), VAN_FRAME), src)
+	if occupied:
+		_draw_riders(src.position)
 	draw_set_transform(Vector2.ZERO)
 	for puff in _smoke:
 		var t: float = puff[1] / SMOKE_LIFE
@@ -191,6 +204,34 @@ func _draw_van() -> void:
 		var c := Color(0.85, 0.85, 0.88, 0.75 * (1.0 - t))
 		draw_circle(to_local(puff[0]), r, c)
 	_van_lights()
+
+
+## The band inside: each rider's head and shoulders (their idle animation)
+## behind a window, then the glass again, faintly, over them.
+func _draw_riders(frame_at: Vector2) -> void:
+	var origin := Vector2(-VAN_FRAME.x / 2.0, -VAN_GROUND)
+	for i in mini(riders.size(), VAN_SEATS.size()):
+		var frames := riders[i]
+		print("DBG i ", i, " ", frames, " ", frames.has_animation(&"idle_breathing") if frames else null)
+		if frames == null or not frames.has_animation(&"idle_breathing"):
+			continue
+		var n := frames.get_frame_count(&"idle_breathing")
+		var tex := frames.get_frame_texture(&"idle_breathing", int(_idle_t * 6.0 + i * 3) % n) as AtlasTexture
+		if tex == null:
+			continue
+		var seat: Vector2 = VAN_SEATS[i]
+		var clip: Rect2 = VAN_WINDOWS[int(seat.y)]
+		var at := Vector2(seat.x, HEAD_TOP) - HEAD * HEAD_SCALE    # the cell's corner, sheet px
+		var cell := Rect2(at, Vector2(96, 96) * HEAD_SCALE)
+		var dest := clip.intersection(cell)
+		if dest.size.x <= 0.0:
+			continue
+		var from := Rect2((dest.position - at) / HEAD_SCALE, dest.size / HEAD_SCALE)
+		var shade := Color(0.78, 0.8, 0.88) if i in [2, 4] else Color.WHITE   # the far seat, in the van's shade
+		draw_texture_rect_region(tex.atlas, Rect2(origin + dest.position, dest.size),
+			Rect2(tex.region.position + from.position, from.size), shade)
+	for w: Rect2 in VAN_WINDOWS:            # the glass with its glare over them
+		draw_texture_rect_region(VAN_SHEET, Rect2(origin + w.position, w.size), Rect2(frame_at + w.position, w.size), Color(1, 1, 1, 0.3))
 
 
 ## Head and tail lights while someone drives it, at night.

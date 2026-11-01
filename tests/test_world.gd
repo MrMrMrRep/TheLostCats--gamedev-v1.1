@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 77
+const EXPECTED_CHECKS := 85
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -15,6 +15,7 @@ var failures := 0
 var checks := 0
 var map
 var game
+var audio
 var router
 
 
@@ -24,11 +25,13 @@ func _initialize() -> void:
 
 func _run() -> void:
 	game = root.get_node("Game")
+	audio = root.get_node("Audio")
 	router = root.get_node("SceneRouter")
 	map = await _load_map()
 
 	_test_canal_kit()
 	_test_red_light()
+	_test_lanes()
 	await _test_zoom_walking()
 	await _test_day_night()
 	await _test_band_line()
@@ -148,6 +151,28 @@ func _test_canal_kit() -> void:
 		if floor.get_cell_source_id(Vector2i(x, used.position.y)) == -1:
 			holes.append(x * floor.tile_set.tile_size.x)
 	_check(holes.is_empty(), "the street floor has no holes to fall through %s" % [holes])
+
+
+## The road's lanes (RoadLanes): two each way on the motorway, one each way at
+## the city's edges, one in the centre, and no jumps where they change.
+func _test_lanes() -> void:
+	var lanes = load("res://scripts/world/road_lanes.gd")
+	var counts := [lanes.lanes(3000.0), lanes.lanes(6600.0), lanes.lanes(12000.0), lanes.lanes(17600.0), lanes.lanes(20000.0)]
+	var two_way: bool = lanes.y(6600.0, 1.0) - lanes.y(6600.0, -1.0) > 4.0 and lanes.y(17600.0, 1.0) - lanes.y(17600.0, -1.0) > 4.0
+	var one: bool = absf(lanes.y(12000.0, 1.0) - lanes.y(12000.0, -1.0)) < 0.01
+	_check(counts == [2, 1, 1, 1, 2] and two_way and one and lanes.section(12000.0) == 2,
+		"lanes each way: motorway 2, the city's edges 1 (one each way), the centre 1 (shared) %s" % [counts])
+	var jump := 0.0
+	for dir in [1.0, -1.0]:
+		for side in [0, 1]:
+			var prev: float = lanes.y(4000.0, dir, side)
+			for x in range(4001, 21000):
+				var yy: float = lanes.y(float(x), dir, side)
+				jump = maxf(jump, absf(yy - prev))
+				prev = yy
+	var street = map.get_node("Road/Street")
+	_check(jump < 0.3 and absf(street.kit_span.x - lanes.WEST.y) < 0.5 and absf(street.kit_span.y - lanes.EAST.x) < 0.5,
+		"the lanes taper smoothly where their number changes (biggest step %.2f px), the town's street meets the motorway's tapers" % jump)
 
 
 ## De Wallen between the old town and the canal belt: red at night, neon,
@@ -304,8 +329,22 @@ func _test_band_line() -> void:
 		var gap: float = map._fstate[f].gap
 		settled = settled and absf(leader.global_position.x - f.global_position.x - gap) < 12.0
 	_check(settled, "standing still, each keeps their own distance %s" % [map.followers.map(func(f): return int(leader.global_position.x - f.global_position.x))])
-	await _frames(480)
-	_check(map.followers.any(func(f): return f.anim == &"fidget"), "after a while standing, someone starts smoking, drinking or playing")
+	var jam_after: float = map.band_cfg.jam_after
+	map.band_cfg.jam_after = 1.0                # (a minute in the game)
+	await _frames(300)
+	var line: Array = map.party.duplicate()
+	line.sort_custom(func(a, b): return a.global_position.x < b.global_position.x)
+	var order: Array = line.map(func(m): return String(m.profile.id))
+	var want: Array = Array(map.band_cfg.jam_order).map(func(n): return String(n)).filter(func(n): return n in order)
+	_check(map.jamming and order == want and map.party.all(func(m): return m.playing_instrument()),
+		"standing still a long while, the band lines up %s and plays together" % [order])
+	_check(map.followers.all(func(f): return f.sprite.animation != &"walk") and leader.sprite.animation != &"walk",
+		"nobody is stuck walking on the spot %s" % [map.party.map(func(m): return String(m.sprite.animation))])
+	Input.action_press("move_right")
+	await _frames(20)
+	Input.action_release("move_right")
+	_check(not map.jamming and not leader.playing_instrument(), "moving ends the jam")
+	map.band_cfg.jam_after = jam_after
 
 
 func _test_road_block() -> void:
@@ -373,6 +412,8 @@ func _test_van() -> void:
 	await _frames(2)
 	_check(map.vehicle == van and not map.leader.visible, "E at the van: the band drives off")
 	_check(map.radio.is_on and map.hud._radio.text.begins_with("Radio: "), "the radio comes on in the van (%s)" % map.hud._radio.text)
+	_check(audio.music_hushed() and van.riders.size() == map.party.size(),
+		"in the van only the radio plays, and the %d of them sit in it (%d at the windows)" % [map.party.size(), van.riders.size()])
 	var station: int = map.radio.channel
 	await _tap("use_item")
 	_check(map.radio.channel != station and map.radio.CHANNELS[map.radio.channel].region == "NL", "R: next Dutch station (%s)" % map.radio.now_playing())
@@ -399,6 +440,30 @@ func _test_van() -> void:
 	Input.action_release("move_right")
 	_check(map.zoom >= map.cam_cfg.zoom_van - 0.02 and map.birds.active, "on the motorway the view still stays close (%.2f), birds" % map.zoom)
 	_check(van.global_position.y > map.GROUND_Y + 2.0, "heading east on the motorway the van keeps to the lower lane (%.1f)" % (van.global_position.y - map.GROUND_Y))
+	# Overtaking: something slower ahead in its lane, it takes the other one and comes back after.
+	var lanes = load("res://scripts/world/road_lanes.gd")
+	var front = map.get_node("TrafficFront")
+	var back = map.get_node("TrafficBack")
+	for t in [front, back]:
+		t.set_process(false)
+		t._cars.clear()
+	van.global_position.x = 3000.0
+	Input.action_press("move_right")
+	await _frames(90)
+	var own: int = map.veh_cfg.van_lane
+	var y_own: float = lanes.y(van.global_position.x, 1.0, own)
+	_check(absf(van.global_position.y - map.GROUND_Y - y_own) < 1.5, "the van keeps to its own motorway lane (%.1f, lane %.1f)" % [van.global_position.y - map.GROUND_Y, y_own])
+	front._cars.append([van.global_position.x + 170.0, 1.0, 40.0, 0, Color.WHITE, 0.0, 1, own, 40.0, 1.0])
+	var passed := false
+	for i in 60:
+		await _frames(1)
+		passed = passed or map._van_side != own
+	_check(passed, "a slower car ahead in its lane: the van moves over to overtake")
+	await _frames(150)
+	_check(map._van_side == own and van.global_position.x > front._cars[0][0] + 60.0, "past it, the van goes back to its own lane")
+	Input.action_release("move_right")
+	for t in [front, back]:
+		t.set_process(true)
 	var zoom_before: float = map.zoom
 	van.global_position.x = map.scenic_from - 1500.0   # past the last windmill: the road trip
 	Input.action_press("move_left")
@@ -418,7 +483,7 @@ func _test_van() -> void:
 	await _frames(20)
 	await _tap("interact")
 	await _frames(2)
-	_check(map.vehicle == null and map.leader.visible, "at the venue's P sign the band gets out")
+	_check(map.vehicle == null and map.leader.visible and not audio.music_hushed(), "at the venue's P sign the band gets out (the music comes back)")
 	_check(absf(float(game.get_flag(&"van_x", 0.0)) - spot.global_position.x) < 1.0, "the van's parking spot is remembered")
 
 

@@ -99,3 +99,11 @@ func _draw() -> void:
 		pts.append(Vector2(cos(a), sin(a)) * rr + Vector2(0, -14))
 	draw_polyline(pts, Color(0.62, 0.95, 1.0, 1.0 - t), 1.5)
 	draw_arc(Vector2(0, -14), minf(r, SHOCK_NEAR), 0.0, TAU, 24, Color(1, 1, 1, 0.5 * (1.0 - t)), 1.0)
+
+
+func special_label() -> String:
+	return "HACK"
+
+
+func instrument_label() -> String:
+	return "SHOCK"

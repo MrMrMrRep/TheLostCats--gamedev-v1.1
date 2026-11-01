@@ -195,3 +195,11 @@ func _find_hook() -> Node2D:
 func _draw() -> void:
 	if swinging and is_instance_valid(hook):
 		draw_line(Vector2(0, -20), to_local(hook.global_position), Color("e0c080"), 1.0)
+
+
+func special_label() -> String:
+	return "HOOK"
+
+
+func instrument_label() -> String:
+	return "SOLO"

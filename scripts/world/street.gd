@@ -68,38 +68,101 @@ func _draw() -> void:
 			_draw_kit_street(maxf(kit_span.x, a), minf(kit_span.y, b))
 	else:
 		_draw_town_legacy(a, b)
-	# Outside town: motorway proportions. Behind us the opposite carriageway
-	# and a concrete median barrier; our carriageway with a solid edge line on
-	# both sides and a dashed lane line (we drive on the far lane, traffic
-	# passes on the near one), a hard shoulder, a steel guardrail, a grass
-	# verge down to the ditch.
-	for seg in [Vector2(map_min - 400, a), Vector2(b, map_width + 400)]:
-		var w: float = seg.y - seg.x
-		var x0: float = seg.x
-		draw_rect(Rect2(x0, -10, w, 8), p.ROAD.lerp(p.HAZE, 0.3))
-		var xo := x0
-		while xo < seg.y:
-			draw_rect(Rect2(xo, -7, 9, 1), p.WHITE.lerp(p.HAZE, 0.5))
-			xo += 27
-		draw_rect(Rect2(x0, -3, w, 3), WorldPalette.W3)                 # median barrier
-		draw_rect(Rect2(x0, -3, w, 1), WorldPalette.W4)
-		draw_rect(Rect2(x0, 0, w, ROAD_H), p.ROAD)
-		draw_rect(Rect2(x0, 1, w, 1), p.WHITE.lerp(p.ROAD, 0.25))        # edge line by the median
-		var xd := x0
-		while xd < seg.y:
-			draw_rect(Rect2(xd, 11, 9, 1), p.WHITE.lerp(p.ROAD, 0.3))    # lane line (3 : 9)
-			xd += 36
-		draw_rect(Rect2(x0, 21, w, 1), p.WHITE.lerp(p.ROAD, 0.2))        # edge line by the shoulder
-		draw_rect(Rect2(x0, 22, w, ROAD_H - 22), p.ROAD.lightened(0.06)) # hard shoulder
-		draw_rect(Rect2(x0, ROAD_H, w, VERGE_H), p.GRASS[0])
-		draw_rect(Rect2(x0, ROAD_H, w, 1), p.GRASS[1])
-		draw_rect(Rect2(x0, ROAD_H - 2, w, 2), WorldPalette.R3)          # guardrail
-		draw_rect(Rect2(x0, ROAD_H - 2, w, 1), WorldPalette.W4)
-		var xp := x0
-		while xp < seg.y:
-			draw_rect(Rect2(xp, ROAD_H, 1, 3), WorldPalette.R1)
-			xp += 12
-		_motorway_details(x0, seg.y)
+	# Outside town the motorway (two lanes each way), and where it meets the
+	# city's street the tapers (RoadLanes.WEST / EAST).
+	_draw_motorway(map_min - 400.0, RoadLanes.WEST.x)
+	_draw_motorway(RoadLanes.EAST.y, map_width + 400.0)
+	_draw_taper(RoadLanes.WEST.x, a)
+	_draw_taper(b, RoadLanes.EAST.y)
+
+
+## The motorway over [x0, x1]: behind us the westbound carriageway (two lanes,
+## hazier), the concrete median barrier (the band walks along its foot), our
+## eastbound carriageway (two lanes), a hard shoulder, a steel guardrail and a
+## grass verge down to the ditch.
+func _draw_motorway(x0: float, x1: float) -> void:
+	if x1 <= x0:
+		return
+	var p := WorldPalette
+	var w := x1 - x0
+	var far := RoadLanes.MW_FAR
+	var far_road := p.ROAD.lerp(p.HAZE, 0.3)
+	draw_rect(Rect2(x0, far.x - 1.0, w, 1), p.GRASS[1].lerp(p.HAZE, 0.4))         # verge edge
+	draw_rect(Rect2(x0, far.x, w, far.y - far.x), far_road)
+	draw_rect(Rect2(x0, far.x + 1.0, w, 1), p.WHITE.lerp(far_road, 0.45))          # edge line by the verge
+	draw_rect(Rect2(x0, far.y - 1.0, w, 1), p.WHITE.lerp(far_road, 0.4))           # edge line by the median
+	_dashes(x0, x1, (far.x + far.y) * 0.5, 8.0, 24.0, p.WHITE.lerp(far_road, 0.5)) # lane line
+	draw_rect(Rect2(x0, -3, w, 3), WorldPalette.W3)                                # median barrier
+	draw_rect(Rect2(x0, -3, w, 1), WorldPalette.W4)
+	draw_rect(Rect2(x0, 0, w, ROAD_H), p.ROAD)
+	draw_rect(Rect2(x0, 1, w, 1), p.WHITE.lerp(p.ROAD, 0.25))                      # edge line by the median
+	_dashes(x0, x1, 11.0, 9.0, 36.0, p.WHITE.lerp(p.ROAD, 0.3))                    # lane line (3 : 9)
+	draw_rect(Rect2(x0, 21, w, 1), p.WHITE.lerp(p.ROAD, 0.2))                      # edge line by the shoulder
+	draw_rect(Rect2(x0, 22, w, ROAD_H - 22), p.ROAD.lightened(0.06))               # hard shoulder
+	draw_rect(Rect2(x0, ROAD_H, w, VERGE_H), p.GRASS[0])
+	draw_rect(Rect2(x0, ROAD_H, w, 1), p.GRASS[1])
+	draw_rect(Rect2(x0, ROAD_H - 2, w, 2), WorldPalette.R3)                        # guardrail
+	draw_rect(Rect2(x0, ROAD_H - 2, w, 1), WorldPalette.W4)
+	var xp := x0 - fposmod(x0, 12.0)
+	while xp < x1:
+		draw_rect(Rect2(maxf(xp, x0), ROAD_H, 1, 3), WorldPalette.R1)
+		xp += 12
+	_motorway_details(x0, x1)
+
+
+func _dashes(x0: float, x1: float, y: float, on: float, every: float, c: Color) -> void:
+	var x := x0 - fposmod(x0, every)
+	while x < x1:
+		var s0 := maxf(x, x0)
+		var s1 := minf(x + on, x1)
+		if s1 > s0:
+			draw_rect(Rect2(s0, y, s1 - s0, 1), c)
+		x += every
+
+
+## Where the motorway meets the city's street, column by column: the
+## westbound carriageway sweeps down towards the street, the median ends,
+## each carriageway's two lanes merge into one (the lane line stops) and a
+## footpath grows in above the road, until it's the town's road with one
+## lane each way (RoadLanes).
+func _draw_taper(x0: float, x1: float) -> void:
+	if x1 <= x0:
+		return
+	var p := WorldPalette
+	var far := RoadLanes.MW_FAR
+	var road := RoadLanes.TOWN_ROAD
+	var mid := (road.x + road.y) * 0.5
+	var lift := CanalRow.LIFT * 0.5
+	var x := floorf(x0)
+	while x < x1:
+		var cw := minf(1.0, x1 - x)
+		var t := 1.0 - RoadLanes.motorway_weight(x + cw * 0.5)    # 0 motorway .. 1 town
+		var f0 := roundf(lerpf(far.x, road.x, t))
+		var f1 := roundf(lerpf(far.y, mid, t))
+		var n0 := roundf(lerpf(0.0, mid, t))
+		var n1 := roundf(lerpf(21.0, road.y, t))
+		var sh := roundf(lerpf(ROAD_H, road.y, t))
+		var tint := p.ROAD.lerp(p.HAZE, 0.3 * (1.0 - t))
+		if f0 > -lift:                      # the footpath appears above the road
+			draw_rect(Rect2(x, -lift, cw, f0 - 1.0 + lift), p.R3.lerp(p.W3, 0.35))
+			draw_rect(Rect2(x, f0 - 2.0, cw, 1), p.W4)                          # kerb
+		draw_rect(Rect2(x, f0, cw, f1 - f0), tint)                              # westbound
+		if n0 - f1 >= 1.0:                  # what's left of the median
+			draw_rect(Rect2(x, f1, cw, n0 - f1), WorldPalette.W3)
+			draw_rect(Rect2(x, f1, cw, 1), WorldPalette.W4)
+		draw_rect(Rect2(x, n0, cw, n1 - n0), p.ROAD)                            # eastbound
+		if sh > n1:
+			draw_rect(Rect2(x, n1, cw, sh - n1), p.ROAD.lightened(0.06))        # the shoulder narrows away
+		draw_rect(Rect2(x, maxf(sh, n1), cw, ROAD_WATER - maxf(sh, n1)), p.GRASS[0])
+		if t < 0.5 and fposmod(x, 27.0) < 8.0:   # lane lines until the lanes have merged
+			draw_rect(Rect2(x, roundf((f0 + f1) * 0.5), cw, 1), p.WHITE.lerp(tint, 0.5))
+		if t < 0.5 and fposmod(x, 36.0) < 9.0:
+			draw_rect(Rect2(x, roundf(lerpf(11.0, (n0 + n1) * 0.5, t)), cw, 1), p.WHITE.lerp(p.ROAD, 0.3))
+		if t >= 0.5 and fposmod(x, 36.0) < 18.0:  # then the town's centre line
+			draw_rect(Rect2(x, roundf(f1), cw, 1), p.W4)
+		if f0 <= -lift:                     # the edge line, until the footpath's kerb takes over
+			draw_rect(Rect2(x, f0, cw, 1), p.WHITE.lerp(tint, 0.4))
+		x += cw
 
 
 ## Cobble setts along the old town and the canal belt, concrete pavers and
@@ -255,10 +318,10 @@ func _kit_asphalt(x0: float, w: float) -> void:
 			draw_rect(Rect2(maxf(x, x0), KIT_SETTS_Y + 3 + int(hh * 2.0 * (h - 6)), 2, 1), p.R1)
 		x += 7.0
 	var d := x0 - fposmod(x0, 36.0)
-	while d < x0 + w:                       # centre line: 18 on, 18 off
+	while d < x0 + w:                       # centre line: 18 on, 18 off (none where the lanes merge into one)
 		var s0 := maxf(d, x0)
 		var s1 := minf(d + 18.0, x0 + w)
-		if s1 > s0:
+		if s1 > s0 and RoadLanes.centre_weight(s0 * 0.5 + global_position.x) < 0.3:
 			draw_rect(Rect2(s0, KIT_SETTS_Y + h * 0.5 - 1.0, s1 - s0, 2), p.W4)
 		d += 36.0
 

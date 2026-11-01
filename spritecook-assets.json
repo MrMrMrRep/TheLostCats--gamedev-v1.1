@@ -379,9 +379,9 @@
     "sha12": "d3dc27e2ea23"
   },
   "canal2_open_s1b": {
-    "asset_id": "681c4f96-62c3-409f-a18f-a23b98aa4619",
-    "label": "Canal kit opening open_s1b: SpriteCook edit of a kit-front + view + kit-front composite",
-    "sha12": "4ee4bf0b1545"
+    "asset_id": "1edb5cf4-608c-4dee-974f-b7eb7a48a11e",
+    "label": "District kit source open_s1b (tools/spritecook/canal_kit_src/open_s1b.png): SpriteCook edit giving the corner house side wall windows and a downpipe, its plaster then shaded locally to the old warm tone",
+    "sha12": "5524a12db800"
   },
   "canal2_open_s2b": {
     "asset_id": "c8c70e8c-0c14-4bb0-8caa-c8f880e84fba",
@@ -603,5 +603,19 @@
   "canal2_composite_ind_steeg": {
     "asset_id": "229b9aa8-8c1b-4f80-9eaa-37ae8c0dcc0d",
     "label": "Uploaded composite (source of an edit)"
+  },
+  "germ_kit_a": {
+    "asset_id": "82a9924e-3675-4127-8bb2-fdcf6c77c034",
+    "label": "Germ behind one solid red drum kit (tools/spritecook/germ_src/kit_a.png), edit of the old loop frame",
+    "sha12": "4b51aafe40a1"
+  },
+  "germ_kit_source_upload": {
+    "asset_id": "7d9c759e-0b77-4588-8e26-90e6f8bc9d80",
+    "label": "Uploaded old loop frame (source of the kit edit)"
+  },
+  "germ_drum_loop": {
+    "asset_id": "928dc131-4b66-4213-ac48-1bf573ad9970",
+    "label": "Germ drumming, 8 frames animated from germ_kit_a (tools/spritecook/germ_src/loop_sheet.png)",
+    "sha12": "8313dcc2a55a"
   }
 }

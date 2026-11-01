@@ -41,6 +41,7 @@ func _ready() -> void:
 			child.position = Vector2(members.size() * spawn_spacing, 0)
 			members.append(child)
 	switch_to(start_index, true)
+	_touch_buttons.call_deferred()
 
 
 func _physics_process(_delta: float) -> void:
@@ -78,6 +79,20 @@ func switch_to(index: int, instant := false) -> void:
 	if _gather_held:
 		start_gather()                      # keep gathering, now around the new leader
 	active_changed.emit(active, index)
+	_touch_buttons()
+
+
+## The phone pad's skill buttons carry the active member's own skill names
+## (the world map sets its own buttons).
+func _touch_buttons() -> void:
+	var pad := get_node_or_null(^"/root/TouchPad")
+	if locked or active == null or pad == null:
+		return
+	var labels: Dictionary = pad.LEVEL.duplicate()
+	if active.ability:
+		labels[&"action_b"] = active.ability.special_label()
+		labels[&"instrument"] = active.ability.instrument_label()
+	pad.set_context(labels)
 
 
 ## Only `ids` come along (the party chosen at the base): the others leave the band.

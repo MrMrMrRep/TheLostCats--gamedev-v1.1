@@ -179,3 +179,11 @@ func _draw() -> void:
 			continue
 		var start := -PI / 4 if f > 0 else PI * 0.75
 		draw_arc(Vector2(0, -16), r, start, start + PI / 2, 12, Color(0.6, 0.85, 1.0, 1.0 - t), 2.0)
+
+
+func special_label() -> String:
+	return "LIFT"
+
+
+func instrument_label() -> String:
+	return "SLAP"

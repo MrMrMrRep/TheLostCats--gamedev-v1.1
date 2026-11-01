@@ -161,3 +161,11 @@ func _draw() -> void:
 	for i in 5:                             # flames around the fist
 		var p := Vector2(f * (10.0 + i * 3.0), -16.0 + sin(i * 2.1 + _fire * 30.0) * 3.0)
 		draw_circle(p, 4.0 - i * 0.5, Color(1.0, 0.55 + i * 0.08, 0.15, 0.8 * a))
+
+
+func special_label() -> String:
+	return "RAGE"
+
+
+func instrument_label() -> String:
+	return "BEAT"

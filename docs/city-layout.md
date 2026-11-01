@@ -163,3 +163,41 @@ What's new in the rules:
 - Asphalt (`Street.kit_roads`) in front of the hotels and the park (6400–7822) and from the flats to the town's end (16436–18706); cobbles in between. Over the viaduct the viaduct's own deck is the road.
 
 The scene change: `tools/scene_edits/2026_10_29_outer_districts.py` (after `2026_10_28_districts.py`).
+
+## 11. The road: lanes, tapers and the van (2026-11-01)
+
+One road runs the whole map, and its lanes come from one place
+(`scripts/world/road_lanes.gd`, `RoadLanes`): traffic, the band's van and
+the street's markings all follow it.
+
+| x (world) | Road | Lanes |
+|---|---|---|
+| west of 5600, east of 19100 | motorway: the westbound carriageway behind the median, the eastbound in front (we drive on the right) | 2 each way, a dashed line between them |
+| 5600-6000, 18706-19100 | taper: the far carriageway sweeps down to the street, the median ends, each carriageway's two lanes merge (the lane line stops) and a footpath grows in above the road | 2 → 1 each way |
+| 6000-7822, 16436-18706 | the city's edges (hotels, park, flats, industry, storage): asphalt, a dashed centre line, parking along the far kerb | 1 each way |
+| 7702-7822, 16436-16556 | the two lanes come together, the centre line stops | 1 each way → 1 |
+| 7822-16436 | the centre (old town, red light district, canal belt): cobbles | 1, one-way east for cars (westbound cars turn off before it); bikes ride both ways |
+
+**The van:** in its lane for the way it faces; turning around it moves over
+to the other side. On the motorway it keeps to `VehicleConfig.van_lane`
+(Left, next to the median) and takes the other lane to pass something
+slower ahead, back when it's past. At the city's edges it overtakes on the
+oncoming lane when that's clear. It can't drive through what's ahead in its
+lane (it follows it); bikes keep to the side and it passes them. Parked, it
+stands against the far kerb (on the motorway: the hard shoulder).
+
+**Traffic** keeps its distance to what's ahead in its lane (the van too)
+and is drawn in depth order around the van: behind it at z 1, in front of
+it at z 3 (the van is 2); the far carriageway behind the band. What stands
+in front of the road (quay elms, viaducts, tree clumps, the foreground) is
+z 4.
+
+The scene change: `tools/scene_edits/2026_11_01_roads.py`.
+
+**Openings checked (2026-11-01):** all sixteen side canals, side streets and
+steegs were looked at in the game. One didn't fit: the canal belt's side
+street (SideStreet1, `open_street_b`) showed its corner house's side wall
+as a blank salmon block. It's repainted (SpriteCook edit of
+`canal_kit_src/open_s1b.png`): windows on every floor and a downpipe, in the
+shaded tone of its front. Parked cars now keep a whole car length clear of
+every side street's mouth.

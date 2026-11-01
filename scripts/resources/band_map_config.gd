@@ -18,7 +18,11 @@ const PATH := "res://resources/config/band_map_config.tres"
 @export_group("Little pauses")
 @export var pause_every := Vector2(5.0, 12.0)    ## seconds of walking between short stops (random in range)
 @export var pause_length := Vector2(0.4, 1.3)    ## seconds a stop lasts (a look around, a sip)
-@export var fidget_after := Vector2(2.5, 7.0)    ## seconds standing before someone smokes, drinks or plays
+
+@export_group("Standing still: the band plays")
+@export var jam_after := 60.0               ## seconds standing still before they line up and play together
+@export var jam_spacing := 26.0             ## px between two of them in the line-up
+@export var jam_order: Array[StringName] = [&"nikki", &"joep", &"germ", &"geoff", &"jay"]   ## left to right
 
 @export_group("On the bikes")
 @export var ride_gap := 30.0                ## px: each rider keeps about this much more distance than the one before

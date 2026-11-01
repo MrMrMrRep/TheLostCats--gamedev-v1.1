@@ -33,10 +33,11 @@ const PATH := "res://resources/config/vehicle_config.tres"
 @export var pitch_damp := 9.0               ## how fast the bounce dies out
 
 @export_group("Van lanes")
-@export var lane_town := 18.0               ## px below the street line the van drives and parks in town (the canal edge of the cobbles)
-@export var lane_east := 4.0                ## px lower on the motorway heading into the city (east)
-@export var lane_west := -5.0               ## px (negative = higher) heading out of the city (west)
-@export var lane_change := 10.0             ## px/s: how gently the van changes lane
+## Where the lanes are: scripts/world/road_lanes.gd (RoadLanes).
+@export_enum("Left", "Right") var van_lane := 0   ## the motorway lane the van keeps to (Left: next to the median); it takes the other one to overtake
+@export var overtake_look := 90.0           ## px ahead (plus 0.8 s at its speed) the van looks for a slower vehicle in its lane
+@export var overtake_clear := 60.0          ## px a lane must be free behind the van to move into it
+@export var lane_change := 14.0             ## px/s: how gently the van changes lane (and crosses over when it turns around)
 
 
 static func current() -> VehicleConfig:

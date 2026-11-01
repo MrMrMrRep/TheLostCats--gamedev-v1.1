@@ -12,6 +12,8 @@ var _cache := {}
 
 var _players: Array[AudioStreamPlayer] = []
 var _current: int = 0
+var _hushed := false                        # music faded out and paused (the van's radio plays instead)
+var _hush_tween: Tween
 
 
 func _ready() -> void:
@@ -33,10 +35,36 @@ func play_music(stream: AudioStream, fade_time: float = 1.5) -> void:
 	new.stream = stream
 	new.volume_db = SILENT_DB
 	new.play()
+	if _hushed:                             # it starts when the music comes back
+		new.stream_paused = true
+		old.stop()
+		return
 	var tween := create_tween().set_parallel()
 	tween.tween_property(new, "volume_db", MUSIC_DB, fade_time)
 	tween.tween_property(old, "volume_db", SILENT_DB, fade_time)
 	tween.chain().tween_callback(old.stop)
+
+
+## Fade the music out and pause it (true), or resume and fade it back in
+## (false): in the van only its radio plays.
+func hush_music(on: bool, fade_time: float = 0.8) -> void:
+	if on == _hushed:
+		return
+	_hushed = on
+	var p := _players[_current]
+	if _hush_tween:
+		_hush_tween.kill()
+	_hush_tween = create_tween()
+	if on:
+		_hush_tween.tween_property(p, "volume_db", SILENT_DB, fade_time)
+		_hush_tween.tween_callback(func() -> void: p.stream_paused = true)
+	else:
+		p.stream_paused = false
+		_hush_tween.tween_property(p, "volume_db", MUSIC_DB, fade_time)
+
+
+func music_hushed() -> bool:
+	return _hushed
 
 
 ## Play audio/music/<name>.wav on a loop (crossfading from what played before).
