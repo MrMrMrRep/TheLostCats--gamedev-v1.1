@@ -4,8 +4,10 @@ extends Interactable
 ## A person on the world map you can talk to (E). Place as many as you like:
 ## duplicate one in the editor, drag it, and set its name, look and `talk_lines`
 ## lines in the inspector. Only the one with `tour_quest` on (Geordie) gives
-## the tour-day-1 quest (get to Café De Kat, play, come back); he shows "!"
-## when he has it for you and "?" when you've done it.
+## the tour-day-1 quests: first "where's Geoff?" (find him at Hotel-Café
+## International, flag `quest_geoff`, then load the van together), then the
+## gig (get to Café De Kat, play, come back, `quest_cafe`). He shows "!" when
+## he has a quest for you and "?" when you've done it.
 
 const MARKER_COLOR := WorldPalette.O3
 
@@ -49,6 +51,8 @@ func lines() -> Array[String]:
 		var out: Array[String] = []
 		out.assign(talk_lines)
 		return out
+	if Game.get_flag(&"quest_geoff", "") != "done":
+		return _geoff_lines()
 	match Game.get_flag(&"quest_cafe", ""):
 		"":
 			return [
@@ -66,9 +70,36 @@ func lines() -> Array[String]:
 	return ["Rest up. Big day tomorrow."]
 
 
+## Before the gig: Geoff's gone missing, the van waits to be loaded.
+func _geoff_lines() -> Array[String]:
+	if Game.get_flag(&"geoff_found"):
+		if not Game.in_party(&"geoff"):
+			return ["You found Geoff? Then bring him along: we load the van together."]
+		return [
+			"There he is! Asleep upstairs at the International, I bet.",
+			"Right, all hands: amps, drums, cases... In the van. Done!",
+			"First gig of the tour: Café De Kat, back in the centre. Soundcheck's soon!",
+			"Take the van, but it only stops at the P signs. The bikes by the studio are handy for short hops.",
+		]
+	if Game.get_flag(&"quest_geoff", "") == "searching":
+		return ["Still no Geoff? Try the International: the old hotel-café on the Warmoesstraat, by the red lights."]
+	return [
+		"Morning! Everyone's here to load the van... everyone but Geoff.",
+		"He's not picking up. Bet he's at the International, his favourite bar: the Warmoesstraat, right by the red lights.",
+		"Go and find him. The van gets loaded with all five of you, then it's off to the first gig.",
+	]
+
+
 ## Called after the conversation: advance the quest.
 func talked() -> void:
 	if not tour_quest:
+		return
+	if Game.get_flag(&"quest_geoff", "") != "done":
+		if not Game.get_flag(&"geoff_found"):
+			Game.set_flag(&"quest_geoff", "searching")
+		elif Game.in_party(&"geoff"):     # the van's loaded: on to the gig
+			Game.set_flag(&"quest_geoff", "done")
+			Game.set_flag(&"quest_cafe", "active")
 		return
 	match Game.get_flag(&"quest_cafe", ""):
 		"":
@@ -81,7 +112,14 @@ func talked() -> void:
 func marker() -> String:
 	if not tour_quest:
 		return ""
-	var q: String = Game.get_flag(&"quest_cafe", "") if not Engine.is_editor_hint() else ""
+	if Engine.is_editor_hint():
+		return "!"
+	var g: String = Game.get_flag(&"quest_geoff", "")
+	if g != "done":
+		if Game.get_flag(&"geoff_found"):
+			return "?" if Game.in_party(&"geoff") else ""
+		return "!" if g == "" else ""
+	var q: String = Game.get_flag(&"quest_cafe", "")
 	if q == "":
 		return "!"
 	if q == "active" and Game.get_flag(&"cafe_finished"):

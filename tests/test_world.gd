@@ -6,7 +6,7 @@ extends SceneTree
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 87
+const EXPECTED_CHECKS := 95
 const GY := 288.0
 const WALK_SPEED := 180.0                   # Joep, px/s
 const ACTIONS := ["move_left", "move_right", "jump", "interact"]
@@ -366,20 +366,66 @@ func _test_road_block() -> void:
 
 
 func _test_geordie_quest() -> void:
+	var ids: Array = map.party.map(func(m): return m.profile.id)
+	_check(ids.size() == 4 and not ids.has(&"geoff"), "the start of the tour: Geoff is lost, four on the map %s" % [ids])
 	var geordie = _place("Geordie")
 	_check(geordie.marker() == "!", "Geordie shows ! (has a quest)")
 	await _place_leader(geordie.global_position.x)
 	await _tap("interact")
 	await _frames(2)
 	_check(map.dialogue.is_open and map.talking, "E opens the dialogue with Geordie")
+	await _finish_talk()
+	_check(game.get_flag(&"quest_geoff", "") == "searching" and not map.talking, "after the talk: go and find Geoff")
+	_check(map.hud._objective.text.contains("International"), "HUD objective: %s" % map.hud._objective.text)
+	await _test_international_door()
+	# Back out of the level with Geoff (as if through its exit).
+	map.queue_free()
+	await _frames(2)
+	game.set_flag(&"geoff_found")
+	game.party.assign(game.MEMBERS)
+	router.pending_spawn = &"InternationalDoor"
+	map = await _load_map()
+	ids = map.party.map(func(m): return m.profile.id)
+	_check(ids.size() == 5 and absf(map.leader.global_position.x - _place("InternationalDoor").global_position.x) < 1.0,
+		"back out with Geoff: all five at the International's door")
+	_check(map.hud._objective.text.contains("Load the van"), "HUD objective: %s" % map.hud._objective.text)
+	geordie = _place("Geordie")
+	_check(geordie.marker() == "?", "Geordie shows ? (Geoff found)")
+	await _place_leader(geordie.global_position.x)
+	await _tap("interact")
+	await _finish_talk()
+	_check(game.get_flag(&"quest_geoff", "") == "done" and game.get_flag(&"quest_cafe", "") == "active",
+		"the van's loaded, all five together: on to the gig")
+	_check(map.hud._objective.text.contains("Café De Kat"), "HUD objective: %s" % map.hud._objective.text)
+
+
+func _finish_talk() -> void:
 	var n := 0
 	while map.dialogue.is_open and n < 30:
 		await _tap("interact")
 		await _frames(2)
 		n += 1
 	await _frames(25)
-	_check(game.get_flag(&"quest_cafe", "") == "active" and not map.talking, "after the talk the quest is active")
-	_check(map.hud._objective.text.contains("Café De Kat"), "HUD objective: %s" % map.hud._objective.text)
+
+
+func _test_international_door() -> void:
+	var door = _place("InternationalDoor")
+	var lm = map.find_child("International", true, false)
+	var sp: Vector2 = lm.span() if lm else Vector2.ZERO
+	_check(lm != null and lm.piece == &"lm_international" and door.global_position.x > sp.x and door.global_position.x < sp.y
+		and absf(sp.y - map.get_node("Zones/RedLight").global_position.x) < 1.0,
+		"Hotel-Café International stands where the red light district starts, its door in the middle (%s)" % [sp])
+	var target := [""]
+	router.transition_started.connect(func(p): target[0] = p, CONNECT_ONE_SHOT)
+	await _place_leader(door.global_position.x)
+	await _tap("interact")
+	_check(target[0] == "res://scenes/levels/the_international.tscn", "its door leads into The International")
+	await _frames(60)
+	for n in root.get_children():
+		if n.name != "Game" and n.name != "SceneRouter" and n.name != "Audio" and n != map:
+			n.queue_free()
+	router.is_transitioning = false
+	await _frames(5)
 
 
 func _test_bikes() -> void:

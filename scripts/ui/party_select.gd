@@ -24,7 +24,7 @@ func _ready() -> void:
 	layer = 60
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_opened_at = Time.get_ticks_msec()
-	_going.assign(Game.party)
+	_going.assign(Game.party.filter(func(id: StringName) -> bool: return not Game.missing(id)))
 	var level := get_parent() as Level
 	if level:
 		_band = level.band
@@ -72,7 +72,7 @@ func _refresh() -> void:
 		var id := Game.MEMBERS[i]
 		var going := _going.has(id)
 		_rows[i].text = "%d   %s" % [i + 1, _name(id)]
-		_status[i].text = "going" if going else "stays home"
+		_status[i].text = "missing!" if Game.missing(id) else ("going" if going else "stays home")
 		for l in [_rows[i], _status[i]]:
 			l.add_theme_color_override("font_color", Color("8fe08a") if going else Color(1, 1, 1, 0.45))
 
@@ -84,6 +84,9 @@ func _name(id: StringName) -> String:
 
 func toggle(i: int) -> void:
 	var id := Game.MEMBERS[i]
+	if Game.missing(id):
+		_note.text = "Nobody knows where %s is!" % _name(id)
+		return
 	if _going.has(id):
 		if _going.size() == 1:
 			_note.text = "Someone has to go!"

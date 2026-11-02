@@ -416,17 +416,10 @@ style = 1
 kit = true
 district = &"oldtown"
 
-[node name="West13_Houses" type="Node2D" parent="Buildings/OldTown" unique_id=1702332531]
-texture_repeat = 2
+[node name="International" type="Node2D" parent="Buildings/OldTown"]
 position = Vector2(8790.5, 288)
-script = ExtResource("6_1co5k")
-houses = 2
-seed_value = 79
-shop_rate = 0.8
-shop_signs = PackedStringArray("BAR DE KROEG", "CAFE \'T HOEKJE", "KAAS", "BAKKER", "FIETSEN", "BLOEMEN", "PLATEN", "BAR TABAK", "CAFE CENTRAAL", "SNACKBAR")
-style = 1
-kit = true
-district = &"oldtown"
+script = ExtResource("93_kitlm")
+piece = &"lm_international"
 
 [node name="West14_Church" type="Node2D" parent="Buildings/OldTown" unique_id=2064162413]
 position = Vector2(9412.5, 288)
@@ -864,6 +857,18 @@ seed_value = 113
 position = Vector2(5300, 288)
 script = ExtResource("24_2lmj1")
 width = 120.0
+
+[node name="OldTown" type="Node2D" parent="Places"]
+
+[node name="InternationalDoor" type="Area2D" parent="Places/OldTown"]
+position = Vector2(8891.0, 288)
+collision_layer = 32
+collision_mask = 4
+monitorable = false
+script = ExtResource("20_j1unl")
+target_scene = "res://scenes/levels/the_international.tscn"
+area_size = Vector2(30, 40)
+draw_door = false
 
 [node name="CanalBelt" type="Node2D" parent="Places" unique_id=476367123]
 

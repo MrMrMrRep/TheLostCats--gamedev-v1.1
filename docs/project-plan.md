@@ -24,7 +24,7 @@ _Snapshot 2026-10-28, `main` at `03a59f8` (122 commits); Phase A (§6) done the 
 | Nikki | guitar | grapple hooks and swing | guitar solo: a note bridge or ramp for the whole band |
 | Geoff | vocals | bubble gun: distracts some people | the voice and the charm: persuades people, opens staff doors; better prices; 1 HP |
 
-**Loop**: world map (Amsterdam, 18–20k px wide: polder → old town → canal belt → flats → industry → band storage → airport) → talk to Geordie (tour manager) → reach the venue → play the level → "Where is Geoff?" finale (he's asleep in the drum case; lure him out with rolling papers) → Finished / Completed (hidden NPCs) → back to Geordie.
+**Loop**: world map (Amsterdam, 18–20k px wide: polder → old town → canal belt → flats → industry → band storage → airport) → the band gathers at the storage, but Geoff is lost: Geordie (tour manager) sends them to his favourite bar, Hotel-Café International by the red lights → the level "The International" (the others climb the bar and hotel, Geoff is asleep in the attic) → all five load the van with Geordie → reach the venue → play the level → "Where is Geoff?" finale (he's asleep in the drum case; lure him out with rolling papers) → Finished / Completed (hidden NPCs) → back to Geordie.
 
 **v1 goal** (from `v1-plan.md`): a vertical slice that proves the controls feel good for all 5, the co-op puzzles are fun, and the calm map balances the tense levels. It should *play* right; it doesn't have to look final.
 
@@ -95,15 +95,18 @@ Not relevant (can be removed to cut noise): `fps-shooter`, `card-game`, `tower-d
 | M7 Items & inventory | ✅ | |
 | M8 World map | ✅ (well beyond scope) | 18k+ px city, traffic, day/night, radio, airport. **Rebuilt** (2026-10-28/29) from the SpriteCook kit, the whole town 6400–18706 plus the airport: hotels, park and theatre, old town, red light district (De Wallen, with its night life), canal belt, flats, industry, the band's storage; side streets run into the street ([`city-layout.md`](city-layout.md) §8–10) |
 | M9 Slice level "Café De Kat" | ✅ | `scenes/levels/venue_puzzle.tscn`: BackEntrance, Storage, Bar, Backstage, Finale; Gwinny hidden NPC; end screen |
+| Story level "The International" (2026-11-02) | ✅ | `scenes/levels/the_international.tscn`: Bar, Stairs, Corridor, Attic, on SpriteCook paintings of the real Hotel-Café International (Warmoesstraat). Geoff starts lost (`Game.missing`: not on the map, at the base or on the party board) and sleeps in the attic; Nikki's ramp to the key, The Germ through the luggage and holding the lift gate, Joep hacking the camera's wall plug; exit sets `geoff_found`, then Geordie: "load the van" (`quest_geoff`) before the café gig. Generator: `tools/scene_edits/2026_11_02_make_the_international.gd`; art: `tools/spritecook/international.py` |
 | M10 Pace, audio & juice | ✅ (one item open) | crossfade 1.5 s (`audio.gd`), dust/squash/hit-stop/shake (`scripts/fx/`), 18 SFX, title + pause. Open: zoom tween on world ↔ level doors (they fade only) |
 | M11 Playtest, tune & balance | ❌ not started | no `docs/v1-playtest-notes.md` |
 
 Extra work outside the v1 plan: day/night cycle (`day_config.tres`), base / party board (`scenes/levels/base.tscn`), touch gamepad + mobile fullscreen for the web, title "pick who starts", canal loading screen, final sprite sheets for Joep, Jay, Nikki, The Germ and Geoff.
 
+Performance pass (2026-11-02): the map-wide drawings (the street, the polder, the skyline) only draw what's near the camera (`scripts/world/view_window.gd`), about 980 → 180 draw calls a frame in town; the van radio plays pre-rendered loops (`audio/radio/`, `tools/make_radio.py`) instead of synthesising every sample in GDScript, which stuttered whenever a frame ran long.
+
 ### Code and tests
 
 - ~23k lines of GDScript in `scripts/` + `tests/` (122 scripts in `scripts/`), 4 shaders.
-- 12 headless test scripts (`tests/`): baseline, movement feel, band, level, critical path, abilities, items, world, controls, base, venue puzzle, touch pad. Each counts its checks so a crash can't pass.
+- 13 headless test scripts (`tests/`): baseline, movement feel, band, level, critical path, abilities, items, world, controls, base, venue puzzle, the International, touch pad. Each counts its checks so a crash can't pass.
 - Static check: all 238 `res://` references in scripts, scenes and resources point at files that exist.
 - **All 12 tests pass** on Godot 4.7.2 (2026-10-28, `tools/run_tests.sh`, ~10 min): abilities 69 checks (skill set v2), band 24, base 8, baseline 14, controls 29, critical path 20, items 23, level 40, movement feel 26, touch pad, venue puzzle 14, world 75 (incl. the district kit, the street floor and the red light district).
 - The Web export works headless and boots in Chromium without console errors.

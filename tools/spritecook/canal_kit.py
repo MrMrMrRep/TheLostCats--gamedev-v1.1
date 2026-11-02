@@ -102,7 +102,7 @@ GABLES = {
 # Landmarks: one building each, a row anchor like an opening (KitLandmark).
 LANDMARKS = {"waag_a": "lm_waag", "church_n1": "lm_church", "church_oude": "lm_oude_kerk",
              "th_c": "lm_theatre", "th_b": "lm_grand_hotel", "bs_c": "lm_band_storage", "tw_a": "lm_tower",
-             "term_a": "lm_terminal"}
+             "term_a": "lm_terminal", "intl_a": "lm_international"}
 # Night-life people for the red light district (RedLightNight): drawn at twice
 # the band's size, so halved (nearest) to stand at band scale.
 NIGHT_SHEET = ("night_b", ["nl_hoodie", "nl_leather", "nl_coat", "nl_cap", "nl_tourist"])

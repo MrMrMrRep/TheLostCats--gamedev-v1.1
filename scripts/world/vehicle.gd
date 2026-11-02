@@ -178,7 +178,8 @@ func _draw() -> void:
 	if kind == Kind.VAN:
 		_draw_van()
 	elif not occupied:                      # parked: the band's five bikes on their kickstands
-		var ids: Array = JTCBike.PARKED_ORDER if Engine.is_editor_hint() else Game.party
+		var ids: Array = JTCBike.PARKED_ORDER if Engine.is_editor_hint() \
+			else Game.party.filter(func(id: StringName) -> bool: return not Game.missing(id))
 		BikeRiders.draw_parked(self, Vector2.ZERO, facing, ids)   # the party's bikes (the rest are at the base)
 
 

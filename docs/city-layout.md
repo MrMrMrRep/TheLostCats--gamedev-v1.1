@@ -128,7 +128,7 @@ The same kit system now runs from the old town (x 7822) to the end of the flats 
 
 | x (world) | District | Houses | Openings and landmarks |
 |---|---|---|---|
-| 7822–8990 | **Old town** (Nieuwmarkt side) | shops with shutters: cheese, brown café, bike shop, antiques, curiosa; old houses with geraniums | church (`lm_church`), an old-town side street with a tower at the end, the **Waag** with market stalls (`lm_waag`) |
+| 7822–8990 | **Old town** (Nieuwmarkt side) | shops with shutters: cheese, brown café, bike shop, antiques, curiosa; old houses with geraniums | church (`lm_church`), an old-town side street with a tower at the end, the **Waag** with market stalls (`lm_waag`), and right where the red lights start (8790.5–8990) **Hotel-Café International** (`lm_international`, §12) |
 | 8990–9884 | **Red light district** (De Wallen), zone `RedLight` (`red_light`) | the oldest leaning houses: brown bars (BRUINE KROEG), coffeeshops, red-neon windows with red curtains | a Wallen steeg with red windows, the **Oude Kerk** (`lm_oude_kerk`), the Oudezijds Achterburgwal canal |
 | 9884–16436 | Canal belt | §8 | §8 |
 | 16436–17276 | **Flats** (the ring) | 19th-century blocks with balconies: supermarket, café with awning, launderette | a ring side street with trees; asphalt road with a centre line in front (`Street.kit_roads`), parked cars |
@@ -214,3 +214,23 @@ every side street's mouth.
 - The industrial road is flanked by a low brick warehouse and a corrugated
   one, in scale with the sheds (it had a tall canal house and a tall
   wooden building).
+
+## 12. Hotel-Café International (2026-11-02)
+
+The band's favourite bar, on the Warmoesstraat: the last building of the old
+town before the red light district (x 8790.5–8990, `Buildings/OldTown/International`,
+a `KitLandmark` with the piece `lm_international`). Painted with SpriteCook
+from photos of the real place: the cream ground floor with big black-framed
+windows and benches, the gold "CAFE INTERNATIONAAL" sign band with the red
+HOTEL panel, the round hanging sign, dark brick upper floors with white
+windows, the ship mural on the corner. It replaced the two old-town houses
+that stood there (`West13_Houses`).
+
+Its middle door (`Places/OldTown/InternationalDoor`, x 8891) leads into the
+level `scenes/levels/the_international.tscn` (find Geoff; see
+`project-plan.md`), whose exit brings the band back out at this door.
+
+The scene change: `tools/scene_edits/2026_11_02_international.py`. The piece
+is in the kit like the other landmarks (`tools/spritecook/canal_kit.py`,
+source `canal_kit_src/intl_a.png`).
+

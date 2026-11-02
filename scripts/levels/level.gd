@@ -21,6 +21,8 @@ const RESPAWN_GRACE := 1.0                  # i-frames after a respawn
 @export var group_radius_tiles := 3.0       ## "together" for doors: this far horizontally
 @export var group_height_tiles := 1.0       ## ... and at most this far vertically
 @export var party_only := true              ## only the party chosen at the base comes in (off: the base itself)
+@export var hide_missing := false           ## leave out who's lost in the story (Game.missing: Geoff at the base)
+@export var music: StringName = &""         ## the level's music (empty: tense in levels, calm at the base)
 
 var current_room: Room                      # the active member's room
 var is_busy := false                        # dying or going through a door
@@ -47,7 +49,12 @@ func _ready() -> void:
 	add_child(time_control)
 	if party_only:
 		band.keep_only(Game.party)
-	Audio.music(&"level_tense" if party_only else &"map_calm")   # the base is calm
+	if hide_missing:
+		band.keep_only(Game.MEMBERS.filter(func(id: StringName) -> bool: return not Game.missing(id)))
+	if music != &"":
+		Audio.music(music)
+	else:
+		Audio.music(&"level_tense" if party_only else &"map_calm")   # the base is calm
 	for m in band.members:
 		m.health.died.connect(kill.bind(m, &"hurt"))
 		GameFeel.hook_member(m, self)
@@ -194,6 +201,8 @@ func go_through(door: Door, member: BandMember) -> void:
 			get_tree().paused = true
 			await GigResult.present(self)
 			get_tree().paused = false
+		elif door.set_flag == &"geoff_found":   # found him: the whole band goes back out together
+			Game.party.assign(Game.MEMBERS)
 		SceneRouter.go_to(door.target_scene, door.target_spawn)
 		return
 	var target := door.get_node_or_null(door.target_door) as Door

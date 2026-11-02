@@ -635,5 +635,30 @@
   "canal2_composite_steeg_wallen": {
     "asset_id": "c26652e0-95dd-4b66-b533-2c164a2d29ab",
     "label": "Uploaded composite (source of an edit)"
+  },
+  "intl_exterior": {
+    "asset_id": "0f967739-903e-46d2-b613-011603d061f3",
+    "label": "Hotel-Café International, Warmoesstraat (map landmark lm_international): raw painting cut out and scaled into tools/spritecook/canal_kit_src/intl_a.png",
+    "sha12": "edb051a9cf08"
+  },
+  "intl_bar": {
+    "asset_id": "9eb782d8-ca3b-43bc-bcb3-db99eae99ed3",
+    "label": "The International level, the café: bar, barrels, flags, beer signs, mosaic floor (tools/spritecook/international_src/bar.png, raw painting, 256 colours)",
+    "sha12": "808c738483fe"
+  },
+  "intl_stairs": {
+    "asset_id": "d0b38189-3a57-4697-a620-e2b1cb64d001",
+    "label": "The International level, the hotel's steep stairs and landing (mirrored in the game) (tools/spritecook/international_src/stairs.png, raw painting, 256 colours)",
+    "sha12": "e257bbf342f6"
+  },
+  "intl_corridor": {
+    "asset_id": "5ba06b78-447a-4ff9-b3c4-2e5f5697c35a",
+    "label": "The International level, the first-floor corridor and the cage lift (tools/spritecook/international_src/corridor.png, raw painting, 256 colours)",
+    "sha12": "0478d82687a6"
+  },
+  "intl_attic": {
+    "asset_id": "b20998b9-8b6a-4a78-845e-9e744b39f3e3",
+    "label": "The International level, the attic room where Geoff sleeps (tools/spritecook/international_src/attic.png, raw painting, 256 colours)",
+    "sha12": "9f7b5a69d3c4"
   }
 }
