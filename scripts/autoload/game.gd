@@ -48,6 +48,14 @@ func in_party(id: StringName) -> bool:
 	return party.has(id)
 
 
+## Lost (the story): at the start of the tour Geoff is missing. The others
+## find him on the top floor of Hotel-Café International (the level
+## The International, flag `geoff_found`). Till then he's not on the map, not
+## at the base and can't be picked for the party.
+func missing(id: StringName) -> bool:
+	return id == &"geoff" and not get_flag(&"geoff_found")
+
+
 func add_coins(amount: int) -> void:
 	coins = max(coins + amount, 0)
 	coins_changed.emit(coins)

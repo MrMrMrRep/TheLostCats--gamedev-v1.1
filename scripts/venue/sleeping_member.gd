@@ -5,12 +5,17 @@ extends Node2D
 ## Asleep he can't be switched to and nothing lures him. He wakes up when
 ## someone carrying `wake_item` (the rolling papers) reaches him, and from then
 ## on follows whoever carries them. Origin = where he sleeps.
+## `from_start` (The International): he's up here from the moment the level
+## starts, not just when the band comes into the room; with no `wake_item`
+## anyone who reaches him wakes him (and he's just one of the band again).
 
 signal woke_up
 
 @export var member_id: StringName = &"geoff"
 @export var wake_item: StringName = &"rolling_papers"
 @export var wake_radius := 40.0
+@export var from_start := false
+@export var wake_line := "Rolling papers?! ...right behind you."
 
 var _level: Level
 var _member: BandMember
@@ -32,8 +37,8 @@ func _hook() -> void:
 	_room = n as Room
 	if _level:
 		_level.room_changed.connect(_on_room_changed)
-		if _level.current_room == _room:   # the level started in here
-			_on_room_changed(_room)
+		if _level.current_room == _room or from_start:   # the level started in here (or he's lost up here)
+			_fall_asleep.call_deferred()
 
 
 func is_asleep() -> bool:
@@ -67,9 +72,11 @@ func _process(delta: float) -> void:
 		_zzz = 2.2
 		_member.show_text("Zzz...", Color(0.75, 0.8, 1.0))
 	for m in _level.band.members:
-		if m != _member and m.inventory.has(wake_item) and m.global_position.distance_to(_member.global_position) < wake_radius:
+		if m == _member or m.is_dead or (wake_item != &"" and not m.inventory.has(wake_item)):
+			continue
+		if m.global_position.distance_to(_member.global_position) < wake_radius:
 			_asleep = false
 			_level.band.asleep.erase(_member)
-			_member.show_text("Rolling papers?! ...right behind you.", Color("ffd36b"))
+			_member.show_text(wake_line, Color("ffd36b"))
 			woke_up.emit()
 			return

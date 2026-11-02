@@ -19,6 +19,7 @@ script = ExtResource("1_66q7t")
 start_room = NodePath("Rooms/Rehearsal")
 start_spawn = NodePath("Rooms/Rehearsal/BaseEntry")
 party_only = false
+hide_missing = true
 
 [node name="RoomArt" type="Node2D" parent="." unique_id=855483153]
 script = ExtResource("2_lwdwt")

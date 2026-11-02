@@ -154,6 +154,12 @@ func set_radio(text: String) -> void:
 
 ## The tour-day-1 quest, as one line.
 static func objective_text() -> String:
+	if Game.get_flag(&"quest_geoff", "") != "done":
+		if Game.get_flag(&"geoff_found"):
+			return "Load the van: all five to Geordie at the storage"
+		if Game.get_flag(&"quest_geoff", "") == "searching":
+			return "Find Geoff at Hotel-Café International (by the red lights)"
+		return "Talk to Geordie at the storage (far east)"
 	match Game.get_flag(&"quest_cafe", ""):
 		"":
 			return "Talk to Geordie at the storage (far east)"

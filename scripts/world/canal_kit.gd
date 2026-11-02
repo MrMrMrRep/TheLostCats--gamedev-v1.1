@@ -92,6 +92,7 @@ const WINDOWS := {
 	&"lm_band_storage": [Rect2i(35, 208, 8, 15), Rect2i(131, 3, 7, 10), Rect2i(193, 174, 23, 22), Rect2i(434, 178, 10, 9), Rect2i(453, 121, 13, 16)],
 	&"lm_tower": [Rect2i(20, 30, 5, 11), Rect2i(59, 301, 15, 22)],
 	&"lm_terminal": [Rect2i(42, 35, 12, 8), Rect2i(44, 116, 6, 7), Rect2i(82, 44, 27, 9), Rect2i(126, 6, 5, 7), Rect2i(138, 63, 6, 8), Rect2i(161, 117, 5, 10), Rect2i(186, 105, 40, 22), Rect2i(193, 44, 13, 9), Rect2i(193, 54, 54, 27), Rect2i(234, 35, 54, 27), Rect2i(276, 63, 12, 18), Rect2i(303, 44, 13, 9), Rect2i(312, 54, 37, 35)],
+	&"lm_international": [Rect2i(80, 86, 12, 22), Rect2i(80, 128, 12, 23), Rect2i(87, 52, 6, 14), Rect2i(113, 52, 13, 14), Rect2i(113, 86, 14, 22), Rect2i(113, 128, 14, 23), Rect2i(162, 52, 15, 14), Rect2i(162, 86, 14, 22), Rect2i(165, 128, 11, 23), Rect2i(197, 44, 13, 22), Rect2i(197, 86, 15, 22), Rect2i(197, 128, 14, 23), Rect2i(247, 52, 6, 14), Rect2i(247, 86, 13, 12), Rect2i(250, 128, 8, 23), Rect2i(250, 169, 5, 7), Rect2i(262, 7, 11, 10), Rect2i(282, 52, 11, 14), Rect2i(282, 86, 12, 22), Rect2i(282, 128, 15, 23), Rect2i(331, 128, 11, 23), Rect2i(332, 86, 11, 15), Rect2i(337, 52, 7, 14), Rect2i(362, 52, 6, 14), Rect2i(362, 86, 12, 23), Rect2i(362, 128, 12, 23)],
 }
 
 ## Door houses: the empty sign band above the door (texture px).
@@ -283,6 +284,7 @@ const SIZES := {
 	&"lm_band_storage": Vector2i(483, 237),
 	&"lm_tower": Vector2i(86, 323),
 	&"lm_terminal": Vector2i(349, 135),
+	&"lm_international": Vector2i(399, 230),
 	&"back_row": Vector2i(512, 280),
 	&"skyline_low": Vector2i(349, 120),
 	&"skyline_a": Vector2i(512, 176),

@@ -124,9 +124,9 @@ func _ready() -> void:
 	cam.sticky_look = true                  # stopping doesn't swing the view back
 	cam.set_bounds(Rect2i(int(map_min), -10000, int(map_width - map_min), 20000))
 	for m in band.members:
-		if Game.in_party(m.profile.id):
+		if Game.in_party(m.profile.id) and not Game.missing(m.profile.id):
 			party.append(m)
-		else:                               # stays at the base
+		else:                               # stays at the base (or is lost: Geoff, till the band finds him)
 			m.visible = false
 			m.process_mode = Node.PROCESS_MODE_DISABLED
 			m.global_position = Vector2(-100000, GROUND_Y)

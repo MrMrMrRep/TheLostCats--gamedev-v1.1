@@ -72,12 +72,17 @@ func _slot(i: int) -> Vector2:
 
 
 func _select(i: int) -> void:
-	_picked = wrapi(i, 0, PROFILES.size())
+	var n := wrapi(i, 0, PROFILES.size())
+	if Game.missing(StringName(PROFILES[n])):   # lost (Geoff, at the start): step over him
+		n = wrapi(n + (1 if i >= _picked else -1), 0, PROFILES.size())
+	_picked = n
 	for k in _sprites.size():
 		var s := _sprites[k]
 		var on := k == _picked
 		s.z_index = 1 if on else 0
 		s.modulate = Color.WHITE if on else Color(0.82, 0.82, 0.86)
+		if Game.missing(StringName(PROFILES[k])):
+			s.modulate = Color(0.45, 0.45, 0.55, 0.55)
 		s.position = _slot(k) + Vector2(0, -4 if on else 0)
 		if on:
 			_play_instrument(s)
@@ -180,8 +185,9 @@ func _draw() -> void:
 		var on := i == _picked
 		var x := _sprites[i].position.x
 		var y := FEET_Y + 14.0
-		draw_string(font, Vector2(x - 46, y + 1), _names[i], HORIZONTAL_ALIGNMENT_CENTER, 92, 8, INK)
-		draw_string(font, Vector2(x - 46, y), _names[i], HORIZONTAL_ALIGNMENT_CENTER, 92, 8, NAME_COLOR if on else NAME_DIM)
+		var label := _names[i] + ("?" if Game.missing(StringName(PROFILES[i])) else "")
+		draw_string(font, Vector2(x - 46, y + 1), label, HORIZONTAL_ALIGNMENT_CENTER, 92, 8, INK)
+		draw_string(font, Vector2(x - 46, y), label, HORIZONTAL_ALIGNMENT_CENTER, 92, 8, NAME_COLOR if on else NAME_DIM)
 		if on:
 			draw_rect(Rect2(x - 12, y + 3, 24, 1), NAME_COLOR)
 

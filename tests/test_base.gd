@@ -1,12 +1,12 @@
 extends SceneTree
-## Headless checks for the band's base (exits 1 on failure): the whole band is
-## there, the party board picks who goes out, at least one has to go, only the
+## Headless checks for the band's base (exits 1 on failure): the band is
+## there (Geoff only once he's found: at the start he's lost), the party board picks who goes out, at least one has to go, only the
 ## party comes along into a level, base upgrades show furniture.
 ## Run: Summer --headless --path . --script res://tests/test_base.gd
 ## Game classes stay untyped: naming them here would compile them before the
 ## autoloads exist in --script mode.
 
-const EXPECTED_CHECKS := 8
+const EXPECTED_CHECKS := 9
 
 var failures := 0
 var checks := 0
@@ -19,8 +19,14 @@ func _initialize() -> void:
 
 func _run() -> void:
 	game = root.get_node("Game")
+	var lost = await _load("res://scenes/levels/base.tscn")
+	_check(lost.band.members.size() == 4 and lost.band.member_by_id(&"geoff") == null,
+		"the start of the tour: everyone's at the base but Geoff (%d)" % lost.band.members.size())
+	lost.free()
+	await _frames(2)
+	game.set_flag(&"geoff_found")
 	var base = await _load("res://scenes/levels/base.tscn")
-	_check(base.band.members.size() == 5, "everyone hangs out at the base (%d)" % base.band.members.size())
+	_check(base.band.members.size() == 5, "Geoff found: everyone hangs out at the base (%d)" % base.band.members.size())
 	var exit = base.find_child("BaseExit", true, false)
 	_check(exit.target_scene == "res://scenes/world/world_map.tscn" and exit.target_spawn == &"StorageGate",
 		"the base door leads back out to the storage gate")

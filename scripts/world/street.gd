@@ -48,32 +48,44 @@ const KIT_WALL_Y := 50
 
 func _ready() -> void:
 	texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED   # the v3 street strip repeats
+	set_process(not Engine.is_editor_hint())
+
+
+var _win := Vector2(-INF, INF)              # world x range drawn last (ViewWindow): only near the camera
+
+
+func _process(_delta: float) -> void:
+	if ViewWindow.stale(self, _win):
+		queue_redraw()
 
 
 func _draw() -> void:
-	var p := WorldPalette
+	_win = ViewWindow.range_for(self)
 	# Town: the v3 street (pavement tiles, kerb, cobbles, quay with bollards
-	# and mooring rings), one baked strip repeated along the town.
-	var a := town.x
-	var b := town.y
+	# and mooring rings), one baked strip repeated along the town, under the
+	# canal-kit street where that runs (now the whole town). Only near the camera.
+	var a := maxf(town.x, _win.x)
+	var b := minf(town.y, _win.y)
+	var kit_covers := kit_span != Vector2.ZERO and kit_span.x <= town.x and kit_span.y >= town.y
 	if WorldPalette.V3:
-		draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
-		for seg: V3Art in segments():
-			var t := seg.texture()
-			if t:
-				draw_texture(t, Vector2(seg.origin))
-		draw_set_transform(Vector2.ZERO)
-		_draw_town_surfaces(a, b)
+		if not kit_covers and b > a:
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2(0.5, 0.5))
+			for seg: V3Art in segments():
+				var t := seg.texture()
+				if t and seg.origin.x * 0.5 < b and (seg.origin.x + t.get_width()) * 0.5 > a:
+					draw_texture(t, Vector2(seg.origin))
+			draw_set_transform(Vector2.ZERO)
+			_draw_town_surfaces(a, b)
 		if kit_span != Vector2.ZERO:
 			_draw_kit_street(maxf(kit_span.x, a), minf(kit_span.y, b))
-	else:
+	elif b > a:
 		_draw_town_legacy(a, b)
 	# Outside town the motorway (two lanes each way), and where it meets the
 	# city's street the tapers (RoadLanes.WEST / EAST).
-	_draw_motorway(map_min - 400.0, RoadLanes.WEST.x)
-	_draw_motorway(RoadLanes.EAST.y, map_width + 400.0)
-	_draw_taper(RoadLanes.WEST.x, a)
-	_draw_taper(b, RoadLanes.EAST.y)
+	_draw_motorway(maxf(map_min - 400.0, _win.x), minf(RoadLanes.WEST.x, _win.y))
+	_draw_motorway(maxf(RoadLanes.EAST.y, _win.x), minf(map_width + 400.0, _win.y))
+	_draw_taper(maxf(RoadLanes.WEST.x, _win.x), minf(town.x, _win.y))
+	_draw_taper(maxf(town.y, _win.x), minf(RoadLanes.EAST.y, _win.y))
 
 
 ## The motorway over [x0, x1]: behind us the westbound carriageway (two lanes,
@@ -236,11 +248,11 @@ func _draw_kit_street(a: float, b: float) -> void:
 	var x0 := a * 2.0
 	var w := (b - a) * 2.0
 	var lift := float(CanalRow.LIFT)
-	draw_texture_rect(KIT_PAVER, Rect2(x0, -lift, w, KIT_KERB + lift), true)
+	_kit_tile(KIT_PAVER, Rect2(x0, -lift, w, KIT_KERB + lift))
 	draw_rect(Rect2(x0, -lift, w, 1), WorldPalette.R1)                  # shadow line at the foot of the houses
 	draw_rect(Rect2(x0, KIT_KERB, w, 1), WorldPalette.W4)               # kerb stone, lit from above
 	draw_rect(Rect2(x0, KIT_KERB + 1, w, 2), WorldPalette.R3)
-	draw_texture_rect(KIT_SETTS, Rect2(x0, KIT_SETTS_Y, w, KIT_COPING - KIT_SETTS_Y), true)
+	_kit_tile(KIT_SETTS, Rect2(x0, KIT_SETTS_Y, w, KIT_COPING - KIT_SETTS_Y))
 	for r: Vector2 in kit_roads:
 		var road := Vector2(maxf(r.x, a), minf(r.y, b))
 		if road.y > road.x:
@@ -253,7 +265,7 @@ func _draw_kit_street(a: float, b: float) -> void:
 	draw_rect(Rect2(x0, KIT_COPING + 1, w, 2), WorldPalette.R2)
 	draw_rect(Rect2(x0, KIT_COPING + 3, w, 1), WorldPalette.R0)
 	var wall_h := EDGE_H * 2.0 - KIT_WALL_Y
-	draw_texture_rect(KIT_WALL, Rect2(x0, KIT_WALL_Y, w, wall_h), true)
+	_kit_tile(KIT_WALL, Rect2(x0, KIT_WALL_Y, w, wall_h))
 	for hole: Vector2 in holes:
 		var h0 := maxf(hole.x, a) * 2.0
 		var h1 := minf(hole.y, b) * 2.0
@@ -356,7 +368,15 @@ func _kit_arch(x0: float, x1: float) -> void:
 
 
 func _tile(tex: Texture2D, x: float, y: float, w: float, h: float) -> void:
-	draw_texture_rect(tex, Rect2(x, y, w, h), true)
+	draw_texture_rect_region(tex, Rect2(x, y, w, h), Rect2(fposmod(x, tex.get_width()), 0.0, w, h))
+
+
+## A kit texture tiled over `r` (art px), the pattern anchored to the kit
+## street's start (not the rect's), so it doesn't shift when the drawn
+## window moves.
+func _kit_tile(tex: Texture2D, r: Rect2) -> void:
+	var src := Rect2(fposmod(r.position.x - kit_span.x * 2.0, tex.get_width()), 0.0, r.size.x, r.size.y)
+	draw_texture_rect_region(tex, r, src)
 
 
 ## One arch module stretched across the opening. The deck is the street line;
