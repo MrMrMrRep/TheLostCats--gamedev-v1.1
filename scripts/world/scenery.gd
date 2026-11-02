@@ -47,6 +47,7 @@ const FAR_WINDOW := Color(0.85, 0.58, 0.28, 0.55)   # lit windows in the hazy di
 const NIGHT_SKYLINE := Color(0.5, 0.52, 0.62)      # the skyline's shade at full night (silhouettes, not glowing)
 
 var _glow: NightGlow                        # windows lit at night (game only)
+var _win := Vector2(-INF, INF)              # local x range drawn last: only what's near the camera (ViewWindow)
 
 
 func _ready() -> void:
@@ -123,9 +124,12 @@ func _process(delta: float) -> void:
 			elif c[0] < _x0():
 				c[0] = _local(map_width) + 320.0
 		queue_redraw()                      # rotors / sails / cars move
+	elif ViewWindow.stale(self, _win):      # the rest is still: redraw when the camera nears the drawn range's edge
+		queue_redraw()
 
 
 func _draw() -> void:
+	_win = ViewWindow.range_for(self)
 	if _glow:
 		_glow.clear()
 	var rng := RandomNumberGenerator.new()
@@ -306,23 +310,29 @@ func _draw_back_street(rng: RandomNumberGenerator) -> void:
 		elif _in_town(x) and _skipped(x):
 			x += 26.0
 		elif _in_town(x):
+			# (Every random number is drawn as before, so the street stays the
+			# same; only the drawing is left out away from the camera.)
 			var w := float(rng.randi_range(22, 30))
 			var h := float(rng.randi_range(46, 72))
 			var c: Color = p.FACADES[rng.randi_range(0, p.FACADES.size() - 1)].lerp(p.HAZE, 0.5)
 			var dark := c.darkened(0.18)
-			draw_rect(Rect2(x, base - h, w, h + 14), c)
-			draw_rect(Rect2(x + w - 2, base - h, 2, h + 14), dark)          # shade on the right
-			match rng.randi_range(0, 3):                                     # gable silhouettes
-				0:
-					draw_rect(Rect2(x + w * 0.15, base - h - 5, w * 0.7, 5), c)
-					draw_rect(Rect2(x + w * 0.3, base - h - 10, w * 0.4, 5), c)
-				1:
-					WorldPalette.triangle(self, x + 2, base - h, w - 4, 9, c)
-				2:
-					WorldPalette.triangle(self, x - 1, base - h, w + 2, 8, p.ROOF.lerp(p.HAZE, 0.55))
-				_:
-					draw_rect(Rect2(x - 1, base - h - 2, w + 2, 2), p.TRIM.lerp(p.HAZE, 0.5))
-			if rng.randf() < 0.4:                                            # chimney
+			var vis := ViewWindow.overlaps(_win, x - 20.0, w + 40.0)
+			if vis:
+				draw_rect(Rect2(x, base - h, w, h + 14), c)
+				draw_rect(Rect2(x + w - 2, base - h, 2, h + 14), dark)      # shade on the right
+			var gable := rng.randi_range(0, 3)
+			if vis:
+				match gable:                                                 # gable silhouettes
+					0:
+						draw_rect(Rect2(x + w * 0.15, base - h - 5, w * 0.7, 5), c)
+						draw_rect(Rect2(x + w * 0.3, base - h - 10, w * 0.4, 5), c)
+					1:
+						WorldPalette.triangle(self, x + 2, base - h, w - 4, 9, c)
+					2:
+						WorldPalette.triangle(self, x - 1, base - h, w + 2, 8, p.ROOF.lerp(p.HAZE, 0.55))
+					_:
+						draw_rect(Rect2(x - 1, base - h - 2, w + 2, 2), p.TRIM.lerp(p.HAZE, 0.5))
+			if rng.randf() < 0.4 and vis:                                    # chimney
 				draw_rect(Rect2(x + w * 0.7, base - h - 9, 3, 7), dark)
 			var cols := 3 if w >= 27 else 2
 			var step := (w - 4) / cols
@@ -331,26 +341,33 @@ func _draw_back_street(rng: RandomNumberGenerator) -> void:
 					var wx := x + 3 + k * step + step / 2 - 1.5
 					var wy := base - h + 7 + r * 11
 					var lit := rng.randf() < 0.1
+					if not vis:
+						continue
 					draw_rect(Rect2(wx, wy, 3, 5), (p.LIT if lit else p.GLASS).lerp(p.HAZE, 0.45))
 					if _glow:
 						_glow.add_window(Rect2(wx, wy, 3, 5), NightGlow.window_threshold(wx, wy, lit), FAR_WINDOW)
 					draw_rect(Rect2(wx - 0.5, wy + 5, 4, 1), p.TRIM.lerp(p.HAZE, 0.55))
-			if rng.randf() < 0.35:
+			if rng.randf() < 0.35 and vis:
 				WorldPalette.tree(self, x + w, base, 12, 0.35)
 			x += w
 		else:
 			if rng.randf() < 0.55:
-				WorldPalette.tree(self, x, base, rng.randi_range(9, 14), 0.3)
+				var size := rng.randi_range(9, 14)
+				if ViewWindow.overlaps(_win, x - 20.0, 40.0):
+					WorldPalette.tree(self, x, base, size, 0.3)
 			x += rng.randf_range(30, 70)
 
 
 ## A flat or a warehouse behind the outskirts street; returns its width.
 func _outskirt_building(rng: RandomNumberGenerator, x: float, base: float) -> float:
 	var p := WorldPalette
+	var vis := ViewWindow.overlaps(_win, x - 20.0, 150.0)
 	if rng.randf() < 0.45:                  # gallery flat
 		var w := rng.randf_range(70, 110)
 		var h := rng.randf_range(50, 70)
 		var c := WorldPalette.W3.lerp(p.HAZE, 0.45)
+		if not vis:
+			return w + 18
 		draw_rect(Rect2(x, base - h, w, h + 14), c)
 		var y := base - h + 6
 		while y < base - 4:
@@ -367,6 +384,8 @@ func _outskirt_building(rng: RandomNumberGenerator, x: float, base: float) -> fl
 	var w := rng.randf_range(60, 100)       # warehouse with a shed roof
 	var h := rng.randf_range(24, 36)
 	var c: Color = [WorldPalette.R2, WorldPalette.R2, WorldPalette.W2][rng.randi_range(0, 2)].lerp(p.HAZE, 0.45)
+	if not vis:
+		return w + rng.randf_range(8, 30)
 	draw_rect(Rect2(x, base - h, w, h + 14), c)
 	for k in int(w / 6):
 		draw_rect(Rect2(x + k * 6, base - h, 1, h), c.darkened(0.1))
@@ -559,7 +578,7 @@ func _v3_far() -> void:
 		var w := r.randf_range(10, 40)
 		var th := r.randf_range(2, 7)
 		var far := r.randf() < 0.15
-		if _in_spans(spans, x):
+		if _in_spans(spans, x) and ViewWindow.overlaps(_win, x, w):
 			if far:
 				draw_rect(Rect2(x * 2.0, (horizon - 7) * 2.0, 24, 14), WorldPalette.T5)
 				draw_rect(Rect2(x * 2.0 - 4, (horizon - 9) * 2.0, 32, 4), WorldPalette.T5)
@@ -571,6 +590,8 @@ func _v3_far() -> void:
 	# Turbines: tapered masts, a nacelle, three turning blades.
 	var t := Time.get_ticks_msec() / 1000.0
 	for tx: float in _turbines:
+		if not ViewWindow.overlaps(_win, tx - 50.0, 100.0):
+			continue
 		var bx := tx * 2.0
 		var by := horizon * 2.0
 		var h := 92.0
@@ -592,7 +613,7 @@ func _v3_far() -> void:
 	for sp in spans:
 		draw_rect(Rect2(sp.x, horizon + 4, sp.y - sp.x, 3), WorldPalette.R0)
 	for c in _cars:
-		if _in_spans(spans, c[0]):
+		if _in_spans(spans, c[0]) and ViewWindow.overlaps(_win, c[0], 6.0):
 			draw_rect(Rect2(c[0], horizon + 3, 6, 2), c[2])
 
 
@@ -608,31 +629,39 @@ func _v3_near(rng: RandomNumberGenerator) -> void:
 			if roll < 0.7:
 				for k in rng.randi_range(2, 5):
 					var herd := "sheep" if roll < 0.15 else ("cow1" if rng.randf() < 0.3 else "cow0")
-					v3_sprite(herd).draw(self, Vector2(x + k * rng.randf_range(16, 24), base + rng.randi_range(-2, 1)))
+					_sprite(v3_sprite(herd), Vector2(x + k * rng.randf_range(16, 24), base + rng.randi_range(-2, 1)))
 			elif roll < 0.8:
-				v3_sprite(trees[rng.randi_range(0, 2)]).draw(self, Vector2(x, base))
+				_sprite(v3_sprite(trees[rng.randi_range(0, 2)]), Vector2(x, base))
 		elif not _in_town(x):
 			var roll := rng.randf()
 			if roll < 0.25 and not _quiet(x):
 				var fx := x
 				if fx + 145.0 > _local(farm_clear.x) and fx < _local(farm_clear.y):
 					fx = _local(farm_clear.x) - 150.0
-				v3_sprite("farm").draw(self, Vector2(fx + 70.0, base))
+				_sprite(v3_sprite("farm"), Vector2(fx + 70.0, base))
 			elif roll < 0.4 and not _quiet(x):
 				for k in rng.randi_range(5, 8):
-					v3_sprite("poplar%d" % rng.randi_range(0, 2)).draw(self, Vector2(x + k * 11.0, base - 2))
+					_sprite(v3_sprite("poplar%d" % rng.randi_range(0, 2)), Vector2(x + k * 11.0, base - 2))
 			elif roll < 0.65:
 				for k in rng.randi_range(2, 4):
-					v3_sprite("cow1" if rng.randf() < 0.3 else "cow0").draw(self, Vector2(x + k * 20, base))
+					_sprite(v3_sprite("cow1" if rng.randf() < 0.3 else "cow0"), Vector2(x + k * 20, base))
 			else:
-				v3_sprite(trees[rng.randi_range(0, 2)]).draw(self, Vector2(x, base))
+				_sprite(v3_sprite(trees[rng.randi_range(0, 2)]), Vector2(x, base))
 		x += rng.randf_range(90, 160)
 	var mill := v3_sprite("mill")
 	for mx: float in _mills:
 		if _quiet(mx):
 			continue
+		if not ViewWindow.overlaps(_win, mx - 80.0, 160.0):
+			continue
 		mill.draw(self, Vector2(mx, base + 2))
 		_v3_sails(Vector2(mx, base + 2 - 97.0), t)
+
+
+## A V3 sprite at `at` (local px), when it's near the camera (ViewWindow).
+func _sprite(art: V3Art, at: Vector2) -> void:
+	if ViewWindow.overlaps(_win, at.x - 120.0, 240.0):
+		art.draw(self, at)
 
 
 ## The mill's four lattice sails, turning (world px; two carry cloth).
@@ -660,5 +689,6 @@ func _v3_foreground(rng: RandomNumberGenerator) -> void:
 	while x < end:
 		rng.randf_range(80, 120)
 		rng.randf_range(-8, 8)
-		tree.draw(self, Vector2(x, STREET_Y + 150.0), 1.0)
+		if ViewWindow.overlaps(_win, x - 200.0, 400.0):
+			tree.draw(self, Vector2(x, STREET_Y + 150.0), 1.0)
 		x += rng.randf_range(700, 1300)
